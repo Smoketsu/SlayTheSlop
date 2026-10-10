@@ -3,8 +3,8 @@ id: 004
 title: Validate every data file against the schema
 lane: tools
 owner: B
-status: open
-branch:
+status: in_progress
+branch: b/004-data-validation-tests
 depends_on: [002]
 blocked_on: []
 files:
@@ -35,3 +35,5 @@ instead of failing at runtime.
 - Agent A's `tests/core/test_constants.gd` already covers `data/constants.json`.
 
 ## Log
+
+- 2026-10-10 B: Claimed.
