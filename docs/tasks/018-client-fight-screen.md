@@ -3,7 +3,7 @@ id: 018
 title: Placeholder fight screen - render state, send requests, animate events
 lane: client
 owner: B
-status: in_review
+status: done
 branch: b/018-client-fight-screen
 depends_on: [002]
 blocked_on: []
@@ -84,3 +84,6 @@ messages"; CLAUDE.md "The rules core is pure" and "Writing and content rules"; `
     `tools/data_files.gd` and `Ruleset.build()`. In an exported build, see task 004's note on listing
     `res://data`.
   - Intents show the icon key only, no damage number (the task says to ask first).
+- 2026-10-10 B: Merged in #18 (Agent A reviewed: 93 passed). Status `done`. Follow-up when task 007
+  lands: the real core emits events the fake does not (`intent_set`, `deck_shuffled`, `enemy_acted`
+  and more, all already in `event.gd`); give each a placeholder animation and swap the `Gateway` line.
