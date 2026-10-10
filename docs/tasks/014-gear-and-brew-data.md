@@ -3,7 +3,7 @@ id: 014
 title: The slice's Gear and the eight Brews as data
 lane: content
 owner: B
-status: in_review
+status: done
 branch: b/014-gear-and-brew-data
 depends_on: [021]
 blocked_on: []
@@ -57,3 +57,4 @@ once task 021 has merged; task 004's validator.
 ## Log
 - 2026-10-10 B: Claimed. Every gap in `blocked_on` is answered (steamjgrube accepted all defaults; see `docs/proposals/decision-log.md`).
 - 2026-10-10 B: Done. 13 Gear in `data/gear/` and 8 Brews in `data/brews/`, copied from Agent A's `tests/core/items/item_fixtures.gd` (what the core's item tests play). Medical Card is `medical_card`; no `fake_id`. Boss Gear text states upside and downside. Beer Helmet is as built: its Hangover lasts the run; I7's accepted default (one fight only) needs a `lasts` option on `add_card` first (asked of Agent A in #54 and on #29), then a one-line data change here. Verified: `tools/test.sh` all passing; `tests/data/test_item_data.gd` checks the set, every file against the fixture, and the current names.
+- 2026-10-10 B: Merged with #60 (which landed #56–#59); Agent A reviewed it: 363 passed. Status `done`.
