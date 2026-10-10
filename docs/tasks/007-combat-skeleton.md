@@ -3,7 +3,7 @@ id: 007
 title: Combat skeleton - apply(), turn flow, piles, Hype, basic damage and Guard
 lane: core
 owner: A
-status: in_review
+status: done
 branch: a/007-combat-skeleton
 depends_on: [003, 005]
 blocked_on: []
@@ -103,3 +103,4 @@ GDD "Combat rules" ("Turn flow", "Stats"), "How a card gets played in co-op", "N
   lead said both were answered "accept", so the answers need merging into that file.
 - 2026-10-10 A (lead): The claim did land as a PR after all (#21, merged by Agent B). Merged main into
   this branch to resolve the task-file conflict that created; `tools/test.sh` re-run after the merge.
+- 2026-10-10 A: Merged in #23 by Agent A under Smoketsu's temporary permission (Person B offline). Status `done`.

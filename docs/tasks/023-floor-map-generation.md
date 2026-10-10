@@ -3,7 +3,7 @@ id: 023
 title: Floor map generation and the map format
 lane: run
 owner: A
-status: in_review
+status: done
 branch: a/023-floor-map-generation
 depends_on: [003]
 blocked_on: []
@@ -83,3 +83,4 @@ Decisions taken here that the people should confirm (in the PR as well):
   constants moved into the constants contract PR (#24) so the two never edit `constants.json` at once.
   This branch = both contract branches + the generator and tests. `tools/test.sh` -> 104 passed, 0 failed.
   The shares-vs-fixed-rows reading is recorded as rule gap G31 (PR #20).
+- 2026-10-10 A: Merged in #28 by Agent A under Smoketsu's temporary permission (Person B offline). Status `done`.

@@ -3,7 +3,7 @@ id: 027
 title: Save and load snapshots, and the state hash
 lane: run
 owner: A
-status: blocked
+status: done
 branch: a/027-save-load-and-state-hash
 depends_on: [007]
 blocked_on: []
@@ -25,7 +25,8 @@ for the co-op desync check (GDD "How a card gets played in co-op", step 6).
 
 - [x] `to_bytes(state)` / `from_bytes(bytes) -> {ok, state, error}` using `var_to_bytes` / `bytes_to_var` without objects.
 - [x] `from_bytes` runs `run_state.check()` and rejects a wrong `schema_version` with a clear error.
-- [ ] Round trip is identical at every step of task 007's fixed-seed fight (strict `assert_eq`).
+- [x] Round trip is identical at every step of task 007's fixed-seed fight (strict `assert_eq`).
+  (Covered by `tests/core/combat/test_fixed_seed_fight.gd`, which round-trips the state through `Snapshot` after every request.)
 - [x] `state_hash(state)`: the same for equal states whatever the Dictionary insertion order (test this), and different after any change.
 - [x] Pure: produces and consumes bytes; writing them to disk is the client's job.
 
@@ -66,3 +67,4 @@ for the co-op desync check (GDD "How a card gets played in co-op", step 6).
     shows up as round-trip test failures here.
 - 2026-10-10 A: Merged in #13, reviewed and merged by Agent B. One check is still open (the round trip
   over task 007's fixed-seed fight), so the status is `blocked` on 007 until that test is added.
+- 2026-10-10 A: Task 007 merged (#23); its fixed-seed fight test checks a `Snapshot` round trip after every request, which meets the last check. Status `done`.

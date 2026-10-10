@@ -3,7 +3,7 @@ id: 011
 title: Enemy intents, move choice and targeting
 lane: core
 owner: A
-status: in_review
+status: done
 branch: a/011-enemy-intents-and-ai
 depends_on: [007]
 blocked_on: []
@@ -98,3 +98,4 @@ GDD "Turn flow" steps 1 and 5, "Enemies" intro, "Difficulty scaling" (targets pe
 - 2026-10-10 A (lead): Split for review. Schema changes are contract PR `a/011-contract`; MULTI_TARGET_COUNT
   moved into the constants contract PR (#24). This branch = task 007 (#23) + both contract branches +
   the implementation. `tools/test.sh` -> 152 passed, 0 failed.
+- 2026-10-10 A: Merged in #31 (via #33) by Agent A under Smoketsu's temporary permission (Person B offline). Status `done`.
