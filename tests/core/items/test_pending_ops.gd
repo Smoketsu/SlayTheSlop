@@ -76,23 +76,23 @@ func test_beer_helmet_hangover() -> void:
 	assert_eq(created.size(), 1)
 	assert_eq([created[0]["def_id"], created[0]["to"]], ["junk_hangover", "draw_pile"])
 	assert_eq(started["state"]["dudes"][0]["hype_per_turn"], rules["constants"]["BASE_HYPE"] + 1)
-	# Task 033 (I7): the Hangover lasts this fight only, so it is not in the run deck.
-	assert_false(started["state"]["dudes"][0]["deck"].has(created[0]["card_uid"]), "not in the run deck")
 
 
-## Beer Helmet over two fights (I7, task 033): each fight starts with one new Hangover, which leaves
-## when the fight ends, so the run deck never grows.
-func test_beer_helmet_hangover_lasts_one_fight() -> void:
+## Beer Helmet as I7's accepted answer has it (TEST_GEAR test_fight_only_helmet, add_card with lasts
+## "fight"; task 033), over two fights: each fight starts with one new Hangover, which is not in the
+## run deck and leaves when the fight ends, so the run deck never grows.
+func test_fight_only_hangover_lasts_one_fight() -> void:
 	# rules: the item ruleset.
 	var rules: Dictionary = ItemFixtures.ruleset()
 	# started: the first fight with the helmet.
-	var started: Dictionary = ItemFixtures.fight(rules, SEED, ["beer_helmet"], [], ["test_dummy"])
+	var started: Dictionary = ItemFixtures.fight(rules, SEED, ["test_fight_only_helmet"], [], ["test_dummy"])
 	# state: the first fight, turn 1.
 	var state: Dictionary = started["state"]
 	# deck: the run deck at the first fight's start.
 	var deck: Array = state["dudes"][0]["deck"].duplicate()
 	# first: the first fight's Hangover.
 	var first: String = ItemFixtures.of_type(started["events"], "card_created")[0]["card_uid"]
+	assert_false(deck.has(first), "not in the run deck")
 	state["combat"]["enemies"][0]["hp"] = 1
 	# jab: the Jab that lands the last hit (test setup; it joins the run deck).
 	var jab: String = Fixtures.give(state, 0, "neutral_test_jab")

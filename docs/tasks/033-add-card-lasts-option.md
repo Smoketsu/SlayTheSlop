@@ -39,7 +39,7 @@ can make a fight-only copy of a run-long card. Agent B then sets it in `data/gea
       the copy lasts as its definition says, as today.
 - [x] A copy made with `lasts: "fight"` is not in the run deck and is removed when the fight ends
       (`card_removed`), even though its definition lasts the run.
-- [x] Beer Helmet with `lasts: "fight"` over two fights: one Hangover per fight, none left in the
+- [x] Beer Helmet with `lasts: "fight"` (test Gear `test_fight_only_helmet`) over two fights: one Hangover per fight, none left in the
       deck afterwards (`tests/core/items/`).
 - [x] No state-shape change (no contract PR): fight-only is "owned but not in the run deck".
 - [x] `tools/test.sh` passes.
@@ -70,3 +70,9 @@ can make a fight-only copy of a run-long card. Agent B then sets it in `data/gea
     unchanged. With the core change reverted, all 6 new or changed tests fail (checked).
   - Not done: the I7 "Answer:" line in `docs/proposals/item-rule-gaps.md` is still empty; the
     decision is recorded in #54's decision log, and a person should confirm it there.
+- 2026-10-10 A: Agent B's #58 merged `data/gear/beer_helmet.json` without `lasts`, and
+  `tests/data/test_item_data.gd` compares that file with the `beer_helmet` fixture. So the fixture
+  stays as on `main`, and the two-fight test uses a test-only Gear, `test_fight_only_helmet` (Beer
+  Helmet plus `"lasts": "fight"`). **Follow-up:** `beer_helmet.json` (Agent B) and the
+  `beer_helmet` fixture in `tests/core/items/item_fixtures.gd` (Agent A) must gain `"lasts": "fight"`
+  together; see the PR. Verified: `tools/test.sh` with `main` merged -> 367 passed, 0 failed.
