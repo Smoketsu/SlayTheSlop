@@ -100,4 +100,5 @@ option on the core's `add_card` op (Agent A's lane) and then a data change in `b
 | Decision | What was decided | By | Revisit? |
 | --- | --- | --- | --- |
 | G14: the 30 cards | 30 = Tom's 14 GDD cards + **16 new Tom cards**. The new cards come to both people as a proposal first (task 012). This replaces steamjgrube's earlier "ditch the cards" (closed PR #2) | steamjgrube, 2026-10-10 ("we need those 16 new tom cards back") | |
+| Enemy placeholders (task 010) | Values the GDD does not give, kept as Agent A's fixtures built them: Foam Slime hits for 3; Goblin Shot-Caller's ordinary move deals 10; "Checks ID" is the Goblin Bouncer's hit (not its Guard move); the Skeleton Intern's Paperwork turn also hits; Boo-zer's Faded cycle starts as in the fixture | default (steamjgrube: accept all defaults) | |
 | G29: Shake and Protein Shake | Baileys shows each Brew's own name and effect; "Shake" is only the shop's label. The Brew "Protein Shake" keeps its name for now | default | |
