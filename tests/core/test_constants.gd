@@ -63,3 +63,43 @@ func test_whole_numbers_load_as_ints() -> void:
 	for name: String in ["BASE_HYPE", "BASE_DRAW", "ICK_BASE_NORMAL", "BRO_METER_MAX"]:
 		if constants.has(name):
 			assert_eq(typeof(constants[name]["value"]), TYPE_INT, "%s must load as an int" % name)
+
+
+## No constant name appears twice in the file. Godot's JSON parser silently keeps only the last of
+## two equal keys, so a duplicate (for example from a git auto-merge that added the same constant in
+## two places) would never be noticed by the other tests. Checked on the raw text.
+func test_no_duplicate_constant_names() -> void:
+	# names: every top-level key in the raw text, in file order. Top-level keys are the lines indented
+	# by exactly two spaces that open an object or a string value.
+	var names: Array[String] = duplicate_top_level_keys(FileAccess.get_file_as_string(PATH))
+	assert_eq(names, [] as Array[String], "constant names defined more than once")
+
+
+## The checker finds a key written twice and ignores nested keys with the same name.
+func test_duplicate_checker_finds_repeats() -> void:
+	# text: a small file with A twice at top level and "value" repeated only inside objects.
+	var text: String = "{\n  \"A\": {\n    \"value\": 1\n  },\n  \"B\": {\n    \"value\": 2\n  },\n  \"A\": {\n    \"value\": 3\n  }\n}\n"
+	assert_eq(duplicate_top_level_keys(text), ["A"] as Array[String])
+
+
+## Returns, in first-repeat order, each top-level key of a two-space-indented JSON object that
+## appears more than once. Static so other tests can reuse it.
+## text: the raw JSON text, formatted with two-space indentation (as data/constants.json is).
+static func duplicate_top_level_keys(text: String) -> Array[String]:
+	# key_line: a line that starts a top-level key: exactly two spaces, then a quoted key and a colon.
+	var key_line: RegEx = RegEx.create_from_string("^  \"([^\"]+)\"\\s*:")
+	# seen: keys found so far.
+	var seen: Dictionary = {}
+	# repeats: keys found a second time, each listed once.
+	var repeats: Array[String] = []
+	for line: String in text.split("\n"):
+		# found: the match on this line, or null when it does not start a top-level key.
+		var found: RegExMatch = key_line.search(line)
+		if found == null:
+			continue
+		# key: the key's text.
+		var key: String = found.get_string(1)
+		if seen.has(key) and not repeats.has(key):
+			repeats.append(key)
+		seen[key] = true
+	return repeats
