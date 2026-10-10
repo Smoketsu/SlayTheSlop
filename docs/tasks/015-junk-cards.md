@@ -3,7 +3,7 @@ id: 015
 title: Junk card rules - Hangover, Regret, Bedbugs, Paperwork, Detention, Burn
 lane: core
 owner: A
-status: in_review
+status: done
 branch: a/015-junk-cards
 depends_on: [013]
 blocked_on: []
@@ -99,3 +99,6 @@ Golem rows, which add Junk.
   now draws through `CardTriggers.draw_in_place`, so `on_draw` also runs on mid-turn draws.
   `Ops.make_context` carries both `ruleset` (013) and `cards` (015) and unwraps an op context passed
   as a ruleset. `use_bro_move` passes `ruleset` to `finish_if_decided_in_place`.
+- 2026-10-10 A: Merged with the whole stack in #50 (Agent B approved; 341 passed on `main`). Every
+  rule gap it built on was accepted by steamjgrube in that review. Status `done`; open items, if any,
+  are listed above (real data from Agent B's tasks).
