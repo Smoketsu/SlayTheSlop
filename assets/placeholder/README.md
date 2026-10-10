@@ -33,6 +33,18 @@ Each file is named by the content id it shows (`data/dudes/<id>.json` or `data/e
 | `goblin_king_chad.png` | `goblin_king_chad` | The slice's boss |
 | `rat_king.png` | none yet | The GDD's floor 1 boss "The Rat King of the Dumpster", which is not in the slice's data |
 
+## Backgrounds (`backgrounds/`)
+
+Fight-room backgrounds, 1672 × 941 px (about 16:9). They are kept as the WebP files that were provided, unchanged; Godot imports WebP directly. Like the characters, Smoketsu provided them on 2026-10-10 as placeholders, from the same ChatGPT set and on the same terms.
+
+| File | Used for |
+| --- | --- |
+| `basement.webp` | Floor 1, The Basement: the default room for its Brawls, Rivals and other fights |
+| `goblin_king_chad.webp` | Goblin King Chad's throne room (the slice's floor 1 boss) |
+| `rat_king.webp` | The Rat King of the Dumpster's lair. This boss is in the GDD but not in the slice's data |
+
+Each boss background is named by the boss's content id, matching `characters/`. A screen can use `backgrounds/<boss id>.webp` when the fight has that boss and fall back to `backgrounds/basement.webp` otherwise.
+
 ## Re-cutting
 
 ```
