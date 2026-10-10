@@ -20,7 +20,8 @@ const CombatState := preload("res://core/schema/combat_state.gd")
 ## save from an older shape can be recognized. Saves are not migrated during the solo slice.
 ## 2: task 011 added enemy_state.move_history. 3: task 009 added enemy_state.grossed_out_skips.
 ## 4: task 013 added dude_state.powers and dude_state.thorns.
-const SCHEMA_VERSION: int = 4
+## 5: task 021 added combat_state.fight_stat_changes and combat_state.pass_out_saves.
+const SCHEMA_VERSION: int = 5
 
 ## Required fields and their types. Comments give meaning, unit and range.
 const SPEC := {

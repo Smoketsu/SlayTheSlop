@@ -28,7 +28,9 @@ const MAX_REQUESTS: int = 400
 const RECORDED: Array = ["won", 8, 32]
 
 ## Snapshot.state_hash of the final state, recorded on Godot 4.7.2-stable.
-const FINAL_HASH: String = "9e2ad775bd3b719d8a5c2042dfed6300ae05638b5530a3a4a9ab71f4a7dbd56b"
+## Re-recorded by task 021: SCHEMA_VERSION 5 and the two new combat fields change the bytes; the
+## fight itself is the same.
+const FINAL_HASH: String = "1ee1265611d22115930eb6144feff0563978d28a18b3ef4f77f54226d4d81af8"
 
 
 ## Returns the bot's next request for p1 in this state (see the file header).
