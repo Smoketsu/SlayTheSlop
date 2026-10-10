@@ -94,3 +94,6 @@ GDD "Turn flow" steps 1 and 5, "Enemies" intro, "Difficulty scaling" (targets pe
   6. **The "2" in "single-target attacks hit 2 Dudes"** is the new constant `MULTI_TARGET_COUNT`.
      The "three in a row" limit is a code constant, `MAX_REPEATS` = 2, treated as a rule rather
      than a tuning number. Either could move into `constants.json` if the people prefer.
+- 2026-10-10 A (lead): Split for review. Schema changes are contract PR `a/011-contract`; MULTI_TARGET_COUNT
+  moved into the constants contract PR (#24). This branch = task 007 (#23) + both contract branches +
+  the implementation. `tools/test.sh` -> 152 passed, 0 failed.
