@@ -11,6 +11,7 @@ const Event := preload("res://core/schema/event.gd")
 const GearTriggers := preload("res://core/combat/gear_triggers.gd")
 const Fixtures := preload("res://tests/core/combat/fixtures.gd")
 const ItemFixtures := preload("res://tests/core/items/item_fixtures.gd")
+const Fight := preload("res://core/combat/fight.gd")
 
 ## Seed for every fight in this file. Any value works; fixed so every run is the same.
 const SEED: int = 21023
@@ -75,3 +76,47 @@ func test_beer_helmet_hangover() -> void:
 	assert_eq(created.size(), 1)
 	assert_eq([created[0]["def_id"], created[0]["to"]], ["junk_hangover", "draw_pile"])
 	assert_eq(started["state"]["dudes"][0]["hype_per_turn"], rules["constants"]["BASE_HYPE"] + 1)
+	# Task 033 (I7): the Hangover lasts this fight only, so it is not in the run deck.
+	assert_false(started["state"]["dudes"][0]["deck"].has(created[0]["card_uid"]), "not in the run deck")
+
+
+## Beer Helmet over two fights (I7, task 033): each fight starts with one new Hangover, which leaves
+## when the fight ends, so the run deck never grows.
+func test_beer_helmet_hangover_lasts_one_fight() -> void:
+	# rules: the item ruleset.
+	var rules: Dictionary = ItemFixtures.ruleset()
+	# started: the first fight with the helmet.
+	var started: Dictionary = ItemFixtures.fight(rules, SEED, ["beer_helmet"], [], ["test_dummy"])
+	# state: the first fight, turn 1.
+	var state: Dictionary = started["state"]
+	# deck: the run deck at the first fight's start.
+	var deck: Array = state["dudes"][0]["deck"].duplicate()
+	# first: the first fight's Hangover.
+	var first: String = ItemFixtures.of_type(started["events"], "card_created")[0]["card_uid"]
+	state["combat"]["enemies"][0]["hp"] = 1
+	# jab: the Jab that lands the last hit (test setup; it joins the run deck).
+	var jab: String = Fixtures.give(state, 0, "neutral_test_jab")
+	# won: the first fight won with the 1-HP enemy and the Jab.
+	var won: Dictionary = Core.apply(rules, state, Fixtures.play("p1", 0, jab, state["combat"]["enemies"][0]["uid"]))
+	assert_eq(won["state"]["combat"]["result"], "won")
+	assert_true(won["events"].has(Event.make("card_removed", {"player_id": "p1", "card_uid": first,
+		"from": _pile_of(state["dudes"][0], first)})), "the first Hangover leaves when the fight ends")
+	assert_eq(won["state"]["dudes"][0]["deck"], deck + [jab], "no Hangover in the run deck")
+	# next: the second fight.
+	var next: Dictionary = Fight.start_fight(rules, won["state"], ["test_dummy"])
+	assert_eq(next["error"], "")
+	# second: the second fight's card_created events.
+	var second: Array = ItemFixtures.of_type(next["events"], "card_created")
+	assert_eq(second.size(), 1, "one new Hangover")
+	assert_ne(second[0]["card_uid"], first)
+	assert_eq(next["state"]["dudes"][0]["cards"].values().filter(
+		func(card: Dictionary) -> bool: return card["def_id"] == "junk_hangover").size(), 1, "only this fight's Hangover")
+
+
+## Returns the pile ("draw_pile", "hand", "discard_pile" or "tapped_pile") holding a card, or "deck".
+## dude: a Dude's state. uid: a card_uid.
+func _pile_of(dude: Dictionary, uid: String) -> String:
+	for pile: String in ["draw_pile", "hand", "discard_pile", "tapped_pile"]:
+		if dude[pile].has(uid):
+			return pile
+	return "deck"

@@ -119,6 +119,7 @@ static func own(state: Dictionary, player_index: int, def_id: String, pile: Stri
 		dude["draw_pile"].insert(0, uid)
 	else:
 		dude[pile].append(uid)
-	if JUNK.get(def_id, {}).get("lasts", "run") == "run":
-		dude["deck"].append(uid)
+	# Task 033: give() already put the copy in the run deck; a fight-only copy leaves it, as add_card does.
+	if JUNK.get(def_id, {}).get("lasts", "run") != "run":
+		dude["deck"].erase(uid)
 	return uid
