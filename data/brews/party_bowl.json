@@ -1,0 +1,13 @@
+{
+  "id": "party_bowl",
+  "name": "Party Bowl",
+  "rarity": "uncommon",
+  "text": "Every player heals 8 HP.",
+  "target": "all_dudes",
+  "effects": [
+    {
+      "op": "heal",
+      "amount": 8
+    }
+  ]
+}

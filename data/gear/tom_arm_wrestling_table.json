@@ -1,0 +1,22 @@
+{
+  "id": "tom_arm_wrestling_table",
+  "name": "Arm Wrestling Table",
+  "owner": "tom",
+  "rarity": "uncommon",
+  "text": "Every enemy starts the fight with 1 Broken Arm.",
+  "stats": {},
+  "triggers": [
+    {
+      "when": "fight_start",
+      "target": "all_enemies",
+      "effects": [
+        {
+          "op": "apply_status",
+          "status": "broken_arm",
+          "stacks": 1
+        }
+      ]
+    }
+  ],
+  "modifiers": []
+}

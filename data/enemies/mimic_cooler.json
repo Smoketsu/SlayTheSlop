@@ -1,0 +1,23 @@
+{
+  "id": "mimic_cooler",
+  "name": "Mimic Cooler",
+  "floor": 1,
+  "tier": "normal",
+  "max_hp": 30,
+  "arm_count": 0,
+  "drops_brews": 1,
+  "moves": [
+    {
+      "id": "chomp",
+      "weight": 1,
+      "intent": "attack",
+      "effects": [
+        {
+          "op": "damage",
+          "amount": 12
+        }
+      ]
+    }
+  ],
+  "text": "Disguised as a Loot node. Bites for 12. Always drops a Brew"
+}

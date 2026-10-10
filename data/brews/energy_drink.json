@@ -1,0 +1,13 @@
+{
+  "id": "energy_drink",
+  "name": "Energy Drink",
+  "rarity": "common",
+  "text": "Draw 3 cards.",
+  "target": "self",
+  "effects": [
+    {
+      "op": "draw",
+      "amount": 3
+    }
+  ]
+}

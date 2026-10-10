@@ -3,10 +3,10 @@ id: 012
 title: Proposal - Tom's new slice cards and an upgrade for every Tom card
 lane: content
 owner: B
-status: open
-branch:
+status: in_review
+branch: b/012-tom-cards-proposal
 depends_on: [006]
-blocked_on: [G14, G15]
+blocked_on: []
 files:
   - docs/proposals/tom-slice-cards.md
   - docs/tasks/          # only for the follow-up tasks, after both people have answered
@@ -53,3 +53,13 @@ files and `core/ops/README.md` (from task 007), so the proposal knows which ops 
   files, and, if new ops were approved, a core task for Agent A with the exact ops and fields.
 
 ## Log
+- 2026-10-10 B: Claimed. Every gap in `blocked_on` is answered (steamjgrube accepted all defaults; see `docs/proposals/decision-log.md`). Starts once task 006 merges (depends_on).
+- 2026-10-10 B: Proposal written: `docs/proposals/tom-slice-cards.md`, waiting for both people's
+  answers. 16 new cards (6 common, 6 uncommon, 4 rare), an upgrade for all 30 Tom cards (Arm Bar
+  exactly the GDD's), pool counts by rarity, type and build, an Assist count (1 of 30), a joke line
+  per card, and three requests for Agent A (`ally` targets, a `self_damaged` Power trigger,
+  `damage_from_missing_hp`). 13 of 16 cards use only existing ops. Started from the draft in closed
+  PR #2, redone against the ops task 013 built. Both greps in the checks print nothing. Not ticked:
+  "`git diff --name-only main` lists only the proposal" holds once 006 (#59) merges, since this
+  branch stacks on it. After the answers: a content task (even id ≥ 028) for the card files, and a
+  core task for any accepted new op.

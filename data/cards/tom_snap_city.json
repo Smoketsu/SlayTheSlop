@@ -1,0 +1,29 @@
+{
+  "id": "tom_snap_city",
+  "name": "Snap City",
+  "owner": "tom",
+  "type": "attack",
+  "rarity": "uncommon",
+  "cost": 2,
+  "target": "enemy",
+  "effects": [
+    {
+      "op": "damage",
+      "amount": 14
+    },
+    {
+      "op": "apply_status",
+      "status": "broken_arm",
+      "stacks": 1
+    },
+    {
+      "op": "gain_hype",
+      "amount": 1,
+      "if": "target_now_armless"
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Deal 14 damage. Break 1 arm. If the target is now Armless, gain 1 Hype"
+}

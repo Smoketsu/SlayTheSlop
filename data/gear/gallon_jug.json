@@ -1,0 +1,12 @@
+{
+  "id": "gallon_jug",
+  "name": "Gallon Jug",
+  "owner": "general",
+  "rarity": "common",
+  "text": "+8 Max HP",
+  "stats": {
+    "max_hp": 8
+  },
+  "triggers": [],
+  "modifiers": []
+}
