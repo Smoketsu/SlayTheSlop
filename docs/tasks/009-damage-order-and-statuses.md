@@ -109,3 +109,17 @@ GDD "Damage order", "Statuses", "Tom, the Enforcer"; `data/constants.json`.
   raise `SCHEMA_VERSION`. Whichever merges second sets it to 3 and re-records the two hashes. In
   `fight.gd`, 011 will touch `stub_intent` and the enemy loop. This task's edits there are one-line
   calls marked "Task 009".
+- 2026-10-10 A: The lead reports task 011 is done on its own branch. It adds enemy `move_history`,
+  sets `SCHEMA_VERSION` to 2, removes `stub_intent`, and calls `begin_action_in_place` (the G30
+  enemy Guard reset) just before `_enemy_act_in_place`. When the branches merge:
+  - Raise `SCHEMA_VERSION` to 3, because both branches change the shape.
+  - Re-record both fixed-seed hashes.
+  - In the enemy loop, the order is: `begin_action_in_place`, then
+    `Statuses.skip_action_in_place` (which acts only if it returns false), then
+    `Statuses.after_enemy_slot_in_place`.
+  - Open question: should a Grossed Out or Armless enemy still lose its Guard? A skipped action
+    is still the start of its own action, so the suggested answer is yes, which the order above
+    gives.
+
+  Fixed the stale `core/ops/README.md` line that said enemy Guard is never reset. It now gives the
+  G30 rule. This was a docs-only change; `tools/test.sh` was re-run.

@@ -76,8 +76,9 @@ The actor gains Guard. File: `core/ops/guard.gd`.
 - **Hungover** (G4): a Hungover Dude's Guard from a card is (`amount` + Chill) × `HUNGOVER_MULT`,
   rounded down once. Brace 5 with 4 Chill while Hungover gives 6. Guard that does not come from a
   card (later: Gear, Brews) is not reduced.
-- Dudes' Guard drops to 0 at Refresh. Enemy Guard is never reset (the GDD does not say when it
-  should be; raised in task 007's log).
+- Dudes' Guard drops to 0 at Refresh. An enemy's Guard drops to 0 at the start of its own action
+  in the enemy phase (G30, answered "accept"; built by task 011). Guard an enemy gains from its move
+  therefore protects it through the players' next turn.
 - **Events:** `guard_changed` (`delta` = Guard gained, `guard` = new total), only when it changes.
 - **Enemy intents:** a move with only `guard` effects has no targets.
 
