@@ -1,0 +1,24 @@
+{
+  "id": "tom_wrist_lock",
+  "name": "Wrist Lock",
+  "owner": "tom",
+  "type": "attack",
+  "rarity": "common",
+  "cost": 1,
+  "target": "enemy",
+  "effects": [
+    {
+      "op": "damage",
+      "amount": 5
+    },
+    {
+      "op": "draw",
+      "amount": 1,
+      "if": "target_has_broken_arm"
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Deal 5 damage. If the target has a Broken Arm, draw 1 card"
+}

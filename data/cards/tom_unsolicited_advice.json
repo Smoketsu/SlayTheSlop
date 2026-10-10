@@ -1,0 +1,25 @@
+{
+  "id": "tom_unsolicited_advice",
+  "name": "Unsolicited Advice",
+  "owner": "tom",
+  "type": "skill",
+  "rarity": "common",
+  "cost": 1,
+  "target": "enemy",
+  "effects": [
+    {
+      "op": "apply_status",
+      "status": "ick",
+      "stacks": 3
+    },
+    {
+      "op": "apply_status",
+      "status": "noodle_arms",
+      "stacks": 1
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Apply 3 Ick and 1 Noodle Arms"
+}

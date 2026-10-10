@@ -1,0 +1,22 @@
+{
+  "id": "tom",
+  "name": "Tom",
+  "title": "the Enforcer",
+  "max_hp": 80,
+  "starter_deck": [
+    "tom_punch",
+    "tom_punch",
+    "tom_punch",
+    "tom_punch",
+    "tom_flex",
+    "tom_flex",
+    "tom_flex",
+    "tom_flex",
+    "tom_arm_bar",
+    "tom_well_actually"
+  ],
+  "starting_gear": [
+    "tom_unused_gym_membership"
+  ],
+  "bro_move": "tom_chest_bump"
+}

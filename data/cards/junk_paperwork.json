@@ -1,0 +1,17 @@
+{
+  "id": "junk_paperwork",
+  "name": "Paperwork",
+  "owner": "junk",
+  "type": "junk",
+  "rarity": "special",
+  "cost": 1,
+  "target": "none",
+  "effects": [],
+  "keywords": [
+    "tapped"
+  ],
+  "crunch": null,
+  "upgrade": {},
+  "lasts": "fight",
+  "text": "Costs 1 Hype. Does nothing. Tapped"
+}
