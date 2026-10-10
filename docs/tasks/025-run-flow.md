@@ -3,7 +3,7 @@ id: 025
 title: Run flow - new run, nodes, rewards, Tailgate, Baileys, Loot, Side Quests, floor end
 lane: run
 owner: A
-status: in_review
+status: done
 branch: a/025-run-flow
 depends_on: [007, 021, 023]
 blocked_on: []
@@ -119,3 +119,4 @@ G14–G22.
   `core/combat/upgrades.gd`, so `test_core_apply.gd`'s Lift case now uses a card whose upgrade cannot
   apply. `tests/core/ruleset/test_ruleset.gd` used `data/side_quests/` as its example of an unknown
   folder; it now uses `data/events/`.
+- 2026-10-10 A: Merged. #65 (constants); #64 and #66 through Agent B's #75 (run event text); the review follow-ups in #73. steamjgrube approved all of them; `main` passes `tools/test.sh` (417 passed). Gaps G54–G61 are accepted defaults (decision log, #74). Status `done`. Open: the run tests still use `tests/run/fixtures/`; switching them to `data/` waits on Side Quest data (task 016) and encounters (task 026, #76).
