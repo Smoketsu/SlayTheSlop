@@ -11,7 +11,9 @@
 ## Rules decided here (task 007's log lists them for the people to confirm):
 ##   - cost "x" is rejected as "unplayable": no op can use X yet (X cards are Cheney's, out of scope).
 ##   - A card with an op the core does not have, or with bad op fields, is "unplayable", so a card is
-##     never half played. This includes every card using apply_status until task 009.
+##     never half played. (apply_status exists since task 009, so Arm Bar and Well, Actually play.)
+##   - Task 009 (G3): damage effects on a card of type "attack" are attack damage (Swole, Noodle
+##     Arms, Exposed apply); on any other card type they are not.
 ##   - crunch true is "unplayable" (Nate only, not built). An upgraded card whose definition has a
 ##     non-empty "upgrade" is "unplayable" until upgrades are applied (Lift, run lane).
 ##   - Targets: "enemy" needs the uid of an enemy still in the fight; "all_enemies" and "none" need
@@ -25,6 +27,9 @@ extends RefCounted
 const Event := preload("res://core/schema/event.gd")
 const Ops := preload("res://core/ops/ops.gd")
 const Bodies := preload("res://core/combat/bodies.gd")
+
+## Card type (core/schema/card_def.gd TYPES) whose damage effects are attack damage (G3, task 009).
+const ATTACK_TYPE: String = "attack"
 
 
 ## Returns the reject reason for a play_card request, or "" when it is legal. Checks, in order:
@@ -93,8 +98,10 @@ static func resolve_in_place(ruleset: Dictionary, state: Dictionary, dude_index:
 	# cost: Hype spent, 0 or more.
 	var cost: int = card["cost"]
 	# context: who plays it and who its effects land on, for the ops.
-	var context: Dictionary = {"actor_id": dude["player_id"],
-		"targets": targets(state, dude, card, request["target_id"])["targets"]}
+	# Task 009: a card's damage is attack damage (G3) only when the card is an Attack; every card's
+	# effects are "from cards" for Hungover (G4).
+	var context: Dictionary = Ops.make_context(ruleset, dude["player_id"],
+		targets(state, dude, card, request["target_id"])["targets"], card["type"] == ATTACK_TYPE, true)
 	dude["hand"].erase(uid)
 	dude["hype"] -= cost
 	dude["cards_played_this_turn"] += 1

@@ -120,9 +120,10 @@ func test_op_checks() -> void:
 	assert_eq(Ops.check({"op": "damage", "amount": 8, "hits": 1}), [] as Array[String])
 	assert_eq(Ops.check({"op": "damage", "amount": 8}), [] as Array[String], "hits is optional")
 	assert_eq(Ops.check({"op": "guard", "amount": 0}), [] as Array[String])
+	assert_eq(Ops.check({"op": "apply_status", "status": "ick", "stacks": 2}), [] as Array[String], "since task 009")
 	for bad: Variant in [{"op": "damage"}, {"op": "damage", "amount": 8.0}, {"op": "damage", "amount": -1},
 			{"op": "damage", "amount": 1, "hits": 0}, {"op": "damage", "amount": 1, "stacks": 2},
-			{"op": "guard", "amount": "5"}, {"op": "apply_status", "status": "ick", "stacks": 2}, {"amount": 1}, 5]:
+			{"op": "guard", "amount": "5"}, {"op": "apply_status", "status": "bugs", "stacks": 2}, {"amount": 1}, 5]:
 		assert_ne(Ops.check(bad), [] as Array[String], "problem expected for %s" % var_to_str(bad))
 	assert_true(Ops.needs_target([{"op": "guard", "amount": 1}, {"op": "damage", "amount": 1}]))
 	assert_false(Ops.needs_target([{"op": "guard", "amount": 1}, {"op": "warp"}]))

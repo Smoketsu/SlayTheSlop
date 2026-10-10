@@ -11,9 +11,11 @@ extends RefCounted
 
 const DamageOp := preload("res://core/ops/damage.gd")
 const GuardOp := preload("res://core/ops/guard.gd")
+const ApplyStatusOp := preload("res://core/ops/apply_status.gd")
 
 ## Op name (the effect's "op" value) -> the script implementing it. Only the core lane changes this.
 const OPS := {
+	"apply_status": ApplyStatusOp,
 	"damage": DamageOp,
 	"guard": GuardOp,
 }
@@ -63,7 +65,20 @@ static func needs_target(effects: Array) -> bool:
 ## Runs one effect that passed check().
 ## state: the working copy, changed by the op. effect: the effect.
 ## context: {"actor_id": String, the player_id or enemy uid using the card or move;
-##           "targets": Array of ids the effect lands on, chosen by the card's target or the intent}.
-## events: the event list, appended to.
+##           "targets": Array of ids the effect lands on, chosen by the card's target or the intent;
+##           "constants": ruleset.constants, read-only, for the ops' tuning numbers (task 009);
+##           "attack": bool, true when damage effects here are attack damage (G3): a card of type
+##                     "attack", a Bro Move, or an enemy move (task 009);
+##           "from_card": bool, true when the effect comes from a card, for Hungover (task 009)}.
+## make_context() builds one. events: the event list, appended to.
 static func run(state: Dictionary, effect: Dictionary, context: Dictionary, events: Array) -> void:
 	OPS[effect["op"]].run(state, effect, context, events)
+
+
+## Returns the context run() needs (see run()).
+## ruleset: the read-only content; its constants go in the context. actor_id: who uses the card or
+## move. targets: ids the effects land on. attack: true for attack damage (G3). from_card: true when
+## the effects come from a card.
+static func make_context(ruleset: Dictionary, actor_id: String, targets: Array, attack: bool, from_card: bool) -> Dictionary:
+	return {"actor_id": actor_id, "targets": targets, "constants": ruleset["constants"],
+		"attack": attack, "from_card": from_card}

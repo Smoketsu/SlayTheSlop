@@ -58,6 +58,42 @@ const CARDS := {
 	"junk_test_dud": {"id": "junk_test_dud", "name": "Dud", "owner": "junk", "type": "junk",
 		"rarity": "starter", "cost": -1, "target": "none", "effects": [],
 		"keywords": [], "crunch": null, "upgrade": {}},
+	# Task 009 status cards (shaped like Tom's GDD cards, but test-only).
+	"neutral_test_arm_bar": {"id": "neutral_test_arm_bar", "name": "Arm Bar", "owner": "neutral", "type": "attack",
+		"rarity": "starter", "cost": 2, "target": "enemy",
+		"effects": [{"op": "damage", "amount": 8, "hits": 1}, {"op": "apply_status", "status": "broken_arm", "stacks": 1}],
+		"keywords": [], "crunch": null, "upgrade": {}},
+	"neutral_test_well_actually": {"id": "neutral_test_well_actually", "name": "Well, Actually", "owner": "neutral",
+		"type": "skill", "rarity": "starter", "cost": 0, "target": "enemy",
+		"effects": [{"op": "apply_status", "status": "ick", "stacks": 2}],
+		"keywords": [], "crunch": null, "upgrade": {}},
+	"neutral_test_pickup": {"id": "neutral_test_pickup", "name": "Pickup", "owner": "neutral", "type": "skill",
+		"rarity": "uncommon", "cost": 1, "target": "all_enemies",
+		"effects": [{"op": "apply_status", "status": "ick", "stacks": 4}],
+		"keywords": [], "crunch": null, "upgrade": {}},
+	"neutral_test_expose": {"id": "neutral_test_expose", "name": "Expose", "owner": "neutral", "type": "skill",
+		"rarity": "common", "cost": 1, "target": "enemy",
+		"effects": [{"op": "apply_status", "status": "exposed", "stacks": 2}],
+		"keywords": [], "crunch": null, "upgrade": {}},
+	"neutral_test_advice": {"id": "neutral_test_advice", "name": "Advice", "owner": "neutral", "type": "skill",
+		"rarity": "common", "cost": 1, "target": "enemy",
+		"effects": [{"op": "apply_status", "status": "ick", "stacks": 3}, {"op": "apply_status", "status": "noodle_arms", "stacks": 1}],
+		"keywords": [], "crunch": null, "upgrade": {}},
+	"neutral_test_snap_all": {"id": "neutral_test_snap_all", "name": "Snap All", "owner": "neutral", "type": "attack",
+		"rarity": "rare", "cost": 0, "target": "enemy",
+		"effects": [{"op": "apply_status", "status": "broken_arm", "stacks": 5}],
+		"keywords": [], "crunch": null, "upgrade": {}},
+	"neutral_test_self_mess": {"id": "neutral_test_self_mess", "name": "Self Mess", "owner": "neutral", "type": "skill",
+		"rarity": "common", "cost": 0, "target": "self",
+		"effects": [{"op": "apply_status", "status": "hungover", "stacks": 1}, {"op": "apply_status", "status": "foggy", "stacks": 1},
+			{"op": "apply_status", "status": "ick", "stacks": 2}, {"op": "apply_status", "status": "broken_arm", "stacks": 1}],
+		"keywords": [], "crunch": null, "upgrade": {}},
+	"neutral_test_skill_hit": {"id": "neutral_test_skill_hit", "name": "Skill Hit", "owner": "neutral", "type": "skill",
+		"rarity": "common", "cost": 1, "target": "enemy", "effects": [{"op": "damage", "amount": 6}],
+		"keywords": [], "crunch": null, "upgrade": {}},
+	"neutral_test_poke": {"id": "neutral_test_poke", "name": "Poke", "owner": "neutral", "type": "attack",
+		"rarity": "common", "cost": 0, "target": "enemy", "effects": [{"op": "damage", "amount": 5}],
+		"keywords": [], "crunch": null, "upgrade": {}},
 }
 
 ## Test enemy definitions, by id. Shapes follow core/schema/enemy_def.gd.
@@ -78,6 +114,18 @@ const ENEMIES := {
 	"test_flurry": {"id": "test_flurry", "name": "Flurry", "floor": 1, "tier": "normal", "max_hp": 30, "arm_count": 2,
 		"moves": [{"id": "flurry", "weight": 1, "intent": "attack",
 			"effects": [{"op": "damage", "amount": 2, "hits": 3}, {"op": "guard", "amount": 3}, {"op": "warp", "amount": 1}]}]},
+	# Task 009 enemies.
+	"test_hitter": {"id": "test_hitter", "name": "Hitter", "floor": 1, "tier": "normal", "max_hp": 60, "arm_count": 2,
+		"moves": [{"id": "punch", "weight": 1, "intent": "attack", "effects": [{"op": "damage", "amount": 10}]},
+			{"id": "pose", "weight": 1, "intent": "defend", "effects": [{"op": "guard", "amount": 2}]}]},
+	"test_hexer": {"id": "test_hexer", "name": "Hexer", "floor": 1, "tier": "normal", "max_hp": 20, "arm_count": 2,
+		"moves": [{"id": "hex", "weight": 1, "intent": "debuff", "effects": [
+			{"op": "apply_status", "status": "exposed", "stacks": 2}, {"op": "apply_status", "status": "foggy", "stacks": 1},
+			{"op": "apply_status", "status": "hungover", "stacks": 1}, {"op": "apply_status", "status": "noodle_arms", "stacks": 1},
+			{"op": "apply_status", "status": "broken_arm", "stacks": 1}, {"op": "apply_status", "status": "ick", "stacks": 1},
+			{"op": "damage", "amount": 4}]}]},
+	"test_slime": {"id": "test_slime", "name": "Slime", "floor": 1, "tier": "normal", "max_hp": 24, "arm_count": 0,
+		"moves": [{"id": "slosh", "weight": 1, "intent": "attack", "effects": [{"op": "damage", "amount": 7}]}]},
 }
 
 ## Test Dude definitions, by id. Shapes follow core/schema/dude_def.gd.
@@ -89,6 +137,12 @@ const DUDES := {
 		"starting_gear": ["test_gear"], "bro_move": "neutral_test_bro"},
 	"test_tiny": {"id": "test_tiny", "name": "Tiny", "title": "the Small Deck", "max_hp": 10,
 		"starter_deck": ["neutral_test_jab", "neutral_test_brace", "neutral_test_jab"],
+		"starting_gear": [], "bro_move": "neutral_test_bro"},
+	# Task 009: a Tom-like deck of status cards for the fixed-seed status fight.
+	"test_breaker": {"id": "test_breaker", "name": "Breaker", "title": "the Status Fixture", "max_hp": 80,
+		"starter_deck": ["neutral_test_arm_bar", "neutral_test_arm_bar", "neutral_test_well_actually",
+			"neutral_test_well_actually", "neutral_test_jab", "neutral_test_jab", "neutral_test_jab",
+			"neutral_test_brace", "neutral_test_brace", "neutral_test_advice"],
 		"starting_gear": [], "bro_move": "neutral_test_bro"},
 }
 
