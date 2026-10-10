@@ -73,3 +73,20 @@ pure"; `client/fight/fight_screen.gd` and `fight_model.gd` (tasks 018, 024); `co
   - Not done: no own art for `foam_slime` (uses the fallback); status changes, intents being set and
     enemies spawning only log (new enemies appear at the redraw); cards in hand are still text
     buttons; animation timing itself is not asserted anywhere (by design, tests run instantly).
+- 2026-10-10 B: Follow-up from the lead: fight backgrounds. Merged `origin/main` (#84 placeholder
+  backgrounds) into the branch (merge commit, no rebase).
+  - Done: `client/visual/backgrounds.gd` (`room_for(state)`: the first enemy, left to right, with
+    `assets/placeholder/backgrounds/<def_id>.webp` is a boss room; otherwise `FLOOR_ROOMS[floor]`,
+    floor 1 -> `basement`, or `DEFAULT_ROOM` "basement"; a missing file gives null and the screen
+    shows `FALLBACK_COLOR`). The fight screen picks the room once in `setup()` and draws it behind
+    everything (cropped to fill), under a 50% black shade; the combatant views, event log and
+    message bar got translucent dark panels.
+  - Tests: 3 more in `tests/client/test_fight_visuals.gd`: the dev fight uses and draws the
+    Basement; a state with `goblin_king_chad` among its enemies uses that room; unknown and malformed
+    rooms, an unknown floor and no fight fall back without error, and the screen then shows the plain
+    colour with no picture.
+  - Verified: `tools/test.sh` -> `439 passed, 0 failed`. `godot --headless --path . --quit-after 60`
+    -> exit 0, no ERROR lines. Xvfb screenshot of the Basement fight after a Punch: text and views
+    readable over the room.
+  - Not done: floors 2 and 3 have no rooms yet (they would use `DEFAULT_ROOM` until `FLOOR_ROOMS`
+    gets entries); `rat_king` has a room but no enemy data, so it is never picked today.

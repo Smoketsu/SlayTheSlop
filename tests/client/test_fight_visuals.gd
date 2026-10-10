@@ -7,6 +7,7 @@ extends "res://tests/framework/test_case.gd"
 const FightScreen := preload("res://client/fight/fight_screen.tscn")
 const Sprites := preload("res://client/visual/sprites.gd")
 const EventPlayer := preload("res://client/visual/event_player.gd")
+const Backgrounds := preload("res://client/visual/backgrounds.gd")
 const DevFight := preload("res://client/dev/dev_fight.gd")
 const Core := preload("res://core/core.gd")
 const Event := preload("res://core/schema/event.gd")
@@ -169,6 +170,46 @@ func test_timed_animations_report_their_length() -> void:
 	assert_eq(player.play_one(Event.make("enemy_died", {"enemy_uid": "e999"}), screen._views), 0.0, "no view, no wait")
 	assert_eq(player.play_one(Event.make("turn_started", {"turn": 2}), screen._views), 0.0, "log only")
 	assert_eq(screen._state, frozen, "animating never changed the state")
+	_free(screen)
+
+
+## The dev fight (two goblins on floor 1) is drawn in the Basement, and the screen shows that room.
+func test_default_fight_uses_the_basement() -> void:
+	# started: the dev fight.
+	var started: Dictionary = DevFight.start()
+	assert_eq(Backgrounds.room_for(started["state"]), Backgrounds.DEFAULT_ROOM)
+	assert_eq(Backgrounds.DEFAULT_ROOM, "basement")
+	assert_true(Backgrounds.texture_for_room("basement") is Texture2D, "the Basement has a file")
+	# screen: the dev fight on screen.
+	var screen: Control = _screen(started)
+	assert_eq(screen.room, "basement")
+	assert_eq(screen._background.texture, Backgrounds.texture_for_room("basement"), "the room is drawn")
+	_free(screen)
+
+
+## A fight with an enemy that has its own room (a boss) is drawn in that room, wherever it stands.
+func test_boss_fight_uses_the_boss_room() -> void:
+	# state: the dev fight with its right-hand enemy swapped for the boss (a test copy only).
+	var state: Dictionary = DevFight.start()["state"].duplicate(true)
+	state["combat"]["enemies"][1]["def_id"] = "goblin_king_chad"
+	assert_eq(Backgrounds.room_for(state), "goblin_king_chad")
+	assert_true(Backgrounds.texture_for_room("goblin_king_chad") is Texture2D, "the boss room has a file")
+
+
+## A room or floor with no file falls back without an error: no texture (the screen shows the
+## plain colour), an unknown floor uses the default room, and no fight at all is fine.
+func test_missing_rooms_fall_back() -> void:
+	for name: String in ["no_such_room", "", "../project", "Basement"]:
+		assert_true(Backgrounds.texture_for_room(name) == null, "'%s' has no texture" % name)
+	assert_eq(Backgrounds.room_path("../project"), "", "no path outside the backgrounds folder")
+	assert_eq(Backgrounds.room_for({"floor": 99, "combat": null}), Backgrounds.DEFAULT_ROOM, "unknown floor")
+	assert_eq(Backgrounds.room_for({}), Backgrounds.FLOOR_ROOMS[1], "no floor, no fight")
+	# screen: the dev fight, then pointed at a room with no file and redrawn.
+	var screen: Control = _screen()
+	screen.room = "no_such_room"
+	screen._redraw()
+	assert_true(screen._background.texture == null, "no picture")
+	assert_eq(screen._backdrop.color, Backgrounds.FALLBACK_COLOR, "the plain colour shows instead")
 	_free(screen)
 
 

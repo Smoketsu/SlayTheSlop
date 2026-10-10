@@ -8,7 +8,8 @@
 ## Layout (task 028): Dudes on the left and enemies on the right, each a client/visual/
 ## combatant_view.gd (sprite, HP bar, Guard, statuses, intent) that is clicked to target it; below
 ## them the last event lines, the hand, the action buttons and the message bar. Events play through
-## client/visual/event_player.gd. Placeholder art (assets/placeholder/). Run it with
+## client/visual/event_player.gd. Behind it all, the fight's room (client/visual/backgrounds.gd),
+## darkened so text stays readable. Placeholder art (assets/placeholder/). Run it with
 ##   "$(tools/install_godot.sh)" --path . res://client/fight/fight_screen.tscn
 ## With no setup() call it starts a fight on the real data (client/dev/dev_fight.gd).
 extends Control
@@ -21,6 +22,7 @@ const DevFight := preload("res://client/dev/dev_fight.gd")
 const EventText := preload("res://client/fight/event_text.gd")
 const CombatantView := preload("res://client/visual/combatant_view.gd")
 const EventPlayer := preload("res://client/visual/event_player.gd")
+const Backgrounds := preload("res://client/visual/backgrounds.gd")
 ## The rules gateway: the real rules core (task 007), apply(ruleset, state, request). Co-op will
 ## swap in a network gateway with the same apply() here.
 const Gateway := preload("res://core/core.gd")
@@ -30,6 +32,12 @@ const LOG_LINES: int = 4
 ## Height kept for each log line, in pixels, so the hand below does not move as the log fills.
 ## Changed only by the client lane.
 const LOG_LINE_PIXELS: int = 26
+## Dark layer laid over the room background so white text and the views stay readable; its alpha
+## (0..1) is how much the room is darkened. Changed only by the client lane.
+const SHADE_COLOR := Color(0, 0, 0, 0.5)
+## Translucent panel behind the event log and the message bar, so their text reads over the room.
+## Changed only by the client lane.
+const TEXT_PANEL_COLOR := Color(0.06, 0.06, 0.08, 0.6)
 
 ## Seconds each event's animation lasts. 0 makes the screen fully synchronous, which tests use.
 ## Changed by whoever creates the screen, before or after setup().
@@ -44,6 +52,9 @@ var message: String = ""
 ## Every event line (event_text.gd line()) of this fight, oldest first, whether or not animations
 ## are skipped. The log shows the last LOG_LINES. Only grows.
 var event_lines: Array[String] = []
+## The room drawn behind this fight (backgrounds.gd room_for()), picked once in setup() so the room
+## does not change when the boss falls. Read by tests.
+var room: String = ""
 
 ## The gateway requests go to: anything with apply(ruleset, state, request). Set by setup().
 var _gateway: Object
@@ -74,6 +85,11 @@ var _hand_box: HBoxContainer
 var _actions_box: HBoxContainer
 var _message_label: Label
 var _log_label: Label
+## The room picture, filling the screen (cropped to keep its aspect); no texture when the room has
+## no file.
+var _background: TextureRect
+## Plain FALLBACK_COLOR behind the room picture, seen only when the room has no file.
+var _backdrop: ColorRect
 
 
 ## Gives the screen its gateway, content, starting state and local player. Call before or after
@@ -88,6 +104,7 @@ func setup(gateway: Object, ruleset: Dictionary, state: Dictionary, player_id: S
 	for dude: Dictionary in state["dudes"]:
 		if dude["player_id"] == player_id:
 			_requests = RequestMaker.new(player_id, dude["last_seq"])
+	room = Backgrounds.room_for(state)
 	if is_inside_tree():
 		_redraw()
 
@@ -95,6 +112,18 @@ func setup(gateway: Object, ruleset: Dictionary, state: Dictionary, player_id: S
 ## Builds the layout, falls back to the sample fight if setup() was not called, and draws.
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
+	_backdrop = ColorRect.new()
+	_backdrop.color = Backgrounds.FALLBACK_COLOR
+	_background = TextureRect.new()
+	_background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	# shade: darkens the room under the text.
+	var shade := ColorRect.new()
+	shade.color = SHADE_COLOR
+	for layer: Control in [_backdrop, _background, shade]:
+		layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+		layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(layer)
 	# root: everything, top to bottom.
 	var root := VBoxContainer.new()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -115,6 +144,12 @@ func _ready() -> void:
 	_hand_box = HBoxContainer.new()
 	_actions_box = HBoxContainer.new()
 	_message_label = Label.new()
+	for label: Label in [_log_label, _message_label]:
+		# panel: the label's translucent background.
+		var panel := StyleBoxFlat.new()
+		panel.bg_color = TEXT_PANEL_COLOR
+		panel.content_margin_left = 6
+		label.add_theme_stylebox_override("normal", panel)
 	for node: Control in [_header, arena, _log_label, _hand_box, _actions_box, _message_label]:
 		root.add_child(node)
 	if _ruleset.is_empty():
@@ -252,6 +287,7 @@ func _redraw() -> void:
 		return
 	# model: what to show.
 	var model: Dictionary = FightModel.build(_ruleset, _state, _player_id)
+	_background.texture = Backgrounds.texture_for_room(room)
 	_header.text = "Turn %d - %s phase - Bro Meter %s" % [model["turn"], model["phase"], model["bro_meter"]]
 	for box: Container in [_enemies_box, _dudes_box, _hand_box, _actions_box]:
 		for child: Node in box.get_children():

@@ -22,6 +22,16 @@ const BAR_HEIGHT: float = 10.0
 const ENEMY_BAR_COLOR := Color(0.8, 0.2, 0.2)
 ## HP bar fill of a Dude. Changed only by the client lane.
 const DUDE_BAR_COLOR := Color(0.25, 0.7, 0.3)
+## Panel behind the view, translucent so the room shows through but text stays readable. Changed
+## only by the client lane.
+const PANEL_COLOR := Color(0.06, 0.06, 0.08, 0.72)
+## Panel behind the view while the mouse is over it or it is pressed. Changed only by the client lane.
+const PANEL_HOVER_COLOR := Color(0.16, 0.16, 0.2, 0.8)
+## Rounding of the panel's corners, in pixels. Changed only by the client lane.
+const PANEL_CORNER: int = 6
+## Faint outline around the panel, so each clickable Dude or enemy stands out from the room.
+## Changed only by the client lane.
+const PANEL_BORDER_COLOR := Color(1, 1, 1, 0.18)
 ## HP bar background. Changed only by the client lane.
 const BAR_BACK_COLOR := Color(0.15, 0.15, 0.15)
 ## Colour of the Guard text and of the flash when Guard is gained. Changed only by the client lane.
@@ -91,6 +101,12 @@ var _tweens: Array[Tween] = []
 func _init() -> void:
 	custom_minimum_size = VIEW_SIZE
 	focus_mode = Control.FOCUS_NONE
+	for style: String in ["normal", "disabled", "hover", "pressed"]:
+		# panel: this state's panel, with a 1-pixel outline.
+		var panel: StyleBoxFlat = _box(PANEL_HOVER_COLOR if style in ["hover", "pressed"] else PANEL_COLOR, PANEL_CORNER)
+		panel.set_border_width_all(1)
+		panel.border_color = PANEL_BORDER_COLOR
+		add_theme_stylebox_override(style, panel)
 	# column: everything, top to bottom, filling the button.
 	var column := VBoxContainer.new()
 	column.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 4)
@@ -309,12 +325,13 @@ func _label(parent: Container) -> Label:
 	return label
 
 
-## Returns a flat box style of one colour, for the HP bar.
-## color: the fill.
-func _box(color: Color) -> StyleBoxFlat:
+## Returns a flat box style of one colour, for the panel and the HP bar.
+## color: the fill. corner: rounding of its corners in pixels, 0 for square.
+func _box(color: Color, corner: int = 0) -> StyleBoxFlat:
 	# box: the style.
 	var box := StyleBoxFlat.new()
 	box.bg_color = color
+	box.set_corner_radius_all(corner)
 	return box
 
 
