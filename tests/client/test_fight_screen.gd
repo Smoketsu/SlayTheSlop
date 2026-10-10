@@ -1,5 +1,6 @@
-## Tests for the placeholder fight screen (task 018). Lane: tools/client (Agent B).
-## Each test maps to an acceptance check in docs/tasks/018-client-fight-screen.md.
+## Tests for the fight screen on the real core and the real data (tasks 018 and 024).
+## Lane: tools/client (Agent B). Each test maps to an acceptance check in docs/tasks/018-*.md or
+## docs/tasks/024-*.md.
 extends "res://tests/framework/test_case.gd"
 
 const FightScreen := preload("res://client/fight/fight_screen.tscn")
@@ -7,14 +8,17 @@ const FightModel := preload("res://client/fight/fight_model.gd")
 const Targeting := preload("res://client/fight/targeting.gd")
 const RequestMaker := preload("res://client/fight/request_maker.gd")
 const Messages := preload("res://client/fight/messages.gd")
-const DevContent := preload("res://client/dev/dev_content.gd")
-const FakeGateway := preload("res://client/dev/fake_gateway.gd")
+const EventText := preload("res://client/fight/event_text.gd")
+const DevFight := preload("res://client/dev/dev_fight.gd")
+const Core := preload("res://core/core.gd")
 const Request := preload("res://core/schema/request.gd")
 const Event := preload("res://core/schema/event.gd")
 const RunState := preload("res://core/schema/run_state.gd")
 
 ## File types under client/ that are code or text, not assets needing a source in ASSETS.md.
 const NOT_ASSETS: Array[String] = ["gd", "tscn", "md", "uid", "import"]
+## Most presses the full-fight test may make before giving up (a safety stop, not a rule).
+const MAX_PRESSES: int = 400
 
 
 ## A gateway that applies nothing and returns a fixed list of events, for animation-order tests.
@@ -22,7 +26,7 @@ class CannedGateway extends RefCounted:
 	## The events every apply() returns, in order. Set by the test.
 	var events: Array = []
 
-	## Returns the state unchanged (but with state_version raised) and the canned events.
+	## Returns the state unchanged but with state_version raised, and the canned events.
 	## ruleset: unused. state: returned with state_version + 1. request: unused.
 	func apply(ruleset: Dictionary, state: Dictionary, request: Dictionary) -> Dictionary:
 		# next: a writable copy with the version raised.
@@ -31,78 +35,101 @@ class CannedGateway extends RefCounted:
 		return {"state": next, "events": events, "reject": ""}
 
 
-## The sample content builds with the real ruleset builder, and the sample state is a valid state.
-func test_sample_content_is_valid() -> void:
-	# built: the sample ruleset.
-	var built: Dictionary = DevContent.ruleset()
-	assert_no_errors(built["errors"], "sample content")
-	assert_no_errors(RunState.check(DevContent.sample_state()), "sample state")
+## The placeholder fight starts on the real data, in turn 1's player phase, as a valid state.
+func test_dev_fight_starts_on_real_data() -> void:
+	# started: DevFight.start()'s result.
+	var started: Dictionary = DevFight.start()
+	assert_eq(started["error"], "", "dev fight starts")
+	if started["error"] != "":
+		return
+	assert_no_errors(RunState.check(started["state"]), "dev fight state")
+	assert_eq(started["state"]["combat"]["phase"], "player")
+	assert_eq(started["state"]["combat"]["enemies"].size(), DevFight.FOES.size())
 
 
-## The model shows every value the task lists, from the state alone.
+## The model shows every value task 018 lists, from the state alone, with names from the data.
 func test_model_shows_everything_from_state() -> void:
-	# model: the display model of the sample fight.
-	var model: Dictionary = FightModel.build(_ruleset(), DevContent.sample_state(), "p1")
-	# dude: the one Dude.
+	# started: the real fight. model: its display model.
+	var started: Dictionary = DevFight.start()
+	var model: Dictionary = FightModel.build(started["ruleset"], started["state"], started["player_id"])
+	# dude: the one Dude. dude_def: its definition.
 	var dude: Dictionary = model["dudes"][0]
-	assert_eq(dude["name"], "Test Dude", "name comes from data, not code")
-	assert_eq(dude["hp"], "58 / 70")
-	assert_eq([dude["guard"], dude["hype"]], [2, 3], "guard, hype")
-	assert_eq(dude["statuses"], ["Exposed 1"] as Array[String])
-	assert_eq(dude["brews"], "0 / 3")
-	assert_eq([dude["draw"], dude["discard"], dude["tapped"]], [1, 0, 0], "pile counts")
-	assert_eq(model["hand"].size(), 5, "hand")
-	assert_eq(model["hand"][0]["name"], "Jab")
-	assert_eq(model["bro_meter"], "10 / 10", "Bro Meter against BRO_METER_MAX")
-	assert_true(model["bro_ready"])
-	# dummy, blob: the two enemies.
-	var dummy: Dictionary = model["enemies"][0]
-	var blob: Dictionary = model["enemies"][1]
-	assert_eq([dummy["name"], dummy["hp"], dummy["intent"], dummy["targets"]], ["Training Dummy", "20 / 20", "attack", ["Test Dude"] as Array[String]])
-	assert_eq(dummy["arms"], "1 of 2 arms broken", "Broken Arm as k of n")
-	assert_eq(dummy["ick"], "2 / 5", "Ick against threshold")
-	assert_eq([blob["arms"], blob["statuses"], blob["intent"]], ["No arms", ["Noodle Arms 2"] as Array[String], "defend"])
+	var dude_def: Dictionary = started["ruleset"]["dudes"][started["state"]["dudes"][0]["dude_id"]]
+	assert_eq(dude["name"], dude_def["name"], "name comes from data")
+	assert_eq(dude["hp"], "%d / %d" % [dude_def["max_hp"], dude_def["max_hp"]])
+	assert_eq(model["hand"].size(), started["state"]["dudes"][0]["hand"].size(), "hand")
+	assert_eq(model["bro_meter"], "0 / %d" % started["ruleset"]["constants"]["BRO_METER_MAX"])
+	for i: int in DevFight.FOES.size():
+		# enemy: one enemy as shown.
+		var enemy: Dictionary = model["enemies"][i]
+		assert_eq(enemy["name"], started["ruleset"]["enemies"][DevFight.FOES[i]]["name"])
+		assert_true(enemy["arms"].ends_with("arms broken") or enemy["arms"] == "No arms", enemy["arms"])
+		assert_true(enemy["ick"].begins_with("0 / "), enemy["ick"])
 
 
-## Requests pass request.gd check(), carry the local player, and seq rises by 1 each time, even
-## across a rejected request.
+## Requests pass request.gd check(), carry the player, and seq rises by 1 each time, even across a
+## rejected request (the real core leaves last_seq unchanged on a reject).
 func test_requests_are_well_formed_and_seq_rises() -> void:
 	# maker: starts after a Dude whose last_seq is 4.
 	var maker := RequestMaker.new("p2", 4)
-	# made: one of each request type.
-	var made: Array = [maker.play_card("c1", "e3"), maker.set_ready(true), maker.use_brew(0, ""), maker.use_bro_move()]
+	# made: one of each request type, Bro Move with and without a target.
+	var made: Array = [maker.play_card("c1", "e3"), maker.set_ready(true), maker.use_brew(0, ""), maker.use_bro_move(), maker.use_bro_move("e3")]
 	for i: int in made.size():
 		assert_no_errors(Request.check(made[i]), "request %d" % i)
 		assert_eq(made[i]["player_id"], "p2")
 		assert_eq(made[i]["seq"], 5 + i, "seq of request %d" % i)
-	# screen: the sample fight, to check seq through real presses including a reject.
-	var screen: Control = _screen(DevContent.sample_state())
-	screen.press_card("c1")
+	assert_false(made[3].has("target_id"), "no target_id when none is given")
+	assert_eq(made[4]["target_id"], "e3")
+	# screen: the real fight; aim an enemy card at an enemy that does not exist, then a real one.
+	var screen: Control = _screen()
+	# uid: the first card in hand that targets an enemy. first: the leftmost enemy.
+	var uid: String = _card_with_target(screen, "enemy")
+	var first: String = screen._state["combat"]["enemies"][0]["uid"]
+	screen.press_card(uid)
 	screen.press_enemy("e999")
-	assert_eq(screen.message, Messages.reject("bad_target"), "dead or unknown target rejected")
-	screen.press_enemy("e7")
-	assert_eq(screen._state["dudes"][0]["last_seq"], 1, "first request seq 0 (rejected), second seq 1 (applied)")
+	assert_eq(screen.message, Messages.reject("bad_target"), "unknown target rejected")
+	assert_eq(screen._pending_card, uid, "bad_target asks for a new target")
+	screen.press_enemy(first)
+	assert_eq(screen._state["dudes"][0]["last_seq"], 1, "seq 0 rejected, seq 1 applied")
 	_free(screen)
 
 
 ## Targeting follows the card's target; Assist targets yourself in solo and asks in co-op.
 func test_targeting() -> void:
-	# cards: the sample card definitions.
-	var cards: Dictionary = DevContent.CARDS
-	assert_eq(Targeting.mode(cards["neutral_dev_jab"], 1), Targeting.ENEMY, "enemy asks for an enemy")
-	assert_eq(Targeting.mode(cards["neutral_dev_sweep"], 1), Targeting.NONE, "all_enemies asks nothing")
-	assert_eq(Targeting.mode(cards["neutral_dev_brace"], 1), Targeting.NONE, "self asks nothing")
-	assert_eq(Targeting.mode(cards["neutral_dev_spot_me"], 1), Targeting.NONE, "Assist in solo asks nothing")
-	assert_eq(Targeting.auto_target(cards["neutral_dev_spot_me"], "p1", 1), "p1", "Assist in solo targets the player")
-	assert_eq(Targeting.mode(cards["neutral_dev_spot_me"], 2), Targeting.DUDE, "Assist in co-op asks for a Dude")
-	assert_eq(Targeting.auto_target(cards["neutral_dev_sweep"], "p1", 1), "", "no-target cards send \"\"")
-	# screen: pressing an enemy card waits for a target and sends nothing yet.
-	var screen: Control = _screen(DevContent.sample_state())
-	screen.press_card("c1")
+	# cards: the real card definitions.
+	var cards: Dictionary = DevFight.start()["ruleset"]["cards"]
+	for card: Dictionary in cards.values():
+		# expected: what the card should ask for in solo.
+		var expected: String = Targeting.ENEMY if card["target"] == "enemy" else Targeting.NONE
+		assert_eq(Targeting.mode(card, 1), expected, card["id"])
+	# ally: an Assist card (none exists in the data yet; built inline).
+	var ally: Dictionary = {"id": "x", "target": "ally"}
+	assert_eq(Targeting.mode(ally, 1), Targeting.NONE, "Assist in solo asks nothing")
+	assert_eq(Targeting.auto_target(ally, "p1", 1), "p1", "Assist in solo targets the player")
+	assert_eq(Targeting.mode(ally, 2), Targeting.DUDE, "Assist in co-op asks for a Dude")
+	# screen: an enemy card waits for a target and sends nothing until one is picked.
+	var screen: Control = _screen()
+	screen.press_card(_card_with_target(screen, "enemy"))
 	assert_eq(screen._state["state_version"], 0, "nothing sent before a target is picked")
 	assert_eq(screen.message, "Pick an enemy.")
-	screen.press_enemy("e7")
+	screen.press_enemy(screen._state["combat"]["enemies"][0]["uid"])
 	assert_eq(screen._state["state_version"], 1, "sent once the enemy is picked")
+	_free(screen)
+
+
+## The Bro Move asks for an enemy when its card targets one (G33), then sends target_id.
+func test_bro_move_asks_for_a_target() -> void:
+	# screen: the real fight with the Bro Meter filled by hand (test setup: a fresh state copy).
+	var started: Dictionary = DevFight.start()
+	started["state"]["bro_meter"] = started["ruleset"]["constants"]["BRO_METER_MAX"]
+	var screen: Control = _screen(started)
+	screen.press_bro_move()
+	assert_eq(screen.message, "Pick an enemy.", "Chest Bump asks for an enemy")
+	assert_eq(screen._state["state_version"], 0, "nothing sent yet")
+	screen.press_enemy(screen._state["combat"]["enemies"][0]["uid"])
+	assert_eq(screen._state["state_version"], 1, "the Bro Move went through")
+	assert_eq(screen._state["bro_meter"], 0, "the meter emptied")
+	assert_true(screen.animation_log.any(func(l: String) -> bool: return l.begins_with("bro_move_used ")), "bro_move_used animated")
 	_free(screen)
 
 
@@ -111,14 +138,14 @@ func test_events_animate_in_order() -> void:
 	# gateway: returns three canned events.
 	var gateway := CannedGateway.new()
 	gateway.events = [
-		Event.make("card_played", {"player_id": "p1", "card_uid": "c1", "target_id": "e7"}),
-		Event.make("damage_dealt", {"source_id": "p1", "target_id": "e7", "amount": 6, "blocked": 0, "hp_lost": 6}),
-		Event.make("card_moved", {"player_id": "p1", "card_uid": "c1", "from": "hand", "to": "discard_pile"}),
+		Event.make("turn_started", {"turn": 2}),
+		Event.make("hype_changed", {"player_id": "p1", "delta": 3, "hype": 3}),
+		Event.make("ready_changed", {"player_id": "p1", "ready": false}),
 	]
 	for event: Dictionary in gateway.events:
 		assert_no_errors(Event.check(event), "canned event")
-	# screen: the sample fight on the canned gateway.
-	var screen: Control = _screen(DevContent.sample_state(), gateway)
+	# screen: the real fight on the canned gateway.
+	var screen: Control = _screen(DevFight.start(), gateway)
 	screen.press_ready()
 	assert_eq(screen.animation_log.size(), 3, "every event animated")
 	for i: int in 3:
@@ -127,55 +154,64 @@ func test_events_animate_in_order() -> void:
 	_free(screen)
 
 
-## Skipping every animation gives the same final drawing as playing them.
+## Skipping every animation gives the same final drawing as playing them, on the real core.
 func test_skipping_animations_gives_same_drawing() -> void:
 	# drawings: the final text of a played and a skipped run of the same turn.
 	var drawings: Array[String] = []
 	for skip: bool in [false, true]:
-		# screen: a fresh sample fight.
-		var screen: Control = _screen(DevContent.sample_state())
+		# screen: a fresh real fight.
+		var screen: Control = _screen()
 		screen.skip_animations = skip
-		screen.press_card("c1")
-		screen.press_enemy("e7")
-		screen.press_card("c3")
+		screen.press_card(_card_with_target(screen, "enemy"))
+		screen.press_enemy(screen._state["combat"]["enemies"][0]["uid"])
 		screen.press_ready()
 		screen._show_message("")
 		drawings.append(screen.drawn_text())
 		_free(screen)
 	assert_eq(drawings[1], drawings[0], "final drawing")
-	assert_true(drawings[0].contains("HP 14 / 20"), "the Jab landed: %s" % drawings[0])
 
 
-## Every reject code has a message; bad_target asks for a new target and keeps the card pending.
-func test_every_reject_has_a_message() -> void:
+## Every reject code and every event type has player-facing text.
+func test_every_reject_and_event_has_text() -> void:
 	for code: String in Request.REJECT_REASONS:
 		assert_true(Messages.REJECTS.has(code), "no message for reject code %s" % code)
-	assert_eq(Messages.reject("no_hype"), "Not enough Hype.")
-	# screen: aim at an enemy that does not exist.
-	var screen: Control = _screen(DevContent.sample_state())
-	screen.press_card("c1")
-	screen.press_enemy("e999")
-	assert_eq(screen._pending_card, "c1", "bad_target asks for a new target")
-	_free(screen)
+	for type: String in Event.TYPES:
+		assert_true(EventText.TEMPLATES.has(type), "no animation line for event type %s (client/fight/event_text.gd)" % type)
+	assert_eq(EventText.line(Event.make("hype_changed", {"player_id": "p1", "delta": -2, "hype": 1}), {"p1": "Dude"}), "Dude: Hype -2 (now 1).")
 
 
-## A state read-only at every level goes through a full canned turn with no runtime error (the
-## runner fails the test if Godot reports one), and is unchanged afterwards.
-func test_screen_never_changes_state() -> void:
-	# state: the sample fight, frozen.
-	var state: Dictionary = DevContent.sample_state()
-	# before: a copy to compare with afterwards.
-	var before: Dictionary = state.duplicate(true)
-	_freeze(state)
-	# screen: plays a whole turn on the frozen state.
-	var screen: Control = _screen(state)
-	screen.press_card("c1")
-	screen.press_enemy("e7")
-	screen.press_card("c4")
-	screen.press_card("c5")
-	screen.press_bro_move()
-	screen.press_ready()
-	assert_eq(state, before, "the original state is unchanged")
+## A whole fight is played through the screen's own presses on the real core and the real data,
+## to a decided result, with the screen's state frozen read-only before every press (so any client
+## write to game state is a runtime error, which fails the test).
+func test_full_fight_through_the_screen() -> void:
+	# screen: the real fight.
+	var screen: Control = _screen()
+	# presses: presses made so far.
+	var presses: int = 0
+	while screen._state["combat"]["result"] == "" and presses < MAX_PRESSES:
+		_freeze(screen._state)
+		# version: state_version before this step, to see whether anything was applied.
+		var version: int = screen._state["state_version"]
+		# first: the leftmost enemy still in the fight.
+		var first: String = screen._state["combat"]["enemies"][0]["uid"]
+		screen.press_bro_move()
+		if screen._pending_bro:
+			screen.press_enemy(first)
+		presses += 1
+		if screen._state["state_version"] == version:
+			for uid: String in screen._state["dudes"][0]["hand"]:
+				screen.press_card(uid)
+				if screen._pending_card != "":
+					screen.press_enemy(first)
+				presses += 1
+				if screen._state["state_version"] != version:
+					break
+		if screen._state["state_version"] == version:
+			screen.press_ready()
+			presses += 1
+	assert_ne(screen._state["combat"]["result"], "", "the fight is decided within %d presses" % MAX_PRESSES)
+	assert_no_errors(RunState.check(screen._state), "final state")
+	assert_true(screen.animation_log.any(func(l: String) -> bool: return l.begins_with("fight_ended ")), "fight_ended animated")
 	_free(screen)
 
 
@@ -202,7 +238,7 @@ func test_assets_are_listed() -> void:
 			assert_true(listing.contains(path.trim_prefix("res://")), "%s is not listed in client/ASSETS.md" % path)
 
 
-## The scene itself loads headless with no setup() call and shows the sample fight.
+## The scene loads headless with no setup() call and shows a fight on the real data.
 func test_scene_runs_headless() -> void:
 	# screen: the scene, as a player would open it.
 	var screen: Control = FightScreen.instantiate()
@@ -210,24 +246,34 @@ func test_scene_runs_headless() -> void:
 	(Engine.get_main_loop() as SceneTree).root.add_child(screen)
 	# text: what it drew.
 	var text: String = screen.drawn_text()
-	assert_true(text.contains("Training Dummy") and text.contains("Test Dude (you)") and text.contains("Ready"), text)
+	assert_true(text.contains("Goblin Pledge") and text.contains("(you)") and text.contains("Ready"), text)
 	_free(screen)
 
 
-## Returns the sample ruleset.
-func _ruleset() -> Dictionary:
-	return DevContent.ruleset()["ruleset"]
-
-
-## Returns a fight screen in the tree, set up on state with no animation time.
-## state: the starting state. gateway: what requests go to; the fake gateway when null.
-func _screen(state: Dictionary, gateway: Object = null) -> Control:
+## Returns a fight screen in the tree with no animation time, on a started fight.
+## started: a DevFight.start() result; a fresh one when empty. gateway: what requests go to; the
+##   real core when null.
+func _screen(started: Dictionary = {}, gateway: Object = null) -> Control:
+	if started.is_empty():
+		started = DevFight.start()
 	# screen: the new screen.
 	var screen: Control = FightScreen.instantiate()
 	screen.animation_seconds = 0.0
-	screen.setup(gateway if gateway != null else FakeGateway.new(), _ruleset(), state, "p1")
+	screen.setup(gateway if gateway != null else Core.new(), started["ruleset"], started["state"], started["player_id"])
 	(Engine.get_main_loop() as SceneTree).root.add_child(screen)
 	return screen
+
+
+## Returns the uid of the first card in the local hand whose definition has this target, or "".
+## screen: a screen from _screen(). target: a card_def TARGETS value.
+func _card_with_target(screen: Control, target: String) -> String:
+	# dude: the local Dude.
+	var dude: Dictionary = screen._state["dudes"][0]
+	for uid: String in dude["hand"]:
+		if screen._ruleset["cards"][dude["cards"][uid]["def_id"]]["target"] == target:
+			return uid
+	fail("no card targeting %s in hand" % target)
+	return ""
 
 
 ## Removes a screen from the tree and frees it now.

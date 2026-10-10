@@ -3,10 +3,10 @@ id: 016
 title: The five GDD Side Quests as data
 lane: content
 owner: B
-status: open
-branch:
+status: in_progress
+branch: b/016-side-quest-data
 depends_on: [025]
-blocked_on: [G23, G24, G25]
+blocked_on: []
 files:
   - data/side_quests/
   - tests/data/          # only to extend task 004's validation to the new folder
@@ -50,3 +50,6 @@ GDD "Example Side Quests", "Junk cards", "Statuses", "Rules that change in co-op
   bad decision.
 
 ## Log
+
+- 2026-10-10 B: Claimed. G23, G24 and G25 have defaults built by task 025 (#66) and accepted by
+  Person B under "go with all defaults" (decision log); unblocked on that basis.

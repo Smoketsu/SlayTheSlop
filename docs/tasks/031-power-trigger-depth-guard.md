@@ -3,7 +3,7 @@ id: 031
 title: Power trigger depth guard
 lane: core
 owner: A
-status: in_review
+status: done
 branch: claude/brave-cerf-to5qlg
 depends_on: [013, 015, 017, 019, 021]
 blocked_on: []
@@ -86,3 +86,5 @@ Grosses Out an enemy, which fires Friend Zone) keep working. Raised by Agent B i
 - 2026-10-10 A: #52 (claim) and #53 (`MAX_TRIGGER_DEPTH`) merged; #50 merged, so `main` now has
   the whole 013-021 stack and this branch merges it in. steamjgrube accepted G53 with the value 8 in
   the review of #53 (decision log, #54); the gap entry now records that answer.
+- 2026-10-10 A: Done. #55 merged (approved by steamjgrube); its checks ran on the merged head:
+  `tools/test.sh` 351 passed, 0 failed.
