@@ -9,7 +9,10 @@
 ##   play_limit_in_hand      while the copy is in hand, its owner may play at most that many cards
 ##                           this turn; further play_card requests are "unplayable" (Detention).
 ##   lasts "fight"           the copy is removed from its owner's cards, deck and piles when the
-##                           fight ends (Paperwork, Detention, Burn), with card_removed.
+##                           fight ends (Paperwork, Detention, Burn), with card_removed. Task 033:
+##                           so is any copy its owner has that is not in the run deck (an add_card
+##                           with lasts "fight", such as Beer Helmet's Hangover), since
+##                           dude_state.deck is every card the Dude owns for the run.
 ##   removable               read by the run lane's Baileys (task 025), not here.
 ##
 ## Trigger effects run like a card's: the owner is the actor and the only target, damage is not
@@ -105,11 +108,13 @@ static func play_limit_reached(rules: Dictionary, dude: Dictionary) -> bool:
 	return false
 
 
-## When a fight ends: removes every copy whose definition lasts "fight" from each Dude's cards,
-## deck and piles, Dudes in seat order, copies in pile order (core/schema/dude_state.gd PILES, each
-## pile front to back), then the deck, then any other owned copy by card_uid. Emits card_removed per
-## copy, with from = the pile it was in, or "deck". Run-lasting copies are untouched. Copies whose
-## definition is missing from the ruleset are kept.
+## When a fight ends: removes every fight-only copy (_fight_only: its definition lasts "fight", or,
+## task 033, it is not in the run deck) from each Dude's cards, deck, piles and powers list, Dudes in
+## seat order, copies in pile order (core/schema/dude_state.gd PILES, each pile front to back), then
+## the deck, then any other owned copy by card_uid. Emits card_removed per copy, with from = the
+## pile it was in, or "deck" when it was in no pile (a Power in play is in no pile). Copies in the
+## run deck whose definition lasts the run are untouched. Copies whose definition is missing from
+## the ruleset are kept.
 ## rules: the ruleset or an op context. state: the working copy. events: the event list, appended to.
 static func remove_fight_only_in_place(rules: Dictionary, state: Dictionary, events: Array) -> void:
 	for dude: Dictionary in state["dudes"]:
@@ -136,6 +141,8 @@ static func remove_fight_only_in_place(rules: Dictionary, state: Dictionary, eve
 			for pile: String in DudeState.PILES:
 				dude[pile].erase(entry[0])
 			dude["deck"].erase(entry[0])
+			# Task 033: a fight-only Power in play leaves the powers list too, so powers only holds owned cards.
+			dude["powers"].erase(entry[0])
 			dude["cards"].erase(entry[0])
 			events.append(Event.make("card_removed", {"player_id": dude["player_id"], "card_uid": entry[0], "from": entry[1]}))
 
@@ -148,12 +155,13 @@ static func _definition(rules: Dictionary, dude: Dictionary, uid: String) -> Dic
 	return rules.get("cards", {}).get(dude["cards"][uid]["def_id"], {})
 
 
-## True when the Dude owns this copy and its definition lasts one fight only.
+## True when the Dude owns this copy, its definition is known, and the copy lasts one fight only:
+## its definition lasts "fight", or (task 033) the copy is not in the run deck.
 ## rules: the ruleset or an op context. dude: the owner's state. uid: a card_uid.
 static func _fight_only(rules: Dictionary, dude: Dictionary, uid: String) -> bool:
 	# definition: the copy's definition, or {}.
 	var definition: Dictionary = _definition(rules, dude, uid)
-	return not definition.is_empty() and AddCard.is_fight_only(definition)
+	return not definition.is_empty() and (AddCard.is_fight_only(definition) or not dude["deck"].has(uid))
 
 
 ## True when the state is in a fight that is decided (core/combat/bodies.gd is_decided); false
