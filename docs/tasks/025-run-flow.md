@@ -3,10 +3,10 @@ id: 025
 title: Run flow - new run, nodes, rewards, Tailgate, Baileys, Loot, Side Quests, floor end
 lane: run
 owner: A
-status: blocked
-branch:
+status: in_progress
+branch: a/025-run-flow
 depends_on: [007, 021, 023]
-blocked_on: [G14, G15, G19, G20, G21, G22, G23, G24, G25, G26]
+blocked_on: []
 files:
   - core/run/
   - core/schema/          # additive contract PRs only: run screens, new request types, side quest format
@@ -45,3 +45,5 @@ G14–G22.
 ## Log
 
 - 2026-10-10 A: blocked on G14–G22 and on tasks 007, 021 and 023.
+- 2026-10-10 A: Claimed. Tasks 007, 021 and 023 are merged, and every gap it waited on is answered
+  (G1–G31 in #20; G32–G52 and I1–I9 accepted by steamjgrube on #50).

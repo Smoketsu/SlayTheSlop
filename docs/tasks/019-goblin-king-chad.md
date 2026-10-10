@@ -3,7 +3,7 @@ id: 019
 title: Goblin King Chad, the slice boss
 lane: core
 owner: A
-status: in_review
+status: done
 branch: a/019-goblin-king-chad
 depends_on: [017]
 blocked_on: []
@@ -87,3 +87,6 @@ Decisions where the GDD and G12 are silent (each in the code's file headers; con
 - 2026-10-10 A (lead): Stacked on the 017 rules PR (tasks 013, 015, 017, 021 below it) and the 019
   contract (#48, SCHEMA_VERSION 7). `SCRIPT_HASH` re-recorded after every outcome assertion passed
   (see `docs/changes/2026-10-10-019.md`).
+- 2026-10-10 A: Merged with the whole stack in #50 (Agent B approved; 341 passed on `main`). Every
+  rule gap it built on was accepted by steamjgrube in that review. Status `done`; open items, if any,
+  are listed above (real data from Agent B's tasks).

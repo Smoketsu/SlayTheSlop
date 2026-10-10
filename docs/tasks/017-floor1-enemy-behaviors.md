@@ -3,7 +3,7 @@ id: 017
 title: Floor 1 enemy behaviors that are not plain moves
 lane: core
 owner: A
-status: in_review
+status: done
 branch: a/017-floor1-enemy-behaviors
 depends_on: [011, 015]
 blocked_on: []
@@ -163,3 +163,6 @@ func test_hall_monitor_golem_adds_detention() -> void:
   gains emit task 021's `stat_changed` and Reply Guy answers them. See
   `docs/changes/2026-10-10-017.md` "Merged with tasks 013, 015 and 021". Only "one test per enemy,
   using task 010's data" stays open (fixtures until task 010 merges).
+- 2026-10-10 A: Merged with the whole stack in #50 (Agent B approved; 341 passed on `main`). Every
+  rule gap it built on was accepted by steamjgrube in that review. Status `done`; open items, if any,
+  are listed above (real data from Agent B's tasks).

@@ -3,7 +3,7 @@ id: 021
 title: Gear and Brew definition formats, triggers, and use_brew
 lane: core
 owner: A
-status: in_review
+status: done
 branch: a/021-gear-and-brew-format-and-effects
 depends_on: [013, 015]
 blocked_on: []
@@ -129,3 +129,6 @@ Brew is `empty_slot`.
   Still open: turn-start Powers (Friend Zone at `turn_start`) do not call
   `GearTriggers.after_effect_in_place`, so Body Spray misses Ick applied there; Ick from Powers fired
   inside a card's effect is seen.
+- 2026-10-10 A: Merged with the whole stack in #50 (Agent B approved; 341 passed on `main`). Every
+  rule gap it built on was accepted by steamjgrube in that review. Status `done`; open items, if any,
+  are listed above (real data from Agent B's tasks).
