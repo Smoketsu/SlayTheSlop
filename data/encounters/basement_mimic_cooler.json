@@ -1,0 +1,9 @@
+{
+  "id": "basement_mimic_cooler",
+  "floor": 1,
+  "node": "loot",
+  "enemies": [
+    "mimic_cooler"
+  ],
+  "text": "G19: Mimic Cooler replaces a Loot node with chance LOOT_MIMIC_CHANCE"
+}

@@ -23,6 +23,8 @@ covers the rules that span files.
 | `dude_def.gd` | A Dude definition file in `data/dudes/` | The Dude attribute tables (no field table; added) |
 | `gear_def.gd` | A Gear definition file in `data/gear/`: stats, triggers, modifiers | "Items" Gear tables (no field table; added, task 021) |
 | `brew_def.gd` | A Brew definition file in `data/brews/`, with an optional solo variant | "Items" Brews table (no field table; added, task 021) |
+| `side_quest_def.gd` | A Side Quest definition file in `data/side_quests/`: a safe and a dumb option, each a list of Side Quest operations | "Node types", "Example Side Quests" (no field table; added, task 025) |
+| `encounter_def.gd` | An encounter file in `data/encounters/`: the enemies of one fight, the floor and the node kind it is drawn for | "Random streams" (`encounters`); G19 (no field table; added, task 025) |
 | `shape.gd` | The type checker the files above use | — |
 | `json_values.gd` | JSON parsing that turns whole numbers back into ints | — |
 
@@ -30,8 +32,9 @@ Each state or definition file has a `SPEC` (field → type), a `blank()` or noth
 `check(value) -> Array[String]` that returns every problem found (empty means valid). Checks are
 strict: unknown fields are errors, and an `int` field holding `3.0` is an error.
 
-The Side Quest definition format is not here yet (task 025). Which effect operations, Gear trigger
-points and targets exist is the core lane's catalogue, `core/ops/README.md`.
+Which effect operations, Gear trigger points and targets exist is the core lane's catalogue,
+`core/ops/README.md`. Which Side Quest operations exist is the run lane's, listed in the header of
+`side_quest_def.gd` and checked by `core/run/side_quests.gd` (task 025).
 
 ## The core's entry point
 
@@ -67,6 +70,7 @@ Core.apply(ruleset: Dictionary, state: Dictionary, request: Dictionary) -> Dicti
 | Enemy in a fight (`uid`) | `e` + number, e.g. `e3` | Core, from `run_state.next_uid` |
 | Content (card, enemy, Dude, Gear, Brew) | `snake_case`, cards as `owner_card_name` | Content lane; never changes once merged |
 | Map node (`node_id`) | `r<row>c<column>`, e.g. `r3c1`; unique within one floor's map | Run lane, when a floor's map is generated |
+| Offer (`reward_id`) | `o` + number, e.g. `o14`, from `run_state.next_uid`; unique in the run | Run lane, when a choice opens (task 025) |
 
 A `target_id` holds a player id or an enemy uid. The prefixes never collide.
 
@@ -99,6 +103,33 @@ node = {"id": "r2c1",                  # "r<row>c<column>"; what vote_node.node_
 - Node types over rows 1..`MAP_ROWS` follow the `NODE_SHARE_*` constants (GDD "Node types"),
   rounded to whole nodes per floor: each type's count is its exact share rounded down or up.
 - Generated only from the `map` random stream, so the same seed gives the same map.
+
+## The run flow (task 025)
+
+The run lane (`core/run/`, rules in `core/run/node_flow.gd`) moves a run through its floor with two
+requests, `vote_node` and `choose_reward`, through the same `Core.apply()` as a fight. A new run is
+not a request (there is no state yet): `core/run/new_run.gd` `start(ruleset, run_seed, dude_ids)`
+returns the first state, at the floor's entrance with `run_phase` `"map"`.
+
+- `run_state.run_phase` says where the run is: `"map"` (waiting for `vote_node`), `"node"` (the
+  party is on a node: a fight in `combat`, or open choices), `"floor_end"` (the boss is beaten; the
+  slice ends) or `"lost"`.
+- `vote_node` names a link of `map.nodes[node_index]`. Votes wait in `run_state.votes` until every
+  Dude has voted; ties go to `designated_driver`'s vote. Then the party moves: `node_index`, `path`,
+  `node_entered`, and the node is resolved in the same request (a fight starts, or choices open).
+- Every choice a player makes on a node is an **offer** in their `dude_state.offers`: card rewards,
+  the Boss Gear pick, The Tailgate (Nap or Lift), Baileys (buy, remove a card, leave) and Side
+  Quests (safe or dumb). `choose_reward` answers one: `reward_id` is the offer's `id`,
+  `choice_index` an index into its `options` (or -1 to skip a card reward or leave Baileys), and the
+  optional `card_uid` names the card for a Lift or a removal. One request type for every screen, so
+  the client draws any choice from the state alone and a save loaded mid-node opens the right screen.
+- Prices, heal amounts and which cards a Lift or removal may pick are in the options, already worked
+  out for that player (Medical Card included): the client computes nothing.
+- When every Dude's `offers` is empty the party is done with the node and `run_phase` goes back to
+  `"map"` (or to `"floor_end"` after the boss). `combat` is `null` again once a won fight's rewards
+  are handed out.
+- Fight rewards follow `run_state.encounter_id`'s encounter (`encounter_def.gd`), so a Mimic Cooler
+  at a Loot node gives what a Mimic gives.
 
 ## Status ids
 

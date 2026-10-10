@@ -28,6 +28,7 @@ extends RefCounted
 
 const Bodies := preload("res://core/combat/bodies.gd")
 const CardDef := preload("res://core/schema/card_def.gd")
+const Upgrades := preload("res://core/combat/upgrades.gd")
 
 ## Event type -> the field naming the body whose buff it reports. A positive delta on an enemy is a
 ## buff (G10). stat_changed (task 021; task 017's gain_swole emits it too) counts only for the stats
@@ -80,8 +81,8 @@ static func matching(ruleset: Dictionary, state: Dictionary, when: String, subje
 		if dude["passed_out"]:
 			continue
 		for uid: String in dude["powers"]:
-			# definition: the Power card's definition, or {} if the ruleset lacks it.
-			var definition: Dictionary = ruleset["cards"].get(dude["cards"][uid]["def_id"], {})
+			# definition: the Power card's definition, or {} if the ruleset lacks it. Task 025: upgraded when Lifted.
+			var definition: Dictionary = Upgrades.definition_of(ruleset, dude, uid)
 			for trigger: Dictionary in definition.get("power_triggers", []):
 				if trigger["when"] == when:
 					records.append({"player_id": dude["player_id"], "card_uid": uid, "when": when,

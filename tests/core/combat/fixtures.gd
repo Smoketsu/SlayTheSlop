@@ -52,6 +52,10 @@ const CARDS := {
 	"neutral_test_lifted": {"id": "neutral_test_lifted", "name": "Lifted", "owner": "neutral", "type": "attack",
 		"rarity": "common", "cost": 1, "target": "enemy", "effects": [{"op": "damage", "amount": 6}],
 		"keywords": [], "crunch": null, "upgrade": {"effects[0].amount": 9}},
+	# Task 025: an upgrade whose path does not exist, so an upgraded copy cannot be played.
+	"neutral_test_bad_lift": {"id": "neutral_test_bad_lift", "name": "Bad Lift", "owner": "neutral", "type": "attack",
+		"rarity": "common", "cost": 1, "target": "enemy", "effects": [{"op": "damage", "amount": 6}],
+		"keywords": [], "crunch": null, "upgrade": {"effects[3].amount": 9}},
 	"neutral_test_bro": {"id": "neutral_test_bro", "name": "Bro", "owner": "neutral", "type": "skill",
 		"rarity": "starter", "cost": 0, "target": "self", "effects": [{"op": "guard", "amount": 1}],
 		"keywords": [], "crunch": null, "upgrade": {}},

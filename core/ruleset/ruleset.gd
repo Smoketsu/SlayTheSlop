@@ -12,6 +12,10 @@
 ##   "dudes":     Dictionary, Dude id -> Dude definition (core/schema/dude_def.gd), from data/dudes/.
 ##   "gear":      Dictionary, Gear id -> Gear definition (core/schema/gear_def.gd), from data/gear/ (task 021).
 ##   "brews":     Dictionary, Brew id -> Brew definition (core/schema/brew_def.gd), from data/brews/ (task 021).
+##   "side_quests": Dictionary, Side Quest id -> definition (core/schema/side_quest_def.gd), from
+##                data/side_quests/ (task 025).
+##   "encounters": Dictionary, encounter id -> definition (core/schema/encounter_def.gd), from
+##                data/encounters/ (task 025).
 ## Definitions are the parsed JSON (through json_values.parse, so whole numbers are ints),
 ## unchanged. Keys are inserted in sorted file-path order, so the result is the same on every run.
 ##
@@ -20,6 +24,9 @@
 ## (effects and trigger lists), enemy moves, Gear triggers and Brews names a card. Other effect ops
 ## are not checked here: a card or Brew with an op the core lacks is refused when used
 ## (unplayable), and Gear with one is skipped when it fires.
+## Task 025: each encounter's enemies must be enemies in the ruleset; each Side Quest option's
+## operations must pass core/run/side_quest_ops.gd check() (a Side Quest has no "refuse when used"
+## path), and their add_card ids must be cards.
 ##
 ## Pure: works on text the caller already read. No file, clock, network or random access.
 extends RefCounted
@@ -30,6 +37,9 @@ const EnemyDef := preload("res://core/schema/enemy_def.gd")
 const DudeDef := preload("res://core/schema/dude_def.gd")
 const GearDef := preload("res://core/schema/gear_def.gd")
 const BrewDef := preload("res://core/schema/brew_def.gd")
+const SideQuestDef := preload("res://core/schema/side_quest_def.gd")
+const EncounterDef := preload("res://core/schema/encounter_def.gd")
+const SideQuestOps := preload("res://core/run/side_quest_ops.gd")
 
 ## Repo-relative path of the constants file. Fixed by the repository layout; changes only with it.
 const CONSTANTS_PATH := "data/constants.json"
@@ -48,6 +58,8 @@ const KINDS := {
 	"data/dudes/": {"key": "dudes", "label": "dude", "schema": DudeDef},
 	"data/gear/": {"key": "gear", "label": "gear", "schema": GearDef},
 	"data/brews/": {"key": "brews", "label": "brew", "schema": BrewDef},
+	"data/side_quests/": {"key": "side_quests", "label": "side quest", "schema": SideQuestDef},
+	"data/encounters/": {"key": "encounters", "label": "encounter", "schema": EncounterDef},
 }
 
 ## Value types a constant may have: whole numbers, multipliers and switches.
@@ -66,7 +78,8 @@ static func build(files: Dictionary) -> Dictionary:
 	# errors: every problem found, returned at the end.
 	var errors: Array[String] = []
 	# ruleset: the result being filled; returned only when no error was found.
-	var ruleset: Dictionary = {"constants": {}, "cards": {}, "enemies": {}, "dudes": {}, "gear": {}, "brews": {}}
+	var ruleset: Dictionary = {"constants": {}, "cards": {}, "enemies": {}, "dudes": {}, "gear": {}, "brews": {},
+		"side_quests": {}, "encounters": {}}
 	# id_paths: ruleset key -> {definition id -> path of the first file that used it}, to report duplicates.
 	var id_paths: Dictionary = {}
 	for kind: Dictionary in KINDS.values():
@@ -106,6 +119,8 @@ static func build(files: Dictionary) -> Dictionary:
 	_check_references(ruleset, id_paths, errors)
 	# Task 015: add_card effects must name a card.
 	_check_added_cards(ruleset, id_paths, errors)
+	# Task 025: encounters name enemies; Side Quest operations are valid and name cards.
+	_check_run_content(ruleset, id_paths, errors)
 	if not errors.is_empty():
 		ruleset = {}
 	freeze(ruleset)
@@ -288,3 +303,55 @@ static func _check_added_cards(ruleset: Dictionary, id_paths: Dictionary, errors
 					and typeof(effect.get("card_id")) == TYPE_STRING and not ruleset["cards"].has(effect["card_id"]):
 				errors.append("%s: %s[%d].card_id: card \"%s\" is not a valid card in data/cards/" % [
 					entry[0], entry[1], i, effect["card_id"]])
+
+
+## Task 025: checks the run content. Each encounter's enemies must be enemies in the ruleset. Each
+## Side Quest option's operations must pass core/run/side_quest_ops.gd check_all(), and every add_card
+## among them (nested chances included) must name a card. Messages start with the file's path.
+## ruleset: the ruleset built so far (only valid definitions are in it).
+## id_paths: ruleset key -> {id -> path}, used to name the file in messages.
+## errors: the list problems are appended to.
+static func _check_run_content(ruleset: Dictionary, id_paths: Dictionary, errors: Array[String]) -> void:
+	# encounter_ids: encounter ids, sorted for stable messages.
+	var encounter_ids: Array = ruleset["encounters"].keys()
+	encounter_ids.sort()
+	for encounter_id: String in encounter_ids:
+		# enemies: the encounter's enemy ids.
+		var enemies: Array = ruleset["encounters"][encounter_id]["enemies"]
+		for i: int in enemies.size():
+			if not ruleset["enemies"].has(enemies[i]):
+				errors.append("%s: encounter.enemies[%d]: enemy \"%s\" is not a valid enemy in data/enemies/" % [
+					id_paths["encounters"][encounter_id], i, enemies[i]])
+	# quest_ids: Side Quest ids, sorted for stable messages.
+	var quest_ids: Array = ruleset["side_quests"].keys()
+	quest_ids.sort()
+	for quest_id: String in quest_ids:
+		# path: the Side Quest's file, for messages.
+		var path: String = id_paths["side_quests"][quest_id]
+		for field: String in SideQuestDef.OPTION_FIELDS:
+			# effects: this option's operations.
+			var effects: Array = ruleset["side_quests"][quest_id][field]["effects"]
+			# found: operation problems in this option.
+			var found: Array[String] = SideQuestOps.check_all(effects, "side quest.%s.effects" % field)
+			for problem: String in found:
+				errors.append("%s: %s" % [path, problem])
+			if not found.is_empty():
+				continue
+			# card_ids: every add_card's card_id in the option, nested chances included.
+			var card_ids: Array[String] = []
+			_side_quest_card_ids(effects, card_ids)
+			for card_id: String in card_ids:
+				if not ruleset["cards"].has(card_id):
+					errors.append("%s: side quest.%s: add_card card \"%s\" is not a valid card in data/cards/" % [path, field, card_id])
+
+
+## Task 025: collects the card_id of every add_card operation in a Side Quest operation list that
+## passed SideQuestOps.check_all(), nested chances ("then", "else") included, in order.
+## effects: the operation list. out: receives the card ids.
+static func _side_quest_card_ids(effects: Array, out: Array[String]) -> void:
+	for effect: Dictionary in effects:
+		if effect["op"] == "add_card":
+			out.append(effect["card_id"])
+		elif effect["op"] == "chance":
+			_side_quest_card_ids(effect["then"], out)
+			_side_quest_card_ids(effect.get("else", []), out)
