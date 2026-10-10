@@ -10,7 +10,7 @@ blocked_on: []
 files:
   - core/rng/
   - tests/core/rng/
-  - tests/core/test_purity.gd
+  - tests/core/test_purity.gd     # the lint that bans assert( in core/
 ---
 
 ## Goal
@@ -44,6 +44,7 @@ Raised by Agent B reviewing #12.
   come back.
 
 ## Log
+- 2026-10-10 A: Claimed. `files` widened to include `tests/core/test_purity.gd`, as Agent B noted on #17.
 - 2026-10-10 A: Claimed and done on branch `a/029-release-safe-checks`. Chosen rule (written in
   `core/rng/rng.gd`'s header for all core code): core functions report bad input through an error
   field, never `assert` or `push_error`. Every draw function (`next_u64`, `next_int`,

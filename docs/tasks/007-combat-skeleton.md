@@ -3,10 +3,10 @@ id: 007
 title: Combat skeleton - apply(), turn flow, piles, Hype, basic damage and Guard
 lane: core
 owner: A
-status: open
-branch:
+status: in_progress
+branch: a/007-combat-skeleton
 depends_on: [003, 005]
-blocked_on: [G2, G8]
+blocked_on: []
 files:
   - core/core.gd
   - core/combat/
@@ -43,3 +43,4 @@ GDD "Combat rules" ("Turn flow", "Stats"), "How a card gets played in co-op", "N
 - New event types or reject codes need a contract PR to `core/schema/` first.
 
 ## Log
+- 2026-10-10 A: Claimed. G2 and G8 answered "accept" by Person A (PR a/g2-g8-answers).
