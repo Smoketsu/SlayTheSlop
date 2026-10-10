@@ -72,6 +72,7 @@ Decisions taken here that the people should confirm (in the PR as well):
 ## Log
 
 - 2026-10-10 A: blocked on G18 (the GDD gives node shares but no map shape).
+- 2026-10-10 A: Claimed. Every rule gap it waited on is answered "accept" (PR #20).
 - 2026-10-10 A: G18 answered "accept". Done: contract commit (`run_state.gd` comments, schema
   README "The floor map", ten constants in `data/constants.json`, `docs/changes/2026-10-10-023-contract.md`),
   then `core/run/map/floor_map.gd` and `tests/run/map/test_floor_map.gd` (11 tests). Verified:

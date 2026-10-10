@@ -3,10 +3,10 @@ id: 011
 title: Enemy intents, move choice and targeting
 lane: core
 owner: A
-status: open
-branch:
+status: in_progress
+branch: a/011-enemy-intents-and-ai
 depends_on: [007]
-blocked_on: [G11]
+blocked_on: []
 files:
   - core/combat/
   - core/ai/
@@ -32,3 +32,4 @@ GDD "Turn flow" step 1 and 5, "Enemies" intro, "Difficulty scaling" (targets per
 - [ ] Fixed-seed test: a recorded intent sequence for a two-move enemy over 20 turns.
 
 ## Log
+- 2026-10-10 A: Claimed. Every rule gap it waited on is answered "accept" (PR #20).

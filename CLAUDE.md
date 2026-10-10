@@ -167,7 +167,8 @@ These come from the GDD "Technical design" section. They hold from the first com
 
 ### The rules core is pure
 
-- `core/` is a function: `apply(state, request) -> (new_state, events)`. It has no rendering,
+- `core/` is a function: `apply(ruleset, state, request) -> (new_state, events)`, where `ruleset` is
+  the read-only content data (see `core/schema/README.md`). It has no rendering,
   no scene tree, no input, no file or network access, and no dependence on frame timing.
 - The client never changes game state. It sends a request and animates the events that come back.
   This is true in solo play too. There is one code path, and co-op reuses it.

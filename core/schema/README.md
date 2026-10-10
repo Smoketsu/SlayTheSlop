@@ -30,7 +30,7 @@ strict: unknown fields are errors, and an `int` field holding `3.0` is an error.
 
 Gear, Brew and Side Quest definition formats are not here yet (tasks 021 and 025).
 
-## The core's entry point (proposed)
+## The core's entry point
 
 ```gdscript
 Core.apply(ruleset: Dictionary, state: Dictionary, request: Dictionary) -> Dictionary
@@ -40,7 +40,7 @@ Core.apply(ruleset: Dictionary, state: Dictionary, request: Dictionary) -> Dicti
 - CLAUDE.md writes this as `apply(state, request)`. The extra `ruleset` argument is the loaded,
   read-only content (constants, cards, enemies, Dudes ...). It is passed in rather than read from
   disk because the core may not touch files, and it is kept out of `state` because saves refer to
-  content by id. **(proposed; task 007 must confirm it with both people.)**
+  content by id. Accepted by both people on #23 (2026-10-10).
 - `reject` is `""` when the request was applied. Otherwise it is one of `request.gd`'s
   `REJECT_REASONS`, `state` is returned unchanged (same `state_version`) and `events` is empty.
 - An applied request raises `state_version` by exactly 1, however many events it produced.
@@ -109,6 +109,9 @@ Used as keys in `statuses`, as `effects[].status` in `apply_status`, and in `sta
 | `foggy` | Foggy | `statuses` (Dudes) |
 | `broken_arm` | Broken Arm | `enemy.broken_arms` (not `statuses`), capped at `arm_count` |
 | `ick` | Ick | `enemy.ick` (not `statuses`) |
+
+Grossed Out is not a status: a pending skip is counted in `enemy.grossed_out_skips` (task 009), and
+Armless is worked out from `broken_arms == arm_count > 0` and `armless_used`.
 
 Bugs (Nate) and later statuses are added when they are built.
 
