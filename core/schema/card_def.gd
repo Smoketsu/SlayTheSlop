@@ -14,8 +14,22 @@ const Shape := preload("res://core/schema/shape.gd")
 const OWNERS: Array[String] = ["tom", "cheney", "nate", "grube", "neutral", "junk"]
 ## Card types, from the GDD table.
 const TYPES: Array[String] = ["attack", "skill", "power", "aura", "junk"]
-## Rarities, from the GDD table. Set reward odds and shop price.
-const RARITIES: Array[String] = ["starter", "common", "uncommon", "rare"]
+## Rarities, from the GDD table, plus "special" (gap G17, answered "accept"; task 015): Junk and
+## Bro Move cards, which are never offered as rewards or sold in the shop. Set reward odds and shop price.
+const RARITIES: Array[String] = ["starter", "common", "uncommon", "rare", "special"]
+## [added] Values of the optional "lasts" field (task 015, GDD "Junk cards" column "Lasts").
+## "run": the copy stays in the Dude's run deck. "fight": the copy is removed from the Dude's cards,
+## deck and piles when the fight ends. Changed only by a contract PR.
+const LASTS: Array[String] = ["run", "fight"]
+
+## [added] What a card without a "lasts" field means: it is part of the run deck. Changed only by a
+## contract PR, because every existing card relies on it.
+const DEFAULT_LASTS: String = "run"
+
+## [added] Optional fields that hold an effects list run by a trigger rather than by playing the
+## card (task 015). Each entry needs a String "op", like "effects". Changed only by a contract PR.
+const TRIGGER_FIELDS: Array[String] = ["on_draw", "on_end_of_turn_in_hand"]
+
 ## What the player must select when playing the card, from the GDD table.
 const TARGETS: Array[String] = ["enemy", "all_enemies", "self", "ally", "puppet", "none"]
 ## Keywords, from the GDD table.
@@ -60,6 +74,24 @@ const OPTIONAL := {
 	# of the fight (dude_state.gd), and each trigger runs its effects whenever its "when" happens.
 	# Meanings of the "when" and "target" values: POWER_WHENS, POWER_TARGETS and core/ops/README.md.
 	"power_triggers": {"list_of": TYPE_DICTIONARY},
+	# [added] Task 015 (GDD "Junk cards"). Operations run, in order, right after this copy is drawn
+	# into its owner's hand (Hangover: lose 1 Hype; Bedbugs: take 1 damage). Same op format as
+	# "effects"; the owner is the actor and the target. Left out or [] means nothing happens on draw.
+	"on_draw": {"list_of": TYPE_DICTIONARY},
+	# [added] Task 015. Operations run, in order, at End of turn if this copy is in its owner's hand,
+	# before the hand is discarded (Burn: take 2 damage). Same op format as "effects"; the owner is
+	# the actor and the target. Left out or [] means nothing happens.
+	"on_end_of_turn_in_hand": {"list_of": TYPE_DICTIONARY},
+	# [added] Task 015. While this copy is in its owner's hand, that Dude may play at most this many
+	# cards this turn (counted by cards_played_this_turn); further plays are rejected "unplayable"
+	# (Detention: 4). Int, 0 or more. Left out means no limit.
+	"play_limit_in_hand": TYPE_INT,
+	# [added] Task 015. One of LASTS: "run" (DEFAULT_LASTS, when left out) or "fight" (Paperwork,
+	# Detention, Burn: removed from the Dude's cards, deck and piles when the fight ends).
+	"lasts": TYPE_STRING,
+	# [added] Task 015. false means the card cannot be removed at Baileys (Regret). Left out means
+	# true. Read by the run lane's Baileys (task 025); the fight rules ignore it.
+	"removable": TYPE_BOOL,
 }
 
 ## [added, task 013] Shape of one entry of power_triggers. All three fields are required.
@@ -112,6 +144,15 @@ static func check(card: Variant, path: String = "card") -> Array[String]:
 	for i: int in card["effects"].size():
 		if typeof(card["effects"][i].get("op")) != TYPE_STRING:
 			errors.append("%s.effects[%d]: missing String \"op\"" % [path, i])
+	# Task 015: trigger effect lists, the play limit and lasts.
+	for field: String in TRIGGER_FIELDS:
+		for i: int in card.get(field, []).size():
+			if typeof(card[field][i].get("op")) != TYPE_STRING:
+				errors.append("%s.%s[%d]: missing String \"op\"" % [path, field, i])
+	if card.has("play_limit_in_hand") and card["play_limit_in_hand"] < 0:
+		errors.append("%s.play_limit_in_hand: %d is below 0" % [path, card["play_limit_in_hand"]])
+	if card.has("lasts"):
+		errors.append_array(Shape.check_one_of(card["lasts"], LASTS, path + ".lasts"))
 	if not card["id"].begins_with(card["owner"] + "_"):
 		errors.append("%s.id: %s must start with its owner \"%s_\"" % [path, card["id"], card["owner"]])
 	if card.has("power_triggers"):

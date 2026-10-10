@@ -283,6 +283,30 @@ func test_bad_card_definitions_fail() -> void:
 	assert_false(CardDef.check(bad).is_empty(), "id without owner prefix")
 
 
+## Task 015: the Junk fields. Rarity "special" (G17), the trigger lists, play_limit_in_hand, lasts
+## and removable are accepted when well formed, and each malformed value is caught.
+func test_junk_card_fields() -> void:
+	# junk: a Detention-like card using every new field once.
+	var junk: Dictionary = {"id": "junk_detention", "name": "Detention", "owner": "junk", "type": "junk",
+		"rarity": "special", "cost": -1, "target": "none", "effects": [], "keywords": [], "crunch": null,
+		"upgrade": {}, "on_draw": [{"op": "lose_hype", "amount": 1}],
+		"on_end_of_turn_in_hand": [{"op": "self_damage", "amount": 2}], "play_limit_in_hand": 4,
+		"lasts": "fight", "removable": false}
+	assert_no_errors(CardDef.check(junk), "junk card with every new field")
+	assert_true(CardDef.RARITIES.has("special"), "G17 rarity")
+	# cases: [field, bad value, label]; each makes the card invalid on its own.
+	var cases: Array = [["rarity", "junky", "unknown rarity"], ["lasts", "forever", "unknown lasts"],
+		["lasts", 1, "lasts not text"], ["play_limit_in_hand", -1, "negative limit"],
+		["play_limit_in_hand", 4.0, "float limit"], ["removable", "no", "removable not bool"],
+		["on_draw", [{"amount": 1}], "on_draw entry without op"], ["on_draw", {"op": "lose_hype"}, "on_draw not a list"],
+		["on_end_of_turn_in_hand", [{"op": 3}], "end-of-turn op not text"]]
+	for case: Array in cases:
+		# bad: the card with one field broken.
+		var bad: Dictionary = junk.duplicate(true)
+		bad[case[0]] = case[1]
+		assert_false(CardDef.check(bad).is_empty(), case[2])
+
+
 ## A minimal enemy and Dude definition are valid; a duplicate move id is caught.
 func test_enemy_and_dude_definitions() -> void:
 	# pledge: Goblin Pledge from the GDD floor 1 table, moves only.
