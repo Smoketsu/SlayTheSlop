@@ -31,7 +31,13 @@ const TYPES := {
 	# A card moved between piles. from / to: one of draw_pile, hand, discard_pile, tapped_pile, or "deck" when it is removed from or added to the run deck.
 	"card_moved": {"player_id": TYPE_STRING, "card_uid": TYPE_STRING, "from": TYPE_STRING, "to": TYPE_STRING},
 	# A new card copy was created (a reward, or Junk such as Paperwork). to: the pile it was put in.
+	# Task 015: a copy whose definition lasts "run" (card_def.gd LASTS) also joined the run deck;
+	# a "fight" copy did not. No separate card_moved is sent for either.
 	"card_created": {"player_id": TYPE_STRING, "card_uid": TYPE_STRING, "def_id": TYPE_STRING, "to": TYPE_STRING},
+	# [added] Task 015. A card copy left the Dude for good: it is gone from cards, deck and every pile
+	# (fight-only Junk when its fight ends; later, removal at Baileys). from: the pile it was in
+	# (draw_pile, hand, discard_pile or tapped_pile), or "deck" when it was in no pile.
+	"card_removed": {"player_id": TYPE_STRING, "card_uid": TYPE_STRING, "from": TYPE_STRING},
 	# A card was played. target_id: as in the request, "" for none. Its effects follow as their own events.
 	"card_played": {"player_id": TYPE_STRING, "card_uid": TYPE_STRING, "target_id": TYPE_STRING},
 	# A Dude's Hype changed. delta: the change (negative when spent). hype: the new value.
