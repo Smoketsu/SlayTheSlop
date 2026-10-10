@@ -3,8 +3,8 @@ id: 002
 title: Test harness, pinned Godot install, CI, and the Commands section
 lane: tools
 owner: B
-status: open
-branch:
+status: in_review
+branch: b/002-test-harness-and-ci
 depends_on: [001]
 blocked_on: []
 files:
@@ -72,10 +72,11 @@ Install into `.tools/` (already in `.gitignore`). The version pin is a shared co
 
 ## Acceptance checks
 
-- [ ] From a fresh clone, one documented command installs Godot 4.7.2-stable and runs all tests.
-- [ ] Every test in `tests/core/` passes, unmodified (22 tests at the time of writing).
-- [ ] A test file with a parse error, a failing assertion, and a runtime error each give exit code 1.
-- [ ] CI runs the suite on every pull request and on pushes to `main`, and fails the check on a failing test.
+- [x] From a fresh clone, one documented command installs Godot 4.7.2-stable and runs all tests.
+- [x] Every test in `tests/core/` passes, unmodified (22 tests at the time of writing).
+- [x] A test file with a parse error, a failing assertion, and a runtime error each give exit code 1.
+- [x] CI runs the suite on every pull request and on pushes to `main`, and fails the check on a failing test.
+      (Seen green on PR 6. Failing on a failing test follows from `tools/test.sh`'s exit code, shown locally.)
 - [ ] CLAUDE.md "Commands" lists the exact commands, in its own contract PR.
 - [ ] Optional: a Claude Code SessionStart hook installs Godot in new cloud sessions, so agents can test without setup.
 
@@ -88,3 +89,37 @@ Install into `.tools/` (already in `.gitignore`). The version pin is a shared co
   are free to design your own as long as the interface above holds.
 
 ## Log
+
+- 2026-10-10 B: Claimed and built together. A claim PR was not possible: this task file exists only
+  on task 001's branch, which is not merged. Person B told Agent B to start. This branch is cut from
+  task 001's branch (`claude/practical-ride-8ake0f`) because Agent A's tests are the acceptance
+  test; rebase onto `main` once 001 merges, after which the PR shows only Agent B's files.
+- 2026-10-10 B: Done:
+  - `tools/install_godot.sh`: downloads the pinned 4.7.2-stable zip for Linux x86_64/arm64 or macOS,
+    checks its SHA-512 (values from the table above, re-checked against the release's
+    `SHA512-SUMS.txt`), unzips into `.tools/godot-4.7.2/`, prints the binary path. Idempotent.
+    Windows prints manual steps instead (no PowerShell installer yet).
+  - `tools/test.sh [filters...]`: install if needed, `--import`, run the suite. This is the one command.
+  - `tests/framework/test_case.gd` and `tests/run_tests.gd`: the interface above, unchanged.
+    Errors are caught with an `OS.add_logger()` `Logger`; warnings are ignored. A file that does not
+    parse fails as one entry named after the file. A test file with no `test_*` methods fails.
+  - `tests/harness/test_harness.gd`: 5 self-tests. The exit-code tests build a throwaway project in
+    the user data folder with a copy of the harness and one fixture, run a child Godot, check its
+    exit code, and delete the project.
+  - `.github/workflows/tests.yml`: runs `tools/test.sh` on pull requests and pushes to `main`,
+    caching `.tools/` keyed on the installer.
+- 2026-10-10 B: Verified:
+  - `tools/test.sh` from a fresh clone with no `.tools/` or `.godot/`: `27 passed, 0 failed`, exit 0
+    (Agent A's 22 + 5 self-tests).
+  - `tools/test.sh constants`: `3 passed, 0 failed`. `tools/test.sh zzz`: exit 1 (nothing ran).
+  - Mutation check: making the runner ignore logged errors turns `test_exit_codes` red.
+- 2026-10-10 B: Not done:
+  - CLAUDE.md "Commands": goes in its own contract PR (`b/002-commands`), after this one merges.
+  - Optional SessionStart hook: skipped. It would live in `.claude/settings.json`, which no lane owns.
+  - Windows installer script.
+- 2026-10-10 B: For the next agent:
+  - `strict_diff` does not compare whether an array is typed, only its elements. `[] as Array[String]`
+    and `[]` are equal.
+  - `test_schema.gd`'s `test_json_corrupts_big_ints` passes only because `assert_ne` is strict: under
+    Godot's `==`, float 2^60 equals int 2^60+1.
+- 2026-10-10 B: CI `tests` check ran on PR 6: success in 14 s (GitHub Actions run 38064532187).

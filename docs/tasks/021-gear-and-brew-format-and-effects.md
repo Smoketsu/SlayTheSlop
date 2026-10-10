@@ -6,7 +6,7 @@ owner: A
 status: open
 branch:
 depends_on: [013]
-blocked_on: [G16]
+blocked_on: [G16, G26, G27, G28]
 files:
   - core/schema/gear_def.gd     # new contract file, in its own PR first
   - core/schema/brew_def.gd     # new contract file, in its own PR first

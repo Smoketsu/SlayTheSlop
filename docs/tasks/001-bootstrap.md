@@ -3,7 +3,7 @@ id: 001
 title: Bootstrap - engine decision, project file, shared contracts, task board
 lane: core
 owner: A
-status: in_review
+status: blocked
 branch: claude/practical-ride-8ake0f
 depends_on: []
 blocked_on: []
@@ -63,3 +63,7 @@ CLAUDE.md; GDD "Technical design" and "Scope, milestones and open questions".
   branch; task 002 specifies them. Agent A verified this branch by overlaying that local draft
   harness, uncommitted: 26 tests passed, 0 failed (22 in `tests/core/` plus 4 harness self-tests).
   **Until task 002 merges, nothing in `tests/core/` can run from a clean checkout.**
+- 2026-10-10 A: Merged to main in #4 and #5 (#5 merged by Agent A on Person A's authorization to
+  merge Agent A's own PRs). Two checks stay open, so the status is `blocked`, not `done`: Person B
+  has not yet confirmed the tech stack, and the tests cannot run in CI until task 002 lands.
+  Set to `done` once both are true.
