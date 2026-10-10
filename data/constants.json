@@ -95,5 +95,190 @@
     "value": true,
     "unit": "true or false",
     "meaning": "Whether an Assist card played on a Napping Ethan wakes him. Out of scope for the solo slice; listed because the GDD defines it."
+  },
+  "START_DOLLA_BILLS": {
+    "value": 99,
+    "unit": "Dolla Bills",
+    "meaning": "Dolla Bills each Dude holds at the start of a run (G20)."
+  },
+  "BASE_BREW_SLOTS": {
+    "value": 3,
+    "unit": "Brew slots",
+    "meaning": "Brew slots each Dude starts with, before Gear such as Fanny Pack (GDD Items; G22)."
+  },
+  "CARD_REWARD_CHOICES": {
+    "value": 3,
+    "unit": "cards",
+    "meaning": "Cards offered at each card reward, before Gear such as Beer Goggles (G22)."
+  },
+  "BRAWL_DOLLA_MIN": {
+    "value": 10,
+    "unit": "Dolla Bills",
+    "meaning": "Smallest Dolla Bills reward from a Brawl (GDD Node types; G22)."
+  },
+  "BRAWL_DOLLA_MAX": {
+    "value": 20,
+    "unit": "Dolla Bills",
+    "meaning": "Largest Dolla Bills reward from a Brawl (GDD Node types; G22)."
+  },
+  "BRAWL_BREW_CHANCE": {
+    "value": 0.4,
+    "unit": "probability, 0 to 1",
+    "meaning": "Chance that a Brawl also rewards a Brew (GDD Node types; G22)."
+  },
+  "RIVAL_DOLLA_MIN": {
+    "value": 25,
+    "unit": "Dolla Bills",
+    "meaning": "Smallest Dolla Bills reward from a Rival (GDD Node types; G22)."
+  },
+  "RIVAL_DOLLA_MAX": {
+    "value": 35,
+    "unit": "Dolla Bills",
+    "meaning": "Largest Dolla Bills reward from a Rival (GDD Node types; G22)."
+  },
+  "TAILGATE_NAP_HEAL": {
+    "value": 0.3,
+    "unit": "fraction of max HP",
+    "meaning": "HP a Nap at The Tailgate restores (GDD Node types; G22). Keg Level 5 lowers it later."
+  },
+  "CARD_REMOVE_BASE": {
+    "value": 75,
+    "unit": "Dolla Bills",
+    "meaning": "Price of the first card removal at Baileys (GDD Prices at Baileys; G22)."
+  },
+  "CARD_REMOVE_STEP": {
+    "value": 25,
+    "unit": "Dolla Bills",
+    "meaning": "Added to the card removal price after each removal (GDD Prices at Baileys; G22)."
+  },
+  "BRO_METER_SOLO_CARDS": {
+    "value": 3,
+    "unit": "cards per Bro Meter point",
+    "meaning": "In solo play, the Bro Meter gains 1 for every this-many cards played in a turn (GDD Bro Meter; G22)."
+  },
+  "REWARD_ODDS_COMMON": {
+    "value": 0.6,
+    "unit": "probability, 0 to 1",
+    "meaning": "Chance a card offered as a reward is common (G21). The three REWARD_ODDS_ values add up to 1."
+  },
+  "REWARD_ODDS_UNCOMMON": {
+    "value": 0.35,
+    "unit": "probability, 0 to 1",
+    "meaning": "Chance a card offered as a reward is uncommon (G21)."
+  },
+  "REWARD_ODDS_RARE": {
+    "value": 0.05,
+    "unit": "probability, 0 to 1",
+    "meaning": "Chance a card offered as a reward is rare (G21)."
+  },
+  "PRICE_CARD_COMMON": {
+    "value": 50,
+    "unit": "Dolla Bills",
+    "meaning": "Price of a common card at Baileys (G21)."
+  },
+  "PRICE_CARD_UNCOMMON": {
+    "value": 75,
+    "unit": "Dolla Bills",
+    "meaning": "Price of an uncommon card at Baileys (G21)."
+  },
+  "PRICE_CARD_RARE": {
+    "value": 150,
+    "unit": "Dolla Bills",
+    "meaning": "Price of a rare card at Baileys (G21)."
+  },
+  "PRICE_GEAR_COMMON": {
+    "value": 150,
+    "unit": "Dolla Bills",
+    "meaning": "Price of a common Gear at Baileys (G21)."
+  },
+  "PRICE_GEAR_UNCOMMON": {
+    "value": 225,
+    "unit": "Dolla Bills",
+    "meaning": "Price of an uncommon Gear at Baileys (G21)."
+  },
+  "PRICE_GEAR_RARE": {
+    "value": 300,
+    "unit": "Dolla Bills",
+    "meaning": "Price of a rare Gear at Baileys (G21)."
+  },
+  "PRICE_SHAKE_COMMON": {
+    "value": 50,
+    "unit": "Dolla Bills",
+    "meaning": "Price of a common Brew, sold as Shake at Baileys (G21)."
+  },
+  "PRICE_SHAKE_UNCOMMON": {
+    "value": 65,
+    "unit": "Dolla Bills",
+    "meaning": "Price of an uncommon Brew, sold as Shake at Baileys (G21)."
+  },
+  "PRICE_SHAKE_RARE": {
+    "value": 75,
+    "unit": "Dolla Bills",
+    "meaning": "Price of a rare Brew, sold as Shake at Baileys (G21)."
+  },
+  "SHOP_CARD_COUNT": {
+    "value": 5,
+    "unit": "cards",
+    "meaning": "Cards for sale at each Baileys (G21)."
+  },
+  "SHOP_GEAR_COUNT": {
+    "value": 2,
+    "unit": "Gear",
+    "meaning": "Gear for sale at each Baileys (G21)."
+  },
+  "SHOP_SHAKE_COUNT": {
+    "value": 2,
+    "unit": "Brews",
+    "meaning": "Brews for sale, as Shake, at each Baileys (G21)."
+  },
+  "MAP_ROWS": {
+    "value": 7,
+    "unit": "rows",
+    "meaning": "Rows of nodes on a floor map before the boss row (gap G18). Row 1 is all Brawls, row MAP_ROWS (the row before the boss) is all The Tailgate, and one boss row with one Boss node follows. Must be 2 or more."
+  },
+  "MAP_MIN_NODES_PER_ROW": {
+    "value": 2,
+    "unit": "nodes",
+    "meaning": "Fewest nodes in one map row, rows 1..MAP_ROWS (gap G18). The boss row always has exactly one node. At least 1, at most MAP_MAX_NODES_PER_ROW."
+  },
+  "MAP_MAX_NODES_PER_ROW": {
+    "value": 4,
+    "unit": "nodes",
+    "meaning": "Most nodes in one map row, rows 1..MAP_ROWS (gap G18). Each row's size is drawn from the map stream between MAP_MIN_NODES_PER_ROW and this value."
+  },
+  "MAP_MAX_LINKS": {
+    "value": 2,
+    "unit": "links",
+    "meaning": "Most nodes in the next row one map node links to (gap G18: 1 to 2). Every node links to at least 1, so every path reaches the boss. MAP_MAX_NODES_PER_ROW must be at most MAP_MIN_NODES_PER_ROW times this value, or some rows cannot all be reached."
+  },
+  "NODE_SHARE_BRAWL": {
+    "value": 45,
+    "unit": "percent of a floor's nodes",
+    "meaning": "Share of Brawl nodes among a floor map's rows 1..MAP_ROWS (GDD 'Node types'). The six NODE_SHARE_ values must total 100. Rounded to whole nodes per floor; row 1's Brawls count toward it."
+  },
+  "NODE_SHARE_RIVAL": {
+    "value": 10,
+    "unit": "percent of a floor's nodes",
+    "meaning": "Share of Rival (elite fight) nodes among a floor map's rows 1..MAP_ROWS (GDD 'Node types'). Rounded to whole nodes per floor."
+  },
+  "NODE_SHARE_SIDE_QUEST": {
+    "value": 20,
+    "unit": "percent of a floor's nodes",
+    "meaning": "Share of Side Quest nodes among a floor map's rows 1..MAP_ROWS (GDD 'Node types'). Rounded to whole nodes per floor."
+  },
+  "NODE_SHARE_TAILGATE": {
+    "value": 12,
+    "unit": "percent of a floor's nodes",
+    "meaning": "Share of The Tailgate nodes among a floor map's rows 1..MAP_ROWS (GDD 'Node types'). Rounded to whole nodes per floor; the pre-boss row's Tailgates count toward it."
+  },
+  "NODE_SHARE_BAILEYS": {
+    "value": 8,
+    "unit": "percent of a floor's nodes",
+    "meaning": "Share of Baileys (shop) nodes among a floor map's rows 1..MAP_ROWS (GDD 'Node types'). Rounded to whole nodes per floor."
+  },
+  "NODE_SHARE_LOOT": {
+    "value": 5,
+    "unit": "percent of a floor's nodes",
+    "meaning": "Share of Loot nodes among a floor map's rows 1..MAP_ROWS (GDD 'Node types'). Rounded to whole nodes per floor. Whether a Loot node holds a Mimic Cooler is decided by encounters (gap G19), not by the map."
   }
 }
