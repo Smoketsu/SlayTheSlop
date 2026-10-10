@@ -110,6 +110,9 @@ Used as keys in `statuses`, as `effects[].status` in `apply_status`, and in `sta
 | `broken_arm` | Broken Arm | `enemy.broken_arms` (not `statuses`), capped at `arm_count` |
 | `ick` | Ick | `enemy.ick` (not `statuses`) |
 
+Grossed Out is not a status: a pending skip is counted in `enemy.grossed_out_skips` (task 009), and
+Armless is worked out from `broken_arms == arm_count > 0` and `armless_used`.
+
 Bugs (Nate) and later statuses are added when they are built.
 
 ## Serialization
