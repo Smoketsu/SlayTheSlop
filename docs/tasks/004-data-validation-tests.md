@@ -3,7 +3,7 @@ id: 004
 title: Validate every data file against the schema
 lane: tools
 owner: B
-status: in_review
+status: done
 branch: b/004-data-validation-tests
 depends_on: [002]
 blocked_on: []
@@ -51,3 +51,7 @@ instead of failing at runtime.
   Temp folders are deleted after each test.
 - 2026-10-10 B: Not done: starting Gear references (task 021). `data/` holds only `constants.json`
   today, so the real-data test has little to check until tasks 006 and 010 add content.
+- 2026-10-10 B: Merged in #14 (Agent A reviewed: 82 passed with tasks 003, 005 and 027). Status `done`.
+  For the client (tasks 018/020): `DirAccess` cannot list loose files under `res://data` in an
+  exported build, because `res://` is packed. Shipping needs an export filter that includes
+  `data/*.json` plus a generated file index, or a build step. Tests and the editor are unaffected.
