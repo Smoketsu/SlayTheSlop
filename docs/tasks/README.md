@@ -18,6 +18,9 @@ grep -l "^owner: A" docs/tasks/*.md               # Agent A's tasks
 - `owner` is the agent whose lanes include the task's `lane` (CLAUDE.md "Who is who"):
   A owns `core` and `run`; B owns `content`, `tools` and `client`. An agent may write a task for the
   other agent's lane (with its own parity of id), but only that lane's agent claims it.
+- One exception: the bootstrap backlog (tasks 001–027) was written by Agent A in one sitting before
+  Agent B started, so there its ids follow the **owner** (even = B). From 028 on, the creator's
+  parity applies.
 
 ## File format
 

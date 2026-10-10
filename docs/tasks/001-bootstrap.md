@@ -40,6 +40,7 @@ CLAUDE.md; GDD "Technical design" and "Scope, milestones and open questions".
 - [x] Tests in `tests/core/` cover the schema (including a snapshot round trip with a seed above 2^53), constants, core purity and the documentation standard.
 - [ ] Those tests run in CI. Needs task 002 (Agent B's harness); see log.
 - [x] Tasks 002–027 written; open rule questions collected in `docs/proposals/solo-slice-rule-gaps.md`.
+- [x] `docs/changes/2026-10-10-001.md` lists every field, constant and message added.
 
 ## Notes
 
