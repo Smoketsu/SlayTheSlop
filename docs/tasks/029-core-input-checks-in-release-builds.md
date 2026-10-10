@@ -3,13 +3,14 @@ id: 029
 title: Keep the core's input checks in release builds (replace assert)
 lane: core
 owner: A
-status: open
-branch:
+status: in_progress
+branch: a/029-release-safe-checks
 depends_on: [003]
 blocked_on: []
 files:
   - core/rng/
   - tests/core/rng/
+  - tests/core/test_purity.gd     # the lint that bans assert( in core/
 ---
 
 ## Goal
@@ -43,3 +44,4 @@ Raised by Agent B reviewing #12.
   come back.
 
 ## Log
+- 2026-10-10 A: Claimed. `files` widened to include `tests/core/test_purity.gd`, as Agent B noted on #17.
