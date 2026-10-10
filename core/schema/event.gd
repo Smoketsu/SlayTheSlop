@@ -95,6 +95,25 @@ const TYPES := {
 	# [added, task 021] A Dude who would have Passed Out stayed up instead (Smelling Salts, solo).
 	# hp: the HP they were left at.
 	"pass_out_prevented": {"player_id": TYPE_STRING, "hp": TYPE_INT},
+	# [added, task 017] An enemy left the fight alive (Dorm Rats on turn 4). It is removed from the
+	# fight like a dead enemy, but it did not die: its haul leaves with it and nothing drops.
+	"enemy_fled": {"enemy_uid": TYPE_STRING},
+	# [added, task 017] An enemy split (Keg Slime) and was removed from the fight. The enemies it split
+	# into follow as enemy_spawned events, at its old position.
+	"enemy_split": {"enemy_uid": TYPE_STRING},
+	# [added, task 017] An enemy stole Dolla Bills from a Dude (Dorm Rats). amount: Dolla Bills taken,
+	# 1 or more. A dolla_bills_changed for the Dude comes just before it.
+	"dolla_bills_stolen": {"enemy_uid": TYPE_STRING, "player_id": TYPE_STRING, "amount": TYPE_INT},
+	# [added, task 017] A dead enemy's haul went back to a Dude. amount: Dolla Bills returned, 1 or
+	# more. A dolla_bills_changed for the Dude comes just before it.
+	"dolla_bills_returned": {"enemy_uid": TYPE_STRING, "player_id": TYPE_STRING, "amount": TYPE_INT},
+	# [added, task 017] A dying enemy dropped Brews (Mimic Cooler). count: Brews, 1 or more. Reported
+	# only: combat.brews_dropped rises by count, and the run lane grants them if the fight is won.
+	"brew_dropped": {"enemy_uid": TYPE_STRING, "count": TYPE_INT},
+	# [added, task 017] One of an enemy's triggers fired (enemy_def.gd "triggers"), for example Kobold
+	# RA's Noise Complaint. trigger_id: the trigger's id. target_id: the Dude it lands on. The
+	# trigger's effects follow as their own events.
+	"enemy_triggered": {"enemy_uid": TYPE_STRING, "trigger_id": TYPE_STRING, "target_id": TYPE_STRING},
 }
 
 

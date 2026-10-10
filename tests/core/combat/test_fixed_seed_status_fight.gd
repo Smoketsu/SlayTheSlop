@@ -30,7 +30,8 @@ const RECORDED: Array = ["won", 8, 32]
 ## Snapshot.state_hash of the final state, recorded on Godot 4.7.2-stable.
 ## Re-recorded by task 021: SCHEMA_VERSION 5 and the two new combat fields change the bytes; the
 ## fight itself is the same.
-const FINAL_HASH: String = "1ee1265611d22115930eb6144feff0563978d28a18b3ef4f77f54226d4d81af8"
+## Re-recorded again by task 017 (SCHEMA_VERSION 6, enemy haul and Brew-drop fields; same fight).
+const FINAL_HASH: String = "82bfc93a0a53b5e0b5500dc25d4dd5e114836fe402c277883f10d0572e450d5c"
 
 
 ## Returns the bot's next request for p1 in this state (see the file header).

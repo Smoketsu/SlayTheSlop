@@ -48,7 +48,8 @@ const SCRIPT: Array = [
 ## Snapshot.state_hash of the final state, recorded on Godot 4.7.2-stable.
 ## Re-recorded by task 021: SCHEMA_VERSION 5 and the two new combat fields change the bytes; the
 ## fight itself is the same.
-const FINAL_HASH: String = "fc71bb3598ed97ed3dc5b2279d4374a1550070339bd4d40765e6c27eea267652"
+## Re-recorded again by task 017 (SCHEMA_VERSION 6, enemy haul and Brew-drop fields; same fight).
+const FINAL_HASH: String = "1d7486669977b13c4307a6479d0e5fac91e674adeb423f21a9dc2238ae8dce76"
 
 
 ## Plays the whole fight: start_fight on SEED, then every SCRIPT request, checking each step.

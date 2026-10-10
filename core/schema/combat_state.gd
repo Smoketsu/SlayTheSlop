@@ -36,12 +36,17 @@ const SPEC := {
 	# fight, they stay at this HP instead and the entry is removed (Smelling Salts, solo: "stay at
 	# 1 HP"). Gone with the fight. {} when there are none.
 	"pass_out_saves": {"map_of": TYPE_INT},
+	# [added, task 017] Brews dropped by enemies that died in this fight, 0 or more (Mimic Cooler
+	# "always drops a Brew"; enemy_def.gd drops_brews). Only a report for the run lane, which grants
+	# them when the fight is won; the core never puts a Brew in a slot. Rises with each brew_dropped event.
+	"brews_dropped": TYPE_INT,
 }
 
 
 ## Returns an empty fight at turn 0 with no enemies.
 static func blank() -> Dictionary:
-	return {"turn": 0, "phase": "intents", "enemies": [], "result": "", "fight_stat_changes": {}, "pass_out_saves": {}}
+	return {"turn": 0, "phase": "intents", "enemies": [], "result": "", "fight_stat_changes": {}, "pass_out_saves": {},
+		"brews_dropped": 0}
 
 
 ## Checks a fight state, including every enemy in it. Returns a list of problems.
@@ -53,6 +58,8 @@ static func check(combat: Variant, path: String = "combat") -> Array[String]:
 		return errors
 	errors.append_array(Shape.check_one_of(combat["phase"], PHASES, path + ".phase"))
 	errors.append_array(Shape.check_one_of(combat["result"], RESULTS, path + ".result"))
+	if combat["brews_dropped"] < 0:
+		errors.append("%s.brews_dropped: %d is below 0" % [path, combat["brews_dropped"]])
 	# uids: enemy uids seen so far, to catch duplicates.
 	var uids: Dictionary = {}
 	for i: int in combat["enemies"].size():
