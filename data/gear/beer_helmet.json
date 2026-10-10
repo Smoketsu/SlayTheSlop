@@ -16,7 +16,8 @@
           "op": "add_card",
           "card_id": "junk_hangover",
           "to": "draw_pile",
-          "shuffle_in": true
+          "shuffle_in": true,
+          "lasts": "fight"
         }
       ]
     }
