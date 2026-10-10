@@ -40,14 +40,18 @@ static func build(ruleset: Dictionary, state: Dictionary, player_id: String) -> 
 	return model
 
 
-## One Dude: {"player_id", "name", "hp": "58 / 70", "guard", "hype", "statuses": ["Exposed 1"],
+## One Dude: {"player_id", "def_id" (dude_state.dude_id, for the sprite), "name", "hp": "58 / 70",
+## "hp_now", "hp_max" (the same as ints, for the HP bar), "guard", "hype", "statuses": ["Exposed 1"],
 ## "brews": "0 / 3", "brew_ids", "draw", "discard", "tapped" (pile counts), "passed_out", "local"}.
 ## ruleset: content. dude: one Dude state. player_id: the local player.
 static func _dude(ruleset: Dictionary, dude: Dictionary, player_id: String) -> Dictionary:
 	return {
 		"player_id": dude["player_id"],
+		"def_id": dude["dude_id"],
 		"name": _dude_name(ruleset, dude["dude_id"]),
 		"hp": "%d / %d" % [dude["hp"], dude["max_hp"]],
+		"hp_now": dude["hp"],
+		"hp_max": dude["max_hp"],
 		"guard": dude["guard"],
 		"hype": dude["hype"],
 		"statuses": _statuses(dude["statuses"]),
@@ -80,7 +84,8 @@ static func _card(ruleset: Dictionary, dude: Dictionary, uid: String) -> Diction
 	}
 
 
-## One enemy: {"uid", "name", "hp": "20 / 20", "guard", "statuses", "intent" (the move's icon key,
+## One enemy: {"uid", "def_id" (for the sprite), "name", "hp": "20 / 20", "hp_now", "hp_max" (the
+## same as ints, for the HP bar), "guard", "statuses", "intent" (the move's icon key,
 ## "" when none), "targets" (Dude names the intent is aimed at), "arms" ("1 of 2 arms broken" or
 ## "No arms"), "ick": "2 / 5", "alive"}.
 ## ruleset: content. state: the run state, for Dude names. enemy: one enemy state.
@@ -101,8 +106,11 @@ static func _enemy(ruleset: Dictionary, state: Dictionary, enemy: Dictionary) ->
 					targets.append(_dude_name(ruleset, dude["dude_id"]))
 	return {
 		"uid": enemy["uid"],
+		"def_id": enemy["def_id"],
 		"name": definition.get("name", enemy["def_id"]),
 		"hp": "%d / %d" % [enemy["hp"], enemy["max_hp"]],
+		"hp_now": enemy["hp"],
+		"hp_max": enemy["max_hp"],
 		"guard": enemy["guard"],
 		"statuses": _statuses(enemy["statuses"]),
 		"intent": intent,
