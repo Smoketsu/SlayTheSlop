@@ -177,3 +177,16 @@ nothing resets enemy Guard, so as written it piles up for the whole fight (the G
 every other turn). Suggested: an enemy's Guard drops to 0 at the start of its own action in the
 enemy phase, before it acts.
 Answer: **accept** (Smoketsu, Person A, 2026-10-10; agreed with steamjgrube).
+
+## Found while building the floor map (task 023)
+
+**G31. How do the node shares and the fixed rows fit together?** G18 says shares are "rounded to
+whole nodes per floor" and fixes row 1 as all Brawls and the pre-boss row as all The Tailgate, but
+not how those fixed rows count toward the shares.
+Suggested (as built in task 023): apply the GDD shares to the whole floor (rows 1..7, not the
+entrance or the boss), round by largest remainder with ties in GDD table order, and count the fixed
+rows toward their type. Because a pre-boss row of 4 Tailgates would exceed the 12% share, the
+pre-boss row's size is drawn only from sizes the share can hold (about half 2 nodes, half 3).
+The alternative (Slay the Spire's) applies the shares only to rows 2..6, which allows any row size
+but gives floors far more Brawls and Tailgates than the GDD table says.
+Answer: **accept** under Smoketsu's standing instruction to take the defaults (2026-10-10). Confirm or change.
