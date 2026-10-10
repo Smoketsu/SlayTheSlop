@@ -115,6 +115,21 @@ Armless is worked out from `broken_arms == arm_count > 0` and `armless_used`.
 
 Bugs (Nate) and later statuses are added when they are built.
 
+## Powers and thorns (task 013)
+
+- A played card of type `power` leaves the four piles and its `card_uid` goes into
+  `dude.powers` (`card_moved` with `to: "powers"`). It is active for the rest of the fight; the
+  next fight's start empties the list, because every fight rebuilds the piles from `deck`.
+  `dude_state.check()` treats `powers` as a fifth place a card can be: a uid may be there or in
+  one pile, never both.
+- What an active Power does is its definition's optional `power_triggers` list
+  (`card_def.gd` `TRIGGER_SPEC`, `POWER_WHENS`, `POWER_TARGETS`); the core runs it
+  (`core/combat/powers.gd`, `core/ops/README.md`).
+- `dude.thorns` (Chrome Dome) is damage dealt back to each enemy that hits the Dude, per hit
+  (G9). It resets to 0 at the Dude's Refresh. Changes emit `thorns_changed`.
+- `use_bro_move` may carry an optional `target_id` (`request.gd` `OPTIONAL`), for a Bro Move whose
+  card targets one enemy (Chest Bump). The core announces it with `bro_move_used`.
+
 ## Serialization
 
 - **Snapshots and saves:** `var_to_bytes(state)` and `bytes_to_var(bytes)`. This round-trips

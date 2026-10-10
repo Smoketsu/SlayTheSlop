@@ -71,6 +71,17 @@ const SPEC := {
 	# request leaves it unchanged (the whole state is unchanged), so its seq may be reused. Lets core
 	# drop duplicates: a request with seq <= last_seq is rejected as "stale_seq". Set only by core.
 	"last_seq": TYPE_INT,
+	# [added, task 013] card_uids of the Power cards this Dude has played in the current fight, oldest
+	# first. A played Power leaves the four piles and stays here, active, for the rest of the fight
+	# (GDD "Card types and keywords": a Power "lasts the rest of the fight"); its definition's
+	# power_triggers say what it does (core/schema/card_def.gd). Every uid here is a key of cards and
+	# is in none of the four piles. Emptied when the next fight starts. Changed only by the rules core.
+	"powers": {"list_of": TYPE_STRING},
+	# [added, task 013] Damage, 0 or more, that each enemy hit on this Dude deals back to the enemy that
+	# landed it ("enemies that hit Tom take 3 damage", Chrome Dome; G9: per hit). Not attack damage
+	# (G3). Raised by the "thorns" op; reset to 0 at this Dude's Refresh, so it lasts "this turn",
+	# including the enemy phase that follows. Changed only by the rules core.
+	"thorns": TYPE_INT,
 }
 
 ## Shape of one card instance, the values in the "cards" map. [added]
@@ -117,6 +128,8 @@ static func blank(player_id: String, dude_id: String) -> Dictionary:
 		"passed_out": false,
 		"ready": false,
 		"last_seq": -1,
+		"powers": [],
+		"thorns": 0,
 	}
 
 
@@ -140,6 +153,15 @@ static func check(dude: Variant, path: String = "dude") -> Array[String]:
 			if seen.has(uid):
 				errors.append("%s.%s: %s is also in %s" % [path, pile, uid, seen[uid]])
 			seen[uid] = pile
+	# Task 013: active Powers are out of the four piles, so a uid may not be in both.
+	for uid: String in dude["powers"]:
+		if not cards.has(uid):
+			errors.append("%s.powers: %s is not in cards" % [path, uid])
+		if seen.has(uid):
+			errors.append("%s.powers: %s is also in %s" % [path, uid, seen[uid]])
+		seen[uid] = "powers"
+	if dude["thorns"] < 0:
+		errors.append("%s.thorns: %d is below 0" % [path, dude["thorns"]])
 	for uid: String in dude["deck"]:
 		if not cards.has(uid):
 			errors.append("%s.deck: %s is not in cards" % [path, uid])

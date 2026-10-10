@@ -29,6 +29,7 @@ const TYPES := {
 	# A player's discard pile was shuffled into their draw pile. player_id: whose.
 	"deck_shuffled": {"player_id": TYPE_STRING},
 	# A card moved between piles. from / to: one of draw_pile, hand, discard_pile, tapped_pile, or "deck" when it is removed from or added to the run deck.
+	# Task 013: to may also be "powers", when a played Power card becomes active (dude_state.powers).
 	"card_moved": {"player_id": TYPE_STRING, "card_uid": TYPE_STRING, "from": TYPE_STRING, "to": TYPE_STRING},
 	# A new card copy was created (a reward, or Junk such as Paperwork). to: the pile it was put in.
 	"card_created": {"player_id": TYPE_STRING, "card_uid": TYPE_STRING, "def_id": TYPE_STRING, "to": TYPE_STRING},
@@ -68,6 +69,17 @@ const TYPES := {
 	"ready_changed": {"player_id": TYPE_STRING, "ready": TYPE_BOOL},
 	# The fight ended. result: "won" or "lost".
 	"fight_ended": {"result": TYPE_STRING},
+	# [added, task 013] A player emptied the Bro Meter to play their Dude's Bro Move. def_id: the Bro
+	# Move's card id (dude_def.bro_move). target_id: as in the use_bro_move request, "" for none. Its
+	# effects follow as their own events, after the bro_meter_changed that empties the meter.
+	"bro_move_used": {"player_id": TYPE_STRING, "def_id": TYPE_STRING, "target_id": TYPE_STRING},
+	# [added, task 013] A Dude's thorns changed (dude_state.thorns, Chrome Dome). delta: the change.
+	# thorns: the new value, 0 or more.
+	"thorns_changed": {"target_id": TYPE_STRING, "delta": TYPE_INT, "thorns": TYPE_INT},
+	# [added, task 013] A Power's trigger fired; its effects follow as their own events. player_id: the
+	# Dude who played the Power. card_uid: the Power card copy (in that Dude's powers). when: one of
+	# card_def.gd POWER_WHENS. subject_id: the enemy uid it is about, "" for turn_start.
+	"power_triggered": {"player_id": TYPE_STRING, "card_uid": TYPE_STRING, "when": TYPE_STRING, "subject_id": TYPE_STRING},
 }
 
 

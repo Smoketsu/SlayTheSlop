@@ -28,7 +28,7 @@ const MAX_REQUESTS: int = 400
 const RECORDED: Array = ["won", 8, 32]
 
 ## Snapshot.state_hash of the final state, recorded on Godot 4.7.2-stable.
-const FINAL_HASH: String = "b51dfac85564c1463417aa0b1b1d25a4ea09a9f6cc2d6191ae84b88b781fd9b2"
+const FINAL_HASH: String = "9e2ad775bd3b719d8a5c2042dfed6300ae05638b5530a3a4a9ab71f4a7dbd56b"
 
 
 ## Returns the bot's next request for p1 in this state (see the file header).

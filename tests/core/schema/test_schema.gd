@@ -136,6 +136,75 @@ func test_grossed_out_skips_is_checked() -> void:
 	assert_eq(EnemyState.check(enemy).size(), 1, "missing")
 
 
+## Task 013: powers and thorns start empty and 0; a Power uid must be a card and in no pile; thorns
+## may not be negative; both are required.
+func test_powers_and_thorns_are_checked() -> void:
+	# state: the sample, changed below.
+	var state: Dictionary = _sample_state()
+	# dude: its Dude.
+	var dude: Dictionary = state["dudes"][0]
+	assert_eq([dude["powers"], dude["thorns"]], [[], 0], "blank values")
+	dude["cards"]["c4"] = {"def_id": "tom_reply_guy", "upgraded": false}
+	dude["powers"] = ["c4"]
+	dude["thorns"] = 3
+	assert_no_errors(RunState.check(state), "an active Power and 3 thorns")
+	dude["powers"] = ["c4", "c99"]
+	assert_eq(RunState.check(state).size(), 1, "Power uid not in cards")
+	dude["powers"] = ["c2"]
+	assert_eq(RunState.check(state).size(), 1, "Power uid also in the hand")
+	dude["powers"] = ["c4"]
+	dude["thorns"] = -1
+	assert_eq(RunState.check(state).size(), 1, "negative thorns")
+	dude["thorns"] = 0
+	dude.erase("powers")
+	assert_eq(RunState.check(state).size(), 1, "powers is required")
+
+
+## Task 013: power_triggers on a Power card are checked: when, target, subject only where there is
+## one, effects with an op, and only on type "power".
+func test_power_triggers_are_checked() -> void:
+	# reply_guy: Reply Guy from the GDD, as task 013's ops express it.
+	var reply_guy: Dictionary = {"id": "tom_reply_guy", "name": "Reply Guy", "owner": "tom", "type": "power",
+		"rarity": "uncommon", "cost": 1, "target": "none", "effects": [], "keywords": [], "crunch": null,
+		"upgrade": {}, "power_triggers": [{"when": "enemy_buffed", "target": "subject",
+			"effects": [{"op": "apply_status", "status": "ick", "stacks": 2}]}]}
+	assert_no_errors(CardDef.check(reply_guy), "Reply Guy")
+	# bad: copies of reply_guy, each broken one way.
+	var bad: Dictionary = reply_guy.duplicate(true)
+	bad["type"] = "skill"
+	assert_eq(CardDef.check(bad).size(), 1, "not a Power")
+	bad = reply_guy.duplicate(true)
+	bad["power_triggers"][0]["when"] = "sometimes"
+	assert_eq(CardDef.check(bad).size(), 1, "unknown when")
+	bad = reply_guy.duplicate(true)
+	bad["power_triggers"][0]["target"] = "everyone"
+	assert_eq(CardDef.check(bad).size(), 1, "unknown target")
+	bad = reply_guy.duplicate(true)
+	bad["power_triggers"][0]["when"] = "turn_start"
+	assert_eq(CardDef.check(bad).size(), 1, "turn_start has no subject")
+	bad = reply_guy.duplicate(true)
+	bad["power_triggers"][0]["effects"] = [{"amount": 2}]
+	assert_eq(CardDef.check(bad).size(), 1, "effect without op")
+	bad = reply_guy.duplicate(true)
+	bad["power_triggers"][0].erase("target")
+	assert_eq(CardDef.check(bad).size(), 1, "missing target")
+	bad = reply_guy.duplicate(true)
+	bad["power_triggers"] = [{"when": "turn_start", "target": "all_enemies", "effects": [], "extra": 1}]
+	assert_eq(CardDef.check(bad).size(), 1, "unknown trigger field")
+
+
+## Task 013: use_bro_move may carry a String target_id, and the new events are well-formed.
+func test_bro_move_request_and_task_013_events() -> void:
+	assert_no_errors(Request.check({"type": "use_bro_move", "player_id": "p1", "seq": 4, "target_id": "e3"}), "with target")
+	assert_eq(Request.check({"type": "use_bro_move", "player_id": "p1", "seq": 4, "target_id": 3}).size(), 1, "int target")
+	assert_eq(Request.check({"type": "set_ready", "player_id": "p1", "seq": 4, "ready": true, "target_id": ""}).size(), 1,
+		"target_id is optional only on use_bro_move")
+	assert_no_errors(Event.check(Event.make("bro_move_used", {"player_id": "p1", "def_id": "tom_chest_bump", "target_id": "e3"})), "bro_move_used")
+	assert_no_errors(Event.check(Event.make("thorns_changed", {"target_id": "p1", "delta": 3, "thorns": 3})), "thorns_changed")
+	assert_no_errors(Event.check(Event.make("power_triggered", {"player_id": "p1", "card_uid": "c4",
+		"when": "turn_start", "subject_id": ""})), "power_triggered")
+
+
 ## Requests: a valid play_card passes; unknown types, missing fields and float seqs fail.
 func test_request_shapes() -> void:
 	# good: a well-formed play_card.

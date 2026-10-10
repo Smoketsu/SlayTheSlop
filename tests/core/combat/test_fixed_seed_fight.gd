@@ -46,7 +46,7 @@ const SCRIPT: Array = [
 ]
 
 ## Snapshot.state_hash of the final state, recorded on Godot 4.7.2-stable.
-const FINAL_HASH: String = "3dc80199b5320e6d06b51c9c226a5c9ce0057ceb1f2dec660aea50c0bab87fac"
+const FINAL_HASH: String = "bc286c2845b9821693e4f7a0a342cd2d1c02f8180823a93621524b2d1def642b"
 
 
 ## Plays the whole fight: start_fight on SEED, then every SCRIPT request, checking each step.
