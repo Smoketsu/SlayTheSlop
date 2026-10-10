@@ -190,3 +190,30 @@ pre-boss row's size is drawn only from sizes the share can hold (about half 2 no
 The alternative (Slay the Spire's) applies the shares only to rows 2..6, which allows any row size
 but gives floors far more Brawls and Tailgates than the GDD table says.
 Answer: **accept** under Smoketsu's standing instruction to take the defaults (2026-10-10). Confirm or change.
+
+## Found while building Tom's card ops (task 013)
+
+Built as suggested so the slice can play; each is one data or one-line change if the people
+answer differently. Not yet answered.
+
+**G32. Friend Zone: which Grossed Out enemies become Exposed?** "At the start of each turn, apply 1
+Ick to all enemies. Grossed Out enemies also become Exposed for 2 turns." It can mean (a) any enemy
+that is Grossed Out while Friend Zone is active, whatever caused it, (b) only enemies Grossed Out by
+Friend Zone's own start-of-turn Ick, or (c) enemies already waiting to skip at the start of a turn.
+Suggested (as built in task 013): (a). Exposed 2 = 2 stacks, so it lasts through 2 of the players'
+turns. Reading (b) is a data change in the card (an `if` condition on the second effect).
+Answer:
+
+**G33. Chest Bump's 20 damage: one enemy or all?** "Deal 20 damage. Break 1 arm on every enemy."
+Ethan's Bro Move says "to all enemies" explicitly; Chest Bump does not. Suggested (as built): the 20
+damage goes to one enemy the player picks, and the arm break to every enemy. The `use_bro_move`
+request therefore carries an optional `target_id`; the client (task 018) must send it, or the
+request is refused as `bad_target`.
+Answer:
+
+**G34. Powers: duplicates and Passed Out Dudes.** The GDD says a Power "lasts the rest of the
+fight" but not whether two copies of the same Power both work, or whether a Passed Out Dude's
+Powers keep working (it says so only for Ethan's Nap, which "is not Passed Out"). Suggested (as
+built): every copy played works on its own (two Reply Guys apply 2 Ick twice), and a Passed Out
+Dude's Powers do not fire until he wakes.
+Answer:
