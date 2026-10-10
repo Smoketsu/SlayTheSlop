@@ -7,17 +7,18 @@
 ##
 ## Placeholder look: text on buttons and labels, no art. Run it with
 ##   "$(tools/install_godot.sh)" --path . res://client/fight/fight_screen.tscn
-## With no setup() call it shows the sample fight from client/dev/.
+## With no setup() call it starts a fight on the real data (client/dev/dev_fight.gd).
 extends Control
 
 const FightModel := preload("res://client/fight/fight_model.gd")
 const Targeting := preload("res://client/fight/targeting.gd")
 const RequestMaker := preload("res://client/fight/request_maker.gd")
 const Messages := preload("res://client/fight/messages.gd")
-const DevContent := preload("res://client/dev/dev_content.gd")
-## The rules gateway. THE ONE LINE to change when the real core lands (task 007): point it at the
-## core's script, which has the same apply(ruleset, state, request).
-const Gateway := preload("res://client/dev/fake_gateway.gd")
+const DevFight := preload("res://client/dev/dev_fight.gd")
+const EventText := preload("res://client/fight/event_text.gd")
+## The rules gateway: the real rules core (task 007), apply(ruleset, state, request). Co-op will
+## swap in a network gateway with the same apply() here.
+const Gateway := preload("res://core/core.gd")
 
 ## Seconds each event's animation lasts. 0 makes the screen fully synchronous, which tests use.
 ## Changed by whoever creates the screen, before or after setup().
@@ -42,6 +43,8 @@ var _player_id: String = ""
 var _requests: RequestMaker
 ## The card_uid waiting for the player to pick a target, or "" when none.
 var _pending_card: String = ""
+## True while the Bro Move waits for the player to pick an enemy (G33: Chest Bump needs a target).
+var _pending_bro: bool = false
 ## True while events are animating; input is ignored meanwhile.
 var _busy: bool = false
 ## Containers rebuilt on every redraw: header text, Dudes, enemies, hand, buttons, message.
@@ -85,12 +88,12 @@ func _ready() -> void:
 	for node: Control in [_header, _enemies_box, _dudes_box, _hand_box, _actions_box, _message_label]:
 		root.add_child(node)
 	if _ruleset.is_empty():
-		# built: the sample content.
-		var built: Dictionary = DevContent.ruleset()
-		if not built["ok"]:
-			push_error("fight screen sample content does not build: %s" % "; ".join(built["errors"]))
+		# started: a placeholder fight on the real data.
+		var started: Dictionary = DevFight.start()
+		if started["error"] != "":
+			push_error("fight screen could not start a fight: " + started["error"])
 			return
-		setup(Gateway.new(), built["ruleset"], DevContent.sample_state(), "p1")
+		setup(Gateway.new(), started["ruleset"], started["state"], started["player_id"])
 	_redraw()
 
 
@@ -105,16 +108,24 @@ func press_card(card_uid: String) -> void:
 	var pick: String = Targeting.mode(card, _state["party_size"])
 	if pick == Targeting.NONE:
 		_pending_card = ""
+		_pending_bro = false
 		_send(_requests.play_card(card_uid, Targeting.auto_target(card, _player_id, _state["party_size"])))
 		return
 	_pending_card = card_uid
+	_pending_bro = false
 	_show_message("Pick an enemy." if pick == Targeting.ENEMY else "Pick a Dude.")
 
 
 ## The player clicked an enemy: the target for a pending card, otherwise nothing.
 ## enemy_uid: the enemy.
 func press_enemy(enemy_uid: String) -> void:
-	if _busy or _pending_card == "":
+	if _busy:
+		return
+	if _pending_bro:
+		_pending_bro = false
+		_send(_requests.use_bro_move(enemy_uid))
+		return
+	if _pending_card == "":
 		return
 	# card_uid: the card being aimed.
 	var card_uid: String = _pending_card
@@ -137,14 +148,26 @@ func press_dude(player_id: String) -> void:
 func press_ready() -> void:
 	if not _busy:
 		_pending_card = ""
+		_pending_bro = false
 		_send(_requests.set_ready(true))
 
 
-## The player pressed the Bro Move button.
+## The player pressed the Bro Move button. When the Dude's Bro Move card targets an enemy (Chest
+## Bump, G33), the screen asks for one first and press_enemy() sends it.
 func press_bro_move() -> void:
-	if not _busy:
-		_pending_card = ""
+	if _busy:
+		return
+	_pending_card = ""
+	# bro: the Bro Move card's definition, or {} when the Dude has none.
+	var bro: Dictionary = _ruleset["cards"].get(_ruleset["dudes"].get(_local()["dude_id"], {}).get("bro_move", ""), {})
+	if bro.is_empty():
 		_send(_requests.use_bro_move())
+		return
+	if Targeting.mode(bro, _state["party_size"]) == Targeting.ENEMY:
+		_pending_bro = true
+		_show_message("Pick an enemy.")
+		return
+	_send(_requests.use_bro_move(Targeting.auto_target(bro, _player_id, _state["party_size"])))
 
 
 ## The player clicked a Brew. Brews that need a target are not handled yet (no Brew data exists).
@@ -152,6 +175,7 @@ func press_bro_move() -> void:
 func press_brew(slot: int) -> void:
 	if not _busy:
 		_pending_card = ""
+		_pending_bro = false
 		_send(_requests.use_brew(slot, ""))
 
 
@@ -174,13 +198,17 @@ func _send(request: Dictionary) -> void:
 		_show_message(Messages.reject(result["reject"]))
 		if result["reject"] == "bad_target" and request["type"] == "play_card":
 			_pending_card = request["card_uid"]
+		elif result["reject"] == "bad_target" and request["type"] == "use_bro_move":
+			_pending_bro = true
 		return
+	# names: display names for the event lines, from the state before and after the request.
+	var names: Dictionary = EventText.names_for(_ruleset, [_state, result["state"]])
 	_busy = true
 	for event: Dictionary in result["events"]:
 		animation_log.append(_describe(event))
 		if skip_animations:
 			continue
-		_show_message(_describe(event))
+		_show_message(EventText.line(event, names))
 		if animation_seconds > 0.0:
 			await get_tree().create_timer(animation_seconds).timeout
 	_state = result["state"]

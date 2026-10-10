@@ -27,6 +27,7 @@ const STATUSES := {
 	"foggy": "Foggy",
 	"broken_arm": "Broken Arm",
 	"ick": "Ick",
+	"faded": "Faded",
 }
 
 
