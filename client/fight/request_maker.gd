@@ -37,9 +37,11 @@ func use_brew(slot: int, target_id: String) -> Dictionary:
 	return _next("use_brew", {"slot": slot, "target_id": target_id})
 
 
-## Returns a use_bro_move request.
-func use_bro_move() -> Dictionary:
-	return _next("use_bro_move", {})
+## Returns a use_bro_move request. target_id is sent only when not "" (it is optional in
+## request.gd; Chest Bump needs an enemy, G33).
+## target_id: the picked target, or "".
+func use_bro_move(target_id: String = "") -> Dictionary:
+	return _next("use_bro_move", {"target_id": target_id} if target_id != "" else {})
 
 
 ## Adds the common fields, raises the counter, and returns the request.
