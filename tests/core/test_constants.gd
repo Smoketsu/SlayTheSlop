@@ -10,6 +10,10 @@ const JsonValues := preload("res://core/schema/json_values.gd")
 ## The constants file.
 const PATH := "res://data/constants.json"
 
+## Regex for a line that starts a top-level key in a two-space-indented JSON object: exactly two
+## spaces, a quoted key (captured), optional spaces, then a colon. Shared by both key checkers.
+const TOP_LEVEL_KEY_PATTERN := "^  \"([^\"]+)\"\\s*:"
+
 ## Every constant name in the GDD "Tuning constants" table and "Fields added for Ethan".
 const GDD_NAMES: Array[String] = [
 	"BASE_HYPE", "BASE_DRAW", "EXPOSED_MULT", "NOODLE_MULT", "HUNGOVER_MULT",
@@ -75,6 +79,20 @@ func test_no_duplicate_constant_names() -> void:
 	assert_eq(names, [] as Array[String], "constant names defined more than once")
 
 
+## The duplicate check really sees every constant. It reads only lines indented by exactly two
+## spaces, so if the file were re-indented (tabs, four spaces) it would find no keys and pass
+## silently. This fails instead: the raw text must show at least one top-level key line per key
+## in the parsed file.
+func test_duplicate_check_sees_every_key() -> void:
+	# text: the raw file text, as the duplicate check reads it.
+	var text: String = FileAccess.get_file_as_string(PATH)
+	# key_lines: how many lines the duplicate check recognises as top-level keys.
+	var key_lines: int = top_level_key_count(text)
+	# parsed_keys: how many distinct top-level keys the parser found, comments ("_" keys) included.
+	var parsed_keys: int = _load().size()
+	assert_true(key_lines >= parsed_keys, "%s: the duplicate check saw %d top-level key lines but the file has %d keys; keep two-space indentation" % [PATH, key_lines, parsed_keys])
+
+
 ## The checker finds a key written twice and ignores nested keys with the same name.
 func test_duplicate_checker_finds_repeats() -> void:
 	# text: a small file with A twice at top level and "value" repeated only inside objects.
@@ -82,12 +100,36 @@ func test_duplicate_checker_finds_repeats() -> void:
 	assert_eq(duplicate_top_level_keys(text), ["A"] as Array[String])
 
 
+## The key-line counter counts only two-space-indented keys, so a re-indented file counts zero.
+func test_key_line_counter_ignores_other_indentation() -> void:
+	# two_space: three top-level keys at two spaces, with nested keys at four.
+	var two_space: String = "{\n  \"A\": {\n    \"value\": 1\n  },\n  \"B\": 2,\n  \"C\": 3\n}\n"
+	# four_space: the same keys indented by four spaces, which the checker does not read.
+	var four_space: String = "{\n    \"A\": 1,\n    \"B\": 2\n}\n"
+	assert_eq(top_level_key_count(two_space), 3)
+	assert_eq(top_level_key_count(four_space), 0)
+
+
+## Returns how many lines of the text start a top-level key, by the same rule as
+## duplicate_top_level_keys. Static so other tests can reuse it.
+## text: the raw JSON text, formatted with two-space indentation (as data/constants.json is).
+static func top_level_key_count(text: String) -> int:
+	# key_line: a line that starts a top-level key: exactly two spaces, then a quoted key and a colon.
+	var key_line: RegEx = RegEx.create_from_string(TOP_LEVEL_KEY_PATTERN)
+	# count: key lines found so far.
+	var count: int = 0
+	for line: String in text.split("\n"):
+		if key_line.search(line) != null:
+			count += 1
+	return count
+
+
 ## Returns, in first-repeat order, each top-level key of a two-space-indented JSON object that
 ## appears more than once. Static so other tests can reuse it.
 ## text: the raw JSON text, formatted with two-space indentation (as data/constants.json is).
 static func duplicate_top_level_keys(text: String) -> Array[String]:
 	# key_line: a line that starts a top-level key: exactly two spaces, then a quoted key and a colon.
-	var key_line: RegEx = RegEx.create_from_string("^  \"([^\"]+)\"\\s*:")
+	var key_line: RegEx = RegEx.create_from_string(TOP_LEVEL_KEY_PATTERN)
 	# seen: keys found so far.
 	var seen: Dictionary = {}
 	# repeats: keys found a second time, each listed once.
