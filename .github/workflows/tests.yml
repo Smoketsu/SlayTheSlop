@@ -1,0 +1,29 @@
+# Runs the whole test suite with the pinned Godot on every pull request and every push to main.
+# Lane: tools (Agent B). Build and CI config is a shared contract (CLAUDE.md "Shared contracts").
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Read-only token: the job only checks out code and runs tests.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      # Keeps the verified Godot download between runs. The key is the installer, which holds the
+      # version pin and checksums, so changing the pin invalidates the cache.
+      - uses: actions/cache@v4
+        with:
+          path: .tools
+          key: godot-${{ runner.os }}-${{ hashFiles('tools/install_godot.sh') }}
+
+      - name: Run tests
+        run: tools/test.sh
