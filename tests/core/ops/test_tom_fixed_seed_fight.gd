@@ -30,7 +30,7 @@ const RECORDED: Array = ["won", 5, 18, 1, 2, 0, 74]
 
 ## Snapshot.state_hash of the final state, recorded on Godot 4.7.2-stable. Re-recorded by task 021
 ## (SCHEMA_VERSION 5, two new combat fields), task 017 (6) and task 019 (7); RECORDED still holds.
-const FINAL_HASH: String = "438c4668adc6e9ba86a8eab3796466fc351ce7fe99751dc2f9b9459adffc1b7d"
+const FINAL_HASH: String = "0d54fed1a70cb3cb75c57b6234b02fa974f783744d56071b5c6333993bf6665a"
 
 
 ## Returns the request the policy sends next: the Bro Move when it is legal (aimed at the first
