@@ -24,7 +24,7 @@ Answer:
 
 **G2. Does Guard get used up?** Step 5 says "subtract the target's Guard".
 Suggested: yes. Guard absorbs damage and is reduced by the amount absorbed.
-Answer:
+Answer: **accept** (Smoketsu, Person A, 2026-10-10). steamjgrube may object on this PR.
 
 **G3. What counts as "attack damage"** for Exposed and Noodle Arms?
 Suggested: only `damage` effects on Attack cards, Bro Moves and enemy attack moves. Self-damage
@@ -55,7 +55,7 @@ Answer:
 Suggested: when the draw pile is empty and a draw is needed, shuffle the discard pile (with the
 player's `shuffle` stream) into the draw pile. If both are empty, the draw does nothing. No hand
 size limit in the slice.
-Answer:
+Answer: **accept** (Smoketsu, Person A, 2026-10-10). steamjgrube may object on this PR.
 
 **G9. Chrome Dome:** "enemies that hit Tom take 3 damage". Per hit or per attack?
 Suggested: per hit, so Sewer Gator's Death Roll (3 hits) takes 9.
