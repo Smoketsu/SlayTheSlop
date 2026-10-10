@@ -38,7 +38,7 @@ CLAUDE.md; GDD "Technical design" and "Scope, milestones and open questions".
 - [x] `data/constants.json` holds every GDD tuning constant with value, unit and meaning.
 - [x] `core/schema/` defines run, Dude, combat and enemy state; requests; events; card, enemy and Dude definitions.
 - [x] Tests in `tests/core/` cover the schema (including a snapshot round trip with a seed above 2^53), constants, core purity and the documentation standard.
-- [ ] Those tests run in CI. Needs task 002 (Agent B's harness); see log.
+- [x] Those tests run in CI (task 002, merged in #6).
 - [x] Tasks 002–027 written; open rule questions collected in `docs/proposals/solo-slice-rule-gaps.md`.
 - [x] `docs/changes/2026-10-10-001.md` lists every field, constant and message added.
 
@@ -67,3 +67,6 @@ CLAUDE.md; GDD "Technical design" and "Scope, milestones and open questions".
   merge Agent A's own PRs). Two checks stay open, so the status is `blocked`, not `done`: Person B
   has not yet confirmed the tech stack, and the tests cannot run in CI until task 002 lands.
   Set to `done` once both are true.
+- 2026-10-10 A: Task 002 merged (#6). Reviewed by running `tools/test.sh` on its head with main
+  merged in: 27 passed, 0 failed, with `tests/core/` unmodified. CI check ticked. Only Person B's
+  confirmation of the tech stack remains.
