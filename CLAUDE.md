@@ -64,7 +64,7 @@ Each lane owns directories. Edit files only inside the lanes your agent owns.
 | `run` | `core/run/` | Map generation, node flow, rewards, shop, save and load |
 | `content` | `data/` except `data/constants.json` | Card, enemy, Gear, Brew and Side Quest definitions |
 | `tools` | `tools/`, `tests/` except `tests/core/` and `tests/run/` | Test harness, bot players, balance simulation, data validation |
-| `client` | `client/` | Screens, input, animation of events |
+| `client` | `client/`, `assets/` | Screens, input, animation of events |
 
 - Tests for a lane live with that lane's owner: Agent A writes `tests/core/` and `tests/run/`,
   Agent B writes everything else under `tests/`. Neither agent edits the other's tests.
@@ -272,6 +272,7 @@ core/run/        map, node flow, rewards, shop, save/load  (Agent A)
 data/            cards/, dudes/, enemies/, gear/, brews/, side_quests/  (Agent B)
 data/constants.json                                        (contract)
 client/          scenes, UI, animation                     (Agent B)
+assets/          placeholder art and sound (see assets/placeholder/README.md)  (Agent B)
 tools/           bot players and balance simulation        (Agent B)
 tests/core/, tests/run/                                    (Agent A)
 tests/           everything else                           (Agent B)
