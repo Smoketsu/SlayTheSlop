@@ -1,0 +1,10 @@
+# Godot's import cache and editor state. Rebuilt by `godot --import`.
+.godot/
+# Pinned Godot binaries installed by tools/install_godot.sh.
+.tools/
+# Export output.
+build/
+export_presets.cfg
+# OS clutter.
+.DS_Store
+Thumbs.db
