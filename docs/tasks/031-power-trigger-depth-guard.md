@@ -12,7 +12,7 @@ files:
   - core/ops/README.md
   - core/combat/fight.gd                     # check_start refuses an unusable MAX_TRIGGER_DEPTH
   - data/constants.json                      # MAX_TRIGGER_DEPTH, separate contract PR
-  - docs/proposals/solo-slice-rule-gaps.md   # one new gap entry, unanswered
+  - docs/proposals/solo-slice-rule-gaps.md   # one new gap entry (G53)
   - tests/core/ops/
 ---
 
@@ -40,7 +40,7 @@ Grosses Out an enemy, which fires Friend Zone) keep working. Raised by Agent B i
 - [x] A self-feeding test Power (`enemy_buffed` that buffs the enemy) terminates and fires exactly
       `MAX_TRIGGER_DEPTH` times (`tests/core/ops/`).
 - [x] Reply Guy followed by Friend Zone still chains (`tests/core/ops/`).
-- [x] A gap entry for the cap in `docs/proposals/solo-slice-rule-gaps.md`, unanswered.
+- [x] A gap entry for the cap in `docs/proposals/solo-slice-rule-gaps.md` (G53; since answered "accept, 8").
 - [x] `tools/test.sh` passes.
 
 ## Notes
@@ -83,3 +83,6 @@ Grosses Out an enemy, which fires Friend Zone) keep working. Raised by Agent B i
     would draw without running `on_draw` (Junk silently skipped), which is worse than a cycle
     Godot 4.7.2 resolves. If the people want it, a cleaner fix is to stop `card_triggers.gd`
     preloading `ops.gd` (pass the effect runner in from `fight.gd`); that is a separate task.
+- 2026-10-10 A: #52 (claim) and #53 (`MAX_TRIGGER_DEPTH`) merged; #50 merged, so `main` now has
+  the whole 013-021 stack and this branch merges it in. steamjgrube accepted G53 with the value 8 in
+  the review of #53 (decision log, #54); the gap entry now records that answer.
