@@ -429,6 +429,22 @@ Swole gain. File: `core/ops/gain_swole.gd`. Task 017.
 Examples: `{ "op": "gain_swole", "amount": 2 }` (Sewer Gator's trigger),
 `{ "op": "gain_swole", "amount": 2, "tag": "goblin" }` (Goblin Shot-Caller).
 
+### `charged_hit`
+
+The release of a charge (Goblin King Chad's Keg Stand). File: `core/ops/charged_hit.gd`. Task 019.
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `amount` | int, 0 or more | Base damage of the hit (Keg Stand: 30) |
+| `cut_per_helper_lost` | int, 0 or more | Base damage removed per helper of the actor's charge killed during it (10) |
+
+- **Lands on:** `targets`, as one `damage` hit of `amount - cut x helpers lost` (never below 0), so
+  as an enemy move it is attack damage: Swole, Noodle Arms, Broken Arm and Exposed apply. Then the
+  actor's charge is over. An actor that is not charging hits for `amount`.
+- **Enemy intents:** needs a target, so the move is aimed at a Dude.
+
+Example: `{ "op": "charged_hit", "amount": 30, "cut_per_helper_lost": 10 }`.
+
 ## Powers (task 013)
 
 A card of `type: "power"` is played like any card (cost, `card_played`, its `effects` if any),
@@ -557,6 +573,7 @@ Enemy files may also use these optional fields (`core/schema/enemy_def.gd` has t
 | `split` | `{into, count, at_hp_percent}`: once its HP is above 0 and at or below the percentage, it is replaced at its position by `count` fresh enemies of `into` | Keg Slime |
 | `periodic_statuses` | `[{status, every, first_turn}]`: has the status (only `faded`) on turns `first_turn`, `first_turn + every` ... A Faded enemy takes at most `FADED_MAX_DAMAGE` per hit | Boo-zer |
 | `drops_brews` | Brews dropped on death; reported in `combat.brews_dropped` and `brew_dropped`, granted by the run lane | Mimic Cooler |
+| `charge` (task 019) | `{move_id, turns, release_move_id, helper_def_id, helpers, fall_exposed}`: picking `move_id` (normally by a move rule) starts a charge held up by the first `helpers` other enemies of `helper_def_id`; its intent stays `move_id` for `turns` turns, then is `release_move_id` (use `charged_hit` in it). Charging beats move rules and patterns. If every helper dies during the charge it falls: the charge ends, it skips its next action (`enemy_skipped`, reason `fallen`) and gains `fall_exposed` Exposed | Goblin King Chad |
 
 ## Not built yet
 

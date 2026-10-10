@@ -11,6 +11,12 @@
 ##   - Brew drop (Mimic Cooler, "always drops a Brew"): when enemy.drops_brews is above 0,
 ##     combat.brews_dropped rises by it and brew_dropped is emitted. Only reported: the run lane
 ##     grants the Brews (task 017 acceptance check).
+##   - Fall (task 019, Goblin King Chad: "Kill both and he falls: he skips a turn and is Exposed for
+##     2"): when the dead enemy was a helper of another enemy's charge and every helper of that
+##     charge is now gone, that enemy falls, left to right: its charge ends (null), fallen_skips
+##     rises by SKIPS_PER_FALL so it skips its next action (core/combat/statuses.gd, reason
+##     "fallen"), enemy_fell is emitted, and it gains the charge's fall_exposed stacks of Exposed
+##     (status_changed). Its next intent is chosen normally.
 ##
 ## Reads only the state, never the content data (the damage code that kills an enemy does not have
 ## it), which is why drops_brews is copied onto the enemy when it joins the fight (core/combat/lineup.gd).
@@ -19,6 +25,13 @@
 extends RefCounted
 
 const Event := preload("res://core/schema/event.gd")
+
+## Actions an enemy skips after a fall (GDD: "he skips a turn"). A rule from the GDD's text, not a
+## tuning constant.
+const SKIPS_PER_FALL: int = 1
+
+## Status id a fallen enemy gains (GDD: "is Exposed"; core/schema/README.md "Status ids").
+const FALL_STATUS: String = "exposed"
 
 
 ## Applies the death rules in the file header for one enemy that has just died.
@@ -29,6 +42,29 @@ static func after_death_in_place(state: Dictionary, enemy: Dictionary, events: A
 	if enemy.get("drops_brews", 0) > 0:
 		state["combat"]["brews_dropped"] += enemy["drops_brews"]
 		events.append(Event.make("brew_dropped", {"enemy_uid": enemy["uid"], "count": enemy["drops_brews"]}))
+	fall_in_place(state, enemy["uid"], events)
+
+
+## Task 019: makes every enemy whose charge just lost its last helper (dead_uid) fall (see the file
+## header), left to right.
+## state: the working copy, in a fight. dead_uid: the uid of the enemy that just died. events: appended to.
+static func fall_in_place(state: Dictionary, dead_uid: String, events: Array) -> void:
+	# present: uids of the enemies still in the fight.
+	var present: Array = state["combat"]["enemies"].map(func(other: Dictionary) -> String: return other["uid"])
+	for other: Dictionary in state["combat"]["enemies"]:
+		if other.get("charge") == null or not other["charge"]["helper_uids"].has(dead_uid):
+			continue
+		if other["charge"]["helper_uids"].any(func(uid: String) -> bool: return present.has(uid)):
+			continue
+		# exposed: Exposed stacks it gains.
+		var exposed: int = other["charge"]["fall_exposed"]
+		other["charge"] = null
+		other["fallen_skips"] += SKIPS_PER_FALL
+		events.append(Event.make("enemy_fell", {"enemy_uid": other["uid"]}))
+		if exposed > 0:
+			other["statuses"][FALL_STATUS] = other["statuses"].get(FALL_STATUS, 0) + exposed
+			events.append(Event.make("status_changed", {"target_id": other["uid"], "status": FALL_STATUS,
+				"delta": exposed, "stacks": other["statuses"][FALL_STATUS]}))
 
 
 ## Gives every player their part of the enemy's haul back, in sorted player_id order. A player_id

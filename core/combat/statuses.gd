@@ -78,6 +78,9 @@ const SKIP_GROSSED_OUT: String = "grossed_out"
 ## See SKIP_GROSSED_OUT.
 const SKIP_ARMLESS: String = "armless"
 
+## Task 019: reason for a skip after a fall (Goblin King Chad's Keg Stand; enemy_state.fallen_skips).
+const SKIP_FALLEN: String = "fallen"
+
 
 ## Returns why the status constants cannot be used, or "" when they are all usable. Fight.check_start
 ## calls it, so a fight never starts with a constant the damage order would need missing.
@@ -197,8 +200,8 @@ static func intended_move(ruleset: Dictionary, enemy: Dictionary) -> Dictionary:
 	return {}
 
 
-## Returns why the enemy skips its intended action this enemy phase: SKIP_GROSSED_OUT, SKIP_ARMLESS,
-## or "" when it acts. Reads only. An enemy with no intended move skips nothing.
+## Returns why the enemy skips its intended action this enemy phase: SKIP_GROSSED_OUT, SKIP_FALLEN
+## (task 019: it fell, fallen_skips above 0), SKIP_ARMLESS, or "" when it acts, checked in that order. Reads only. An enemy with no intended move skips nothing.
 ## ruleset: the read-only content. enemy: an enemy state.
 static func skip_reason(ruleset: Dictionary, enemy: Dictionary) -> String:
 	# move: the intended move, or {}.
@@ -207,13 +210,15 @@ static func skip_reason(ruleset: Dictionary, enemy: Dictionary) -> String:
 		return ""
 	if enemy["grossed_out_skips"] > 0:
 		return SKIP_GROSSED_OUT
+	if enemy.get("fallen_skips", 0) > 0:
+		return SKIP_FALLEN
 	if is_armless(enemy) and not enemy["armless_used"] and deals_damage(move["effects"]):
 		return SKIP_ARMLESS
 	return ""
 
 
 ## The enemy-phase skip check, called for each enemy before it acts. When skip_reason() is not "",
-## uses the skip (Grossed Out: grossed_out_skips - 1; Armless: armless_used = true and an armless
+## uses the skip (Grossed Out: grossed_out_skips - 1; fallen: fallen_skips - 1; Armless: armless_used = true and an armless
 ## event), emits enemy_skipped and returns true: the enemy must not act. Returns false otherwise.
 ## ruleset: the read-only content. enemy: the enemy, inside the working copy. events: appended to.
 static func skip_action_in_place(ruleset: Dictionary, enemy: Dictionary, events: Array) -> bool:
@@ -222,6 +227,8 @@ static func skip_action_in_place(ruleset: Dictionary, enemy: Dictionary, events:
 	match reason:
 		SKIP_GROSSED_OUT:
 			enemy["grossed_out_skips"] -= 1
+		SKIP_FALLEN:
+			enemy["fallen_skips"] -= 1
 		SKIP_ARMLESS:
 			enemy["armless_used"] = true
 			events.append(Event.make("armless", {"enemy_uid": enemy["uid"]}))

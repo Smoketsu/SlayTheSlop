@@ -92,6 +92,25 @@ const ENEMIES := {
 		"max_hp": 68, "arm_count": 2,
 		"triggers": [{"id": "letterman_swagger", "on": "unblocked_damage", "effects": [{"op": "gain_swole", "amount": 2}]}],
 		"moves": [{"id": "death_roll", "weight": 1, "intent": "attack", "effects": [{"op": "damage", "amount": 5, "hits": 3}]}]},
+	# Task 019. Boss, 140 HP, 2 arms (GDD "Bosses"). Starts with 2 Pledges (G13). Keg Stand: charges
+	# 2 turns while 2 Pledges lift him, then 30 to one Dude, minus 10 per Pledge killed meanwhile; both
+	# killed: he falls (skips a turn, Exposed 2). Rage Cage below 50% HP: 6 x 3. Rush every third turn:
+	# 2 Pledges. Other turns: Paddle Swat for 12 (G12). Rule order: Keg Stand, Rage Cage, Rush.
+	"goblin_king_chad": {"id": "goblin_king_chad", "name": "Goblin King Chad", "floor": 1, "tier": "boss",
+		"max_hp": 140, "arm_count": 2, "tags": ["goblin"], "arrives_with": ["goblin_pledge", "goblin_pledge"],
+		"charge": {"move_id": "keg_stand", "turns": 2, "release_move_id": "keg_stand_chug",
+			"helper_def_id": "goblin_pledge", "helpers": 2, "fall_exposed": 2},
+		"move_rules": [
+			{"move_id": "keg_stand", "when": [{"if": "count_at_least", "def_id": "goblin_pledge", "count": 2}]},
+			{"move_id": "rage_cage", "when": [{"if": "hp_below_percent", "percent": 50}]},
+			{"move_id": "rush", "when": [{"if": "turn_cycle", "every": 3, "first_turn": 3}]}],
+		"moves": [{"id": "paddle_swat", "weight": 1, "intent": "attack", "effects": [{"op": "damage", "amount": 12}]},
+			{"id": "rush", "weight": 0, "intent": "summon",
+				"effects": [{"op": "summon_enemy", "enemy_id": "goblin_pledge", "count": 2}]},
+			{"id": "keg_stand", "weight": 0, "intent": "charge", "target": "none", "effects": []},
+			{"id": "keg_stand_chug", "weight": 0, "intent": "attack",
+				"effects": [{"op": "charged_hit", "amount": 30, "cut_per_helper_lost": 10}]},
+			{"id": "rage_cage", "weight": 0, "intent": "attack", "effects": [{"op": "damage", "amount": 6, "hits": 3}]}]},
 }
 
 ## Extra test cards, by id. Shapes follow core/schema/card_def.gd.
@@ -108,10 +127,25 @@ const CARDS := {
 	"junk_detention": {"id": "junk_detention", "name": "Detention", "owner": "junk", "type": "junk",
 		"rarity": "special", "cost": -1, "target": "none", "effects": [], "keywords": [], "crunch": null, "upgrade": {},
 		"play_limit_in_hand": 4, "lasts": "fight"},
+	# Task 019: a strong, cheap attack so the scripted Chad fight ends in a reasonable number of turns.
+	"neutral_test_haymaker": {"id": "neutral_test_haymaker", "name": "Haymaker", "owner": "neutral", "type": "attack",
+		"rarity": "rare", "cost": 1, "target": "enemy", "effects": [{"op": "damage", "amount": 15}],
+		"keywords": [], "crunch": null, "upgrade": {}},
+}
+
+## Extra test Dudes, by id (task 019). Shapes follow core/schema/dude_def.gd.
+##   test_chad_slayer: a sturdy Dude with a deck of Haymakers, Jabs, Arm Bars and Braces for the scripted
+##   Goblin King Chad fight.
+const DUDES := {
+	"test_chad_slayer": {"id": "test_chad_slayer", "name": "Slayer", "title": "the Boss Fixture", "max_hp": 150,
+		"starter_deck": ["neutral_test_haymaker", "neutral_test_haymaker", "neutral_test_jab", "neutral_test_jab",
+			"neutral_test_jab", "neutral_test_jab", "neutral_test_arm_bar", "neutral_test_arm_bar",
+			"neutral_test_brace", "neutral_test_brace"],
+		"starting_gear": [], "bro_move": "neutral_test_bro"},
 }
 
 
-## Returns the test ruleset: task 007's fixture content plus ENEMIES and CARDS, built with the real
+## Returns the test ruleset: task 007's fixture content plus ENEMIES, CARDS and DUDES, built with the real
 ## build() and the real constants file. Empty if the build fails (the calling test's assertions then fail).
 static func ruleset() -> Dictionary:
 	# files: repo path -> JSON text, as a content reader would give them.
@@ -122,7 +156,10 @@ static func ruleset() -> Dictionary:
 	# cards: task 007's test cards and this file's, by id.
 	var cards: Dictionary = Fixtures.CARDS.duplicate(true)
 	cards.merge(CARDS)
-	for kind: Array in [["cards", cards], ["enemies", enemies], ["dudes", Fixtures.DUDES], ["gear", Fixtures.GEAR]]:
+	# dudes: task 007's test Dudes and this file's, by id.
+	var dudes: Dictionary = Fixtures.DUDES.duplicate(true)
+	dudes.merge(DUDES)
+	for kind: Array in [["cards", cards], ["enemies", enemies], ["dudes", dudes], ["gear", Fixtures.GEAR]]:
 		for id: String in kind[1]:
 			files["data/%s/%s.json" % [kind[0], id]] = JSON.stringify(kind[1][id])
 	# built: build()'s result.
