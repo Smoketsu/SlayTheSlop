@@ -1,0 +1,29 @@
+{
+  "id": "free_couch_on_the_curb",
+  "name": "Free Couch on the Curb",
+  "text": "A couch on the curb under a sign that says FREE. It has a stain shaped like a small country, and something inside it just moved. You have slept on worse. You are about to prove it.",
+  "safe": {
+    "label": "Leave it",
+    "text": "Nothing happens.",
+    "effects": []
+  },
+  "dumb": {
+    "label": "Take a nap on it",
+    "text": "Full heal; 30% chance to add Bedbugs, a junk card that deals 1 damage when drawn.",
+    "effects": [
+      {
+        "op": "full_heal"
+      },
+      {
+        "op": "chance",
+        "percent": 30,
+        "then": [
+          {
+            "op": "add_card",
+            "card_id": "junk_bedbugs"
+          }
+        ]
+      }
+    ]
+  }
+}

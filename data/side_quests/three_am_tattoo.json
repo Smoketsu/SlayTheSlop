@@ -1,0 +1,23 @@
+{
+  "id": "three_am_tattoo",
+  "name": "3 a.m. Tattoo",
+  "text": "The tattoo parlor is still open at 3 a.m., which should have been the warning. The artist is mostly awake. You do not have a design. You have confidence.",
+  "safe": {
+    "label": "Go to bed",
+    "text": "Nothing happens.",
+    "effects": []
+  },
+  "dumb": {
+    "label": "Tell him to surprise you",
+    "text": "Gain a random Gear and a permanent Regret card.",
+    "effects": [
+      {
+        "op": "random_gear"
+      },
+      {
+        "op": "add_card",
+        "card_id": "junk_regret"
+      }
+    ]
+  }
+}
