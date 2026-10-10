@@ -31,7 +31,8 @@ const RECORDED: Array = ["won", 8, 32]
 ## twice: for dude_state.powers / thorns and SCHEMA_VERSION 4, then because the solo Bro Meter now
 ## fills on every 3rd card in a turn (bro_meter differs; with that gain switched off the hash was
 ## unchanged). RECORDED still holds.
-const FINAL_HASH: String = "c16865d8e9080193c048d97cd5f4c9231c145c613c0027e294fea7239af0a293"
+## Re-recorded again by task 021 (SCHEMA_VERSION 5, two new combat fields; same fight).
+const FINAL_HASH: String = "a4793db182ea0474653fdd31fa0879aac72d28133f8c667292f703f06d317bb2"
 
 
 ## Returns the bot's next request for p1 in this state (see the file header).

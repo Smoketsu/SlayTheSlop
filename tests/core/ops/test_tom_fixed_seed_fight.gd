@@ -28,8 +28,9 @@ const MAX_REQUESTS: int = 300
 ## events, power_triggered events, thorns_changed events, Tom's final HP].
 const RECORDED: Array = ["won", 5, 18, 1, 2, 0, 74]
 
-## Snapshot.state_hash of the final state, recorded on Godot 4.7.2-stable.
-const FINAL_HASH: String = "8ed544ddc68b687dbe4e9f57189ca445c1c56935852d8406a780ad7bea0734fc"
+## Snapshot.state_hash of the final state, recorded on Godot 4.7.2-stable. Re-recorded by task 021
+## (SCHEMA_VERSION 5, two new combat fields); RECORDED still holds.
+const FINAL_HASH: String = "389cee6b06c8647aaca03ccafa36a2d3df76a0f5630fd6fec6a36768db0b3540"
 
 
 ## Returns the request the policy sends next: the Bro Move when it is legal (aimed at the first

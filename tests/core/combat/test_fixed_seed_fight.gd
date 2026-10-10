@@ -49,7 +49,8 @@ const SCRIPT: Array = [
 ## twice: for dude_state.powers / thorns and SCHEMA_VERSION 4, then because the solo Bro Meter now
 ## fills on every 3rd card in a turn (bro_meter differs; with that gain switched off the hash was
 ## unchanged). The fight is still won in turn 4.
-const FINAL_HASH: String = "b3ccc860adc9d2b002f6521c42e614b40e83a0f34b4c90b0cbf934bb1266b969"
+## Re-recorded again by task 021 (SCHEMA_VERSION 5, two new combat fields; same fight).
+const FINAL_HASH: String = "a354074241c4165246c547c3d8d73ab3580b32dee1ecc92ec406dd93c7bac239"
 
 
 ## Plays the whole fight: start_fight on SEED, then every SCRIPT request, checking each step.
