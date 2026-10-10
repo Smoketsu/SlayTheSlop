@@ -236,6 +236,21 @@
     "unit": "Brews",
     "meaning": "Brews for sale, as Shake, at each Baileys (G21)."
   },
+  "LOOT_MIMIC_CHANCE": {
+    "value": 0.25,
+    "unit": "probability, 0 to 1",
+    "meaning": "Chance that a Loot node is a Mimic Cooler fight instead of free Gear (G19: 1 time in 4). Rolled on the encounters stream when the party enters a Loot node; a floor with no loot encounter is never a Mimic. Added by task 025."
+  },
+  "EARLY_BRAWL_COUNT": {
+    "value": 2,
+    "unit": "Brawls",
+    "meaning": "How many of a floor's first Brawls draw only from encounters marked early (G19: the first two Brawls only use Pledges, Bouncer or Intern). Added by task 025."
+  },
+  "BOSS_GEAR_CHOICES": {
+    "value": 3,
+    "unit": "Gear",
+    "meaning": "Boss Gear offered to each player after a floor boss; the player picks 1 (GDD Node types: 1 of 3 Boss Gear). Added by task 025."
+  },
   "MAP_ROWS": {
     "value": 7,
     "unit": "rows",
