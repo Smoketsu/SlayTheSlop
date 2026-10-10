@@ -214,6 +214,50 @@ func test_enemy_and_dude_definitions() -> void:
 	assert_no_errors(DudeDef.check(tom), "tom")
 
 
+## Task 011's optional enemy fields: a scripted pattern of its own move ids and a per-move target
+## are valid; an empty pattern, an unknown move in it, an unknown target and a negative weight are not.
+func test_enemy_pattern_and_move_target() -> void:
+	# bouncer: a Bouncer-style enemy that alternates Guard and a hit, as a pattern.
+	var bouncer: Dictionary = {"id": "goblin_bouncer", "name": "Goblin Bouncer", "floor": 1, "tier": "normal",
+		"max_hp": 28, "arm_count": 2, "pattern": ["guard_up", "hit"],
+		"moves": [{"id": "guard_up", "weight": 0, "intent": "defend", "target": "none", "effects": [{"op": "guard", "amount": 8}]},
+			{"id": "hit", "weight": 0, "intent": "attack", "target": "dude", "effects": [{"op": "damage", "amount": 9}]},
+			{"id": "slam", "weight": 1, "intent": "attack", "target": "all_dudes", "effects": [{"op": "damage", "amount": 1}]}]}
+	assert_no_errors(EnemyDef.check(bouncer), "pattern and targets")
+	# bad: copies of bouncer, each broken one way.
+	var bad: Dictionary = bouncer.duplicate(true)
+	bad["pattern"] = []
+	assert_eq(EnemyDef.check(bad).size(), 1, "empty pattern")
+	bad = bouncer.duplicate(true)
+	bad["pattern"] = ["guard_up", "kick"]
+	assert_eq(EnemyDef.check(bad).size(), 1, "pattern names an unknown move")
+	bad = bouncer.duplicate(true)
+	bad["pattern"] = "guard_up"
+	assert_eq(EnemyDef.check(bad).size(), 1, "pattern is not a list")
+	bad = bouncer.duplicate(true)
+	bad["moves"][1]["target"] = "enemy"
+	assert_eq(EnemyDef.check(bad).size(), 1, "unknown move target")
+	bad = bouncer.duplicate(true)
+	bad["moves"][2]["weight"] = -1
+	assert_eq(EnemyDef.check(bad).size(), 1, "negative weight")
+	bad = bouncer.duplicate(true)
+	bad["moves"][2]["aim"] = "dude"
+	assert_eq(EnemyDef.check(bad).size(), 1, "unknown move field")
+
+
+## Task 011's enemy move_history: [] in blank(), a list of move ids; anything else is reported.
+func test_enemy_move_history() -> void:
+	# enemy: a blank enemy state.
+	var enemy: Dictionary = EnemyState.blank("e1", "goblin_bouncer")
+	assert_eq(enemy["move_history"], [], "blank history")
+	enemy["move_history"] = ["guard_up", "hit", "guard_up"]
+	assert_no_errors(EnemyState.check(enemy), "history of move ids")
+	enemy["move_history"] = ["guard_up", 3]
+	assert_eq(EnemyState.check(enemy).size(), 1, "non-String entry")
+	enemy.erase("move_history")
+	assert_eq(EnemyState.check(enemy).size(), 1, "move_history is required")
+
+
 ## json_values: whole numbers become ints at any depth, fractions stay floats, errors give a line.
 func test_json_values_normalize() -> void:
 	# parsed: a parse of mixed numbers.

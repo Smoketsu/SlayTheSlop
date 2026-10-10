@@ -37,6 +37,12 @@ const OPTIONAL := {
 	# [added] The GDD's behavior text for this enemy, kept with the data so the next agent can see
 	# what is not yet expressed as moves. Not shown to players.
 	"text": TYPE_STRING,
+	# [added, task 011] A scripted move order: move ids of this enemy, at least one. When present the
+	# enemy ignores weights and uses these moves in this order, starting from the first and cycling
+	# back to it after the last, one entry per intent it chooses in the fight. Followed exactly; the
+	# "never three times in a row" rule does not apply to it (G11). Entries may name weight-0 moves.
+	# Absent: every intent is a weighted random choice. Goblin Bouncer: ["guard_up", "hit"] or similar.
+	"pattern": {"list_of": TYPE_STRING},
 }
 
 ## Shape of one move.
@@ -49,6 +55,23 @@ const MOVE_SPEC := {
 	"intent": TYPE_STRING,
 	# Operations run in order, as on cards.
 	"effects": {"list_of": TYPE_DICTIONARY},
+}
+
+## [added, task 011] Who a move's effects that need a target are aimed at (values of a move's
+## optional "target" field, see MOVE_OPTIONAL). Changes only with a contract PR.
+##   "dude":      a single-target attack: 1 Dude, or MULTI_TARGET_COUNT different Dudes once the
+##                party has MULTI_TARGET_PARTY_SIZE players (GDD "Difficulty scaling"). Chosen at
+##                random among Dudes who are not Passed Out.
+##   "all_dudes": an area attack: every Dude who is not Passed Out ("Area attacks hit everyone").
+##   "none":      no Dude targets (Guard, buffs on itself).
+const MOVE_TARGETS: Array[String] = ["dude", "all_dudes", "none"]
+
+## Fields of a move that may be left out.
+const MOVE_OPTIONAL := {
+	# [added, task 011] One of MOVE_TARGETS. When absent, the core decides from the effects: a move
+	# with an op that needs a target (core/ops/README.md, for example "damage") is aimed as "dude",
+	# any other move as "none".
+	"target": TYPE_STRING,
 }
 
 
@@ -72,10 +95,20 @@ static func check(enemy: Variant, path: String = "enemy") -> Array[String]:
 		# move_path: label for this move in messages.
 		var move_path: String = "%s.moves[%d]" % [path, i]
 		# move_errors: shape problems with this move.
-		var move_errors: Array[String] = Shape.check(enemy["moves"][i], MOVE_SPEC, move_path)
+		var move_errors: Array[String] = Shape.check(enemy["moves"][i], MOVE_SPEC, move_path, MOVE_OPTIONAL)
 		errors.append_array(move_errors)
 		if move_errors.is_empty():
 			if move_ids.has(enemy["moves"][i]["id"]):
 				errors.append("%s.id: duplicate move id %s" % [move_path, enemy["moves"][i]["id"]])
 			move_ids[enemy["moves"][i]["id"]] = true
+			if enemy["moves"][i]["weight"] < 0:
+				errors.append("%s.weight: must be 0 or more" % move_path)
+			if enemy["moves"][i].has("target"):
+				errors.append_array(Shape.check_one_of(enemy["moves"][i]["target"], MOVE_TARGETS, move_path + ".target"))
+	if enemy.has("pattern"):
+		if enemy["pattern"].is_empty():
+			errors.append("%s.pattern: needs at least one move id when present" % path)
+		for i: int in enemy["pattern"].size():
+			if not move_ids.has(enemy["pattern"][i]):
+				errors.append("%s.pattern[%d]: %s is not one of this enemy's move ids" % [path, i, enemy["pattern"][i]])
 	return errors
