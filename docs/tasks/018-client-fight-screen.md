@@ -3,8 +3,8 @@ id: 018
 title: Placeholder fight screen - render state, send requests, animate events
 lane: client
 owner: B
-status: open
-branch:
+status: in_progress
+branch: b/018-client-fight-screen
 depends_on: [002]
 blocked_on: []
 files:
@@ -49,3 +49,5 @@ messages"; CLAUDE.md "The rules core is pure" and "Writing and content rules"; `
 - Placeholder art: coloured shapes and text labels are enough. No real brands, logos or likenesses.
 
 ## Log
+
+- 2026-10-10 B: Claimed.
