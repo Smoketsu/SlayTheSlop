@@ -230,5 +230,55 @@
     "value": 2,
     "unit": "Brews",
     "meaning": "Brews for sale, as Shake, at each Baileys (G21)."
+  },
+  "MAP_ROWS": {
+    "value": 7,
+    "unit": "rows",
+    "meaning": "Rows of nodes on a floor map before the boss row (gap G18). Row 1 is all Brawls, row MAP_ROWS (the row before the boss) is all The Tailgate, and one boss row with one Boss node follows. Must be 2 or more."
+  },
+  "MAP_MIN_NODES_PER_ROW": {
+    "value": 2,
+    "unit": "nodes",
+    "meaning": "Fewest nodes in one map row, rows 1..MAP_ROWS (gap G18). The boss row always has exactly one node. At least 1, at most MAP_MAX_NODES_PER_ROW."
+  },
+  "MAP_MAX_NODES_PER_ROW": {
+    "value": 4,
+    "unit": "nodes",
+    "meaning": "Most nodes in one map row, rows 1..MAP_ROWS (gap G18). Each row's size is drawn from the map stream between MAP_MIN_NODES_PER_ROW and this value."
+  },
+  "MAP_MAX_LINKS": {
+    "value": 2,
+    "unit": "links",
+    "meaning": "Most nodes in the next row one map node links to (gap G18: 1 to 2). Every node links to at least 1, so every path reaches the boss. MAP_MAX_NODES_PER_ROW must be at most MAP_MIN_NODES_PER_ROW times this value, or some rows cannot all be reached."
+  },
+  "NODE_SHARE_BRAWL": {
+    "value": 45,
+    "unit": "percent of a floor's nodes",
+    "meaning": "Share of Brawl nodes among a floor map's rows 1..MAP_ROWS (GDD 'Node types'). The six NODE_SHARE_ values must total 100. Rounded to whole nodes per floor; row 1's Brawls count toward it."
+  },
+  "NODE_SHARE_RIVAL": {
+    "value": 10,
+    "unit": "percent of a floor's nodes",
+    "meaning": "Share of Rival (elite fight) nodes among a floor map's rows 1..MAP_ROWS (GDD 'Node types'). Rounded to whole nodes per floor."
+  },
+  "NODE_SHARE_SIDE_QUEST": {
+    "value": 20,
+    "unit": "percent of a floor's nodes",
+    "meaning": "Share of Side Quest nodes among a floor map's rows 1..MAP_ROWS (GDD 'Node types'). Rounded to whole nodes per floor."
+  },
+  "NODE_SHARE_TAILGATE": {
+    "value": 12,
+    "unit": "percent of a floor's nodes",
+    "meaning": "Share of The Tailgate nodes among a floor map's rows 1..MAP_ROWS (GDD 'Node types'). Rounded to whole nodes per floor; the pre-boss row's Tailgates count toward it."
+  },
+  "NODE_SHARE_BAILEYS": {
+    "value": 8,
+    "unit": "percent of a floor's nodes",
+    "meaning": "Share of Baileys (shop) nodes among a floor map's rows 1..MAP_ROWS (GDD 'Node types'). Rounded to whole nodes per floor."
+  },
+  "NODE_SHARE_LOOT": {
+    "value": 5,
+    "unit": "percent of a floor's nodes",
+    "meaning": "Share of Loot nodes among a floor map's rows 1..MAP_ROWS (GDD 'Node types'). Rounded to whole nodes per floor. Whether a Loot node holds a Mimic Cooler is decided by encounters (gap G19), not by the map."
   }
 }
