@@ -37,8 +37,7 @@ GDD "Floor 1: The Basement", "Node types", "Map"; `core/schema/encounter_def.gd`
 - [x] Every enemy id resolves in the real ruleset; escorts named in `arrives_with` are not listed.
 - [x] A test in `tests/data/` checks the files against task 025's fixtures and plays a fixed-seed run
       start on the real data far enough to enter the first Brawl.
-- [ ] `tools/test.sh` passes. (418 passed, 1 failed on this base: the client event-text test, fixed by
-      `b/run-event-text`; every test this task adds or touches passes. See Log.)
+- [x] `tools/test.sh` passes (422 passed, 0 failed, with `b/run-event-text` merged in).
 
 ## Notes
 
@@ -60,3 +59,5 @@ GDD "Floor 1: The Basement", "Node types", "Map"; `core/schema/encounter_def.gd`
   task 025 with no client text), expected on this base and fixed on the stacked branch
   `b/run-event-text`. Not done: G61 still has no recorded answer; if a person answers "no", drop
   `"early"` from `basement_pledge_and_intern` together with Agent A's fixture.
+- 2026-10-10 B: Merged `b/run-event-text` (#75) into this branch so it is green on its own:
+  `tools/test.sh` -> 422 passed, 0 failed. Merge this PR after #75, or in place of it.
