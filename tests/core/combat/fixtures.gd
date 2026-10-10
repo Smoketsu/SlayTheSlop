@@ -64,7 +64,7 @@ const CARDS := {
 const ENEMIES := {
 	"test_dummy": {"id": "test_dummy", "name": "Dummy", "floor": 1, "tier": "normal", "max_hp": 20, "arm_count": 2,
 		"moves": [{"id": "swing", "weight": 1, "intent": "attack", "effects": [{"op": "damage", "amount": 5, "hits": 1}]},
-			{"id": "unused", "weight": 1, "intent": "defend", "effects": [{"op": "guard", "amount": 1}]}]},
+			{"id": "unused", "weight": 0, "intent": "defend", "effects": [{"op": "guard", "amount": 1}]}]},
 	"test_turtle": {"id": "test_turtle", "name": "Turtle", "floor": 1, "tier": "normal", "max_hp": 14, "arm_count": 0,
 		"moves": [{"id": "shell", "weight": 1, "intent": "defend", "effects": [{"op": "guard", "amount": 4}]}]},
 	"test_pledge": {"id": "test_pledge", "name": "Pledge", "floor": 1, "tier": "normal", "max_hp": 12, "arm_count": 2,

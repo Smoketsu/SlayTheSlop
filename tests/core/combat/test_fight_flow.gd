@@ -6,6 +6,7 @@ const Core := preload("res://core/core.gd")
 const Fight := preload("res://core/combat/fight.gd")
 const Party := preload("res://core/combat/party.gd")
 const Piles := preload("res://core/combat/piles.gd")
+const Bodies := preload("res://core/combat/bodies.gd")
 const Rng := preload("res://core/rng/rng.gd")
 const Fixtures := preload("res://tests/core/combat/fixtures.gd")
 const RunState := preload("res://core/schema/run_state.gd")
@@ -168,18 +169,22 @@ func test_party_scaling() -> void:
 		assert_eq(enemies[0]["hp"], enemies[0]["max_hp"])
 
 
-## Intents (stub for task 011): the first move; attacks aim at the first Dude not Passed Out, other
-## moves at nobody.
-func test_stub_intents() -> void:
+## Intents at fight start (task 011, core/ai/): the Dummy's only weighted move ("unused" has weight
+## 0) is aimed at one of the two Dudes, drawn from combat_ai; the Turtle's Guard move has no targets.
+## Each choice is recorded in move_history. Detailed AI tests are in tests/core/ai/.
+func test_intents_at_fight_start() -> void:
 	# rules: the test ruleset.
 	var rules: Dictionary = Fixtures.ruleset()
 	# state: a two-Dude fight against a Dummy and a Turtle.
 	var state: Dictionary = Fixtures.fight(rules, SEED, ["test_dude", "test_dude"], ["test_dummy", "test_turtle"])
-	assert_eq(state["combat"]["enemies"][0]["intent"], {"move_id": "swing", "target_ids": ["p1"]})
+	# dummy: the Dummy's state.
+	var dummy: Dictionary = state["combat"]["enemies"][0]
+	assert_eq(dummy["intent"]["move_id"], "swing")
+	assert_eq(dummy["intent"]["target_ids"].size(), 1, "party of 2: one target")
+	assert_true(["p1", "p2"].has(dummy["intent"]["target_ids"][0]))
+	assert_eq(dummy["move_history"], ["swing"])
 	assert_eq(state["combat"]["enemies"][1]["intent"], {"move_id": "shell", "target_ids": []})
-	state["dudes"][0]["hp"] = 0
-	state["dudes"][0]["passed_out"] = true
-	assert_eq(Fight.stub_intent(rules, state, state["combat"]["enemies"][0]), {"move_id": "swing", "target_ids": ["p2"]})
+	assert_eq(state["combat"]["enemies"][1]["move_history"], ["shell"])
 
 
 ## Playing a card: Hype spent, card to discard, cards_played_this_turn + 1, events in order.
@@ -274,7 +279,7 @@ func test_solo_turn_flow() -> void:
 	var dude: Dictionary = next["dudes"][0]
 	assert_eq([dude["hp"], dude["guard"], dude["hype"], dude["ready"], dude["cards_played_this_turn"]], [28, 0, 3, false, 0])
 	assert_eq(dude["hand"], draw.slice(0, 5))
-	assert_eq(next["combat"]["enemies"][1]["guard"], 4, "enemy Guard is not reset (GDD silent)")
+	assert_eq(next["combat"]["enemies"][1]["guard"], 4, "the Turtle keeps the Guard it gained until the start of its next action (G30)")
 
 
 ## Co-op: the turn ends only when every Dude who is not Passed Out is ready; un-readying works.
@@ -371,13 +376,18 @@ func test_loss() -> void:
 	assert_eq(result["events"][-1]["result"], "lost")
 	assert_eq([result["state"]["combat"]["phase"], result["state"]["combat"]["result"]], ["over", "lost"])
 	assert_eq([result["state"]["dudes"][0]["hp"], result["state"]["dudes"][0]["passed_out"]], [0, true])
-	# duo: two Dudes against the Brute; it knocks out p1, then p2 a turn later.
+	# duo: two Dudes against the Brute; it knocks out the Dude it aimed at (drawn from combat_ai,
+	# task 011), then the other a turn later.
 	var duo: Dictionary = Fixtures.fight(rules, SEED, ["test_dude", "test_dude"], ["test_brute"])
+	# first: the Dude the Brute aims at in turn 1.
+	var first: String = duo["combat"]["enemies"][0]["intent"]["target_ids"][0]
+	# other: the other Dude.
+	var other: String = "p2" if first == "p1" else "p1"
 	duo = _ok(rules, duo, Fixtures.set_ready("p1", 0))["state"]
 	result = _ok(rules, duo, Fixtures.set_ready("p2", 0))
-	assert_eq([result["state"]["combat"]["turn"], result["state"]["combat"]["phase"]], [2, "player"], "p2 still standing")
-	assert_true(result["state"]["dudes"][0]["passed_out"])
-	assert_eq(result["state"]["combat"]["enemies"][0]["intent"]["target_ids"], ["p2"], "aims at the standing Dude")
-	assert_eq(Core.apply(rules, result["state"], Fixtures.set_ready("p1", 1))["reject"], "passed_out")
-	result = _ok(rules, result["state"], Fixtures.set_ready("p2", 1))
+	assert_eq([result["state"]["combat"]["turn"], result["state"]["combat"]["phase"]], [2, "player"], "one Dude still standing")
+	assert_true(result["state"]["dudes"][Bodies.dude_index(result["state"], first)]["passed_out"])
+	assert_eq(result["state"]["combat"]["enemies"][0]["intent"]["target_ids"], [other], "aims at the standing Dude")
+	assert_eq(Core.apply(rules, result["state"], Fixtures.set_ready(first, 1))["reject"], "passed_out")
+	result = _ok(rules, result["state"], Fixtures.set_ready(other, 1))
 	assert_eq(result["state"]["combat"]["result"], "lost")

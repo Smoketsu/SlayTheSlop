@@ -17,7 +17,11 @@ const SEED: int = 20261010
 
 ## The scripted requests from p1, in order: [kind ("play" or "ready"), card_uid, target_id, seq,
 ## expected reject ("" = applied)]. Recorded from a simple bot on SEED; includes a duplicate seq,
-## a bad target and a request after the fight ended. The fight is won in turn 5.
+## a bad target and a request after the fight ended. The fight is won in turn 4.
+## Task 011 shortened it: G30 (enemy Guard drops to 0 at the start of its own action) stops the
+## Turtle's Guard from piling up, so the Turtle dies in turn 4 instead of turn 5. The first 18
+## requests are unchanged; the old turn-5 requests were cut and the last request (after the fight
+## ended) is now step 18.
 const SCRIPT: Array = [
 	["play", "c10", "", 0, ""],
 	["play", "c10", "", 0, "stale_seq"],
@@ -38,15 +42,11 @@ const SCRIPT: Array = [
 	["play", "c2", "e12", 15, ""],
 	["play", "c1", "e12", 16, ""],
 	["play", "c4", "e12", 17, ""],
-	["ready", "", "", 18, ""],
-	["play", "c10", "", 19, ""],
-	["play", "c3", "e12", 20, ""],
-	["play", "c2", "e12", 21, ""],
-	["ready", "", "", 22, "wrong_phase"],
+	["ready", "", "", 18, "wrong_phase"],
 ]
 
 ## Snapshot.state_hash of the final state, recorded on Godot 4.7.2-stable.
-const FINAL_HASH: String = "a72c42f167c04c94938e5936e8ccd81ec0ae03ee4bc192fa5c838a6c1b9ee8a6"
+const FINAL_HASH: String = "739c5d5f6110d5dd644b76ac864ca73f34ecfdc128c6475cda0887aa1c249ccd"
 
 
 ## Plays the whole fight: start_fight on SEED, then every SCRIPT request, checking each step.
@@ -81,15 +81,15 @@ func _replay() -> Dictionary:
 	return {"state": state, "events": events}
 
 
-## The fight ends as recorded: won in turn 5, with the recorded hash.
+## The fight ends as recorded: won in turn 4, with the recorded hash.
 func test_fight_ends_in_recorded_state() -> void:
 	# end: the replayed fight.
 	var end: Dictionary = _replay()
 	# state: its final state.
 	var state: Dictionary = end["state"]
-	assert_eq([state["combat"]["phase"], state["combat"]["result"], state["combat"]["turn"]], ["over", "won", 5])
-	assert_eq(state["state_version"], 21, "21 applied requests")
-	assert_eq(state["dudes"][0]["last_seq"], 21)
+	assert_eq([state["combat"]["phase"], state["combat"]["result"], state["combat"]["turn"]], ["over", "won", 4])
+	assert_eq(state["state_version"], 17, "17 applied requests")
+	assert_eq(state["dudes"][0]["last_seq"], 17)
 	assert_eq(end["events"][-1], Event.make("fight_ended", {"result": "won"}))
 	assert_true(end["events"].has(Event.make("deck_shuffled", {"player_id": "p1"})), "the discard pile was reshuffled (G8)")
 	# final_hash: the final state's hash.

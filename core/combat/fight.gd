@@ -12,13 +12,14 @@
 ## The fight is won when every enemy is dead and lost when every Dude is Passed Out; it is checked
 ## after every card and every enemy action (combat.result, phase "over", fight_ended).
 ##
-## STUB for task 011 (enemy AI): every enemy always uses its FIRST move. A move with an op that
-## needs a target (core/ops/ops.gd needs_target) is aimed at the first Dude, in seat order, who is
-## not Passed Out; other moves have no targets. When the enemy acts, targets that have Passed Out
-## since are skipped (not re-aimed). The GDD's multi-target rule (MULTI_TARGET_PARTY_SIZE) is
-## task 011's too.
-## Not in the GDD and not decided here: enemy Guard is never reset (the GDD's Refresh resets
-## players' Guard only); see task 007's log.
+## Enemy AI (task 011) lives in core/ai/. This file calls it at two points:
+##   - Intents (step 1). For each enemy, Intents.set_intent_in_place picks the move (scripted
+##     pattern, or a weighted draw from combat_ai that never picks one move three times in a row)
+##     and the targets (1 Dude, MULTI_TARGET_COUNT Dudes at MULTI_TARGET_PARTY_SIZE players, or
+##     every Dude for an area attack; never a Passed Out Dude).
+##   - Enemy phase (step 5). Intents.begin_action_in_place drops the enemy's Guard to 0 at the
+##     start of its own action, before it acts (G30).
+## When the enemy acts, targets that have Passed Out since are skipped, not re-aimed (core/ai/targeting.gd).
 ##
 ## Passed Out Dudes skip Refresh (no Hype, no draw) and are not needed for Ready: they "skip turns"
 ## (GDD "Rules that change in co-op").
@@ -35,6 +36,7 @@ const Ops := preload("res://core/ops/ops.gd")
 const Bodies := preload("res://core/combat/bodies.gd")
 const Piles := preload("res://core/combat/piles.gd")
 const Scaling := preload("res://core/combat/party_scaling.gd")
+const Intents := preload("res://core/ai/intents.gd")
 
 ## Enemy tier (core/schema/enemy_def.gd TIERS) -> name of the constant with its solo starting Ick
 ## threshold (GDD "Statuses"). Changes only with the GDD's tiers.
@@ -69,8 +71,8 @@ static func start_fight(ruleset: Dictionary, state: Dictionary, enemy_def_ids: A
 
 
 ## Returns why a fight cannot start, or "" when it can: a fight is already running, there are no
-## Dudes, no or unknown enemies, a constant start_fight needs is missing, or a Dude's shuffle stream
-## is missing.
+## Dudes, no or unknown enemies, a constant start_fight or the enemy AI needs is missing, or a
+## Dude's shuffle stream or the combat_ai stream is missing.
 ## ruleset: the read-only content. state: the run state. enemy_def_ids: the enemies asked for.
 static func check_start(ruleset: Dictionary, state: Dictionary, enemy_def_ids: Array) -> String:
 	if state.get("combat") != null and state["combat"]["phase"] != "over":
@@ -93,7 +95,8 @@ static func check_start(ruleset: Dictionary, state: Dictionary, enemy_def_ids: A
 	for dude: Dictionary in state["dudes"]:
 		if not state["rng"].has(Rng.key_for("shuffle", dude["player_id"])):
 			return "random stream shuffle:%s is missing (build the run with Rng.with_new_streams)" % dude["player_id"]
-	return ""
+	# Task 011: the enemy AI's own needs (constants, combat_ai stream).
+	return Intents.check_start(ruleset, state)
 
 
 ## start_fight()'s work, on a working copy, for code that is already inside apply(). The caller must
@@ -137,29 +140,13 @@ static func start_turn_in_place(ruleset: Dictionary, state: Dictionary, events: 
 	events.append(Event.make("turn_started", {"turn": combat["turn"]}))
 	combat["phase"] = "intents"
 	for enemy: Dictionary in combat["enemies"]:
-		enemy["intent"] = stub_intent(ruleset, state, enemy)
-		events.append(Event.make("intent_set", {"enemy_uid": enemy["uid"], "move_id": enemy["intent"]["move_id"],
-			"target_ids": enemy["intent"]["target_ids"].duplicate()}))
+		# Task 011: move, targets, move_history and intent_set (core/ai/intents.gd).
+		Intents.set_intent_in_place(ruleset, state, enemy, events)
 	combat["phase"] = "refresh"
 	for i: int in state["dudes"].size():
 		if not state["dudes"][i]["passed_out"]:
 			_refresh_in_place(state, i, events)
 	combat["phase"] = "player"
-
-
-## STUB until task 011: returns the intent an enemy shows: its first move, aimed at the first Dude
-## who is not Passed Out when the move needs a target, otherwise at nobody.
-## ruleset: the read-only content. state: the run state. enemy: the enemy state.
-static func stub_intent(ruleset: Dictionary, state: Dictionary, enemy: Dictionary) -> Dictionary:
-	# move: the move it will use.
-	var move: Dictionary = ruleset["enemies"][enemy["def_id"]]["moves"][0]
-	# target_ids: who it is aimed at.
-	var target_ids: Array = []
-	# awake: Dudes who can be targeted, in seat order.
-	var awake: Array = Bodies.awake_dude_ids(state)
-	if Ops.needs_target(move["effects"]) and not awake.is_empty():
-		target_ids.append(awake[0])
-	return {"move_id": move["id"], "target_ids": target_ids}
 
 
 ## Turn flow step 2 for one Dude. Emits guard_changed, hype_changed and ready_changed only for values
@@ -208,6 +195,8 @@ static func end_player_phase_in_place(ruleset: Dictionary, state: Dictionary, ev
 		var enemy: Dictionary = Bodies.find_alive(state, uid)
 		if enemy.is_empty():
 			continue
+		# Task 011, G30: the enemy's Guard drops to 0 at the start of its own action.
+		Intents.begin_action_in_place(enemy, events)
 		_enemy_act_in_place(ruleset, state, enemy, events)
 		if finish_if_decided_in_place(state, events):
 			return
