@@ -3,10 +3,10 @@ id: 015
 title: Junk card rules - Hangover, Regret, Bedbugs, Paperwork, Detention, Burn
 lane: core
 owner: A
-status: open
-branch:
+status: in_progress
+branch: a/015-junk-cards
 depends_on: [013]
-blocked_on: [G17]
+blocked_on: []
 files:
   - core/combat/
   - core/ops/
@@ -32,3 +32,4 @@ Golem rows, which add Junk.
 - [ ] One test per Junk card.
 
 ## Log
+- 2026-10-10 A: Claimed. Every rule gap it waited on is answered (#20); task 009 is merged.
