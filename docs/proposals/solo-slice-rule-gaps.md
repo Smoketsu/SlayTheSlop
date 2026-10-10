@@ -360,3 +360,67 @@ No slice card does this, but content could.
   effects cause), checked by data validation instead of the core.
 Answer: accept, with `MAX_TRIGGER_DEPTH` = 8 (steamjgrube, Person B, 2026-10-10: "go with all defaults";
 approved in the review of #53 and recorded in `docs/proposals/decision-log.md`, #54).
+
+## Found while building the run flow (task 025)
+
+G14–G26 answer most of the run. Each gap below is a point the GDD and those answers leave open; each
+is built as suggested (the most conservative reading found) so the slice can run, and each is one
+data or small code change if the people answer differently. None is answered yet.
+
+**G54. "Upgrade 2 random cards" with fewer than 2 that can be upgraded** (The Unlabeled Brownie).
+Lift and the Brownie only upgrade cards whose upgrade is not empty (G15), and today only Arm Bar has one.
+Suggested (as built): upgrade as many as can be (0, 1 or 2), drawn on the `side_quest` stream; the
+2 Foggy still applies.
+Answer:
+
+**G55. What may be skipped, and what may repeat.**
+- Suggested (as built): a card reward may be skipped (`choose_reward` -1, GDD); the Boss Gear pick
+  ("1 of 3 Boss Gear"), The Tailgate ("Nap or Lift") and a Side Quest (it has a safe option) may not.
+- Which Side Quest a node holds is drawn on the `side_quest` stream (the GDD's stream for "gambles and
+  random outcomes"; `encounters` is for enemies). Side Quests and encounters may repeat on a floor:
+  the GDD has no rule against it.
+Answer:
+
+**G56. What card, Gear and Brew offers draw from.**
+- Suggested (as built): card offers draw from the Dude's own pool only ("from their own Dude's
+  pool"); neutral cards are never offered, because the GDD does not say where they appear. Starter
+  and special cards are never offered or sold.
+- One offer never shows the same card twice. Each slot draws a rarity with G21's odds among the
+  rarities that still have a card left, so a pool with no rare card never offers one.
+- Baileys cards use the same odds as card rewards (G21 gives odds for rewards only).
+- Gear (Loot, Rival rewards, Baileys, 3 a.m. Tattoo) and Brews (Brawl rewards, Mimic drops, Baileys)
+  have no rarity odds in the GDD: each is drawn equally likely. Baileys never stocks the same item twice.
+Answer:
+
+**G57. Rounding of "30% of max HP".** Nap heals `TAILGATE_NAP_HEAL` of max HP; a Passed Out Dude wakes
+at `REVIVE_HP_FRACTION` of max HP after a won fight. Suggested (as built): both round down, like the
+damage order; a revived Dude wakes with at least 1 HP.
+Answer:
+
+**G58. Brews that come from fights.**
+- Suggested (as built): a Mimic Cooler fight at a Loot node gives only the Brew it drops: no Loot Gear
+  (G19 says it *replaces* the Loot) and no Brawl reward.
+- Dropped Brews (`combat.brews_dropped`) go to every Dude, each drawn from their own `rewards` stream.
+- A Brew reward with every Brew slot full is lost (`brew_not_kept`); there is no swap screen. At
+  Baileys a Shake with every slot full cannot be bought.
+Answer:
+
+**G59. Co-op rules the run flow does not build yet** (networking is out of scope, but these are
+written down so they are not forgotten).
+- "Gear: One Gear per player from Rival fights and Loot nodes, drafted in turn. First pick rotates
+  each time." Built: each player gets their own random Gear from their own stream; `gear_first_pick`
+  never changes.
+- "Players can Spot a teammate any amount at Baileys": not built.
+- `EXTRA_ENEMY_PARTY_SIZE` ("Brawls gain one enemy" at 3 players): which enemy is not stated; not built.
+- The Designated Driver "rotates each floor": only floor 1 exists.
+Answer:
+
+**G60. Removing more than one card per Baileys visit.** GDD: "Remove a card: 75, rising by 25 each
+time". Suggested (as built, as written): a Dude may remove again at the same visit, at the risen price.
+(Slay the Spire allows one removal per shop; say so if that is wanted.)
+Answer:
+
+**G61. Is "Goblin Pledge + Skeleton Intern" an early Brawl?** G19: "the first two Brawls only use
+Pledges, Bouncer or Intern". Suggested (as built in the test fixtures): yes, a group made only of
+those enemies is early. The content lane marks it with `"early": true` in `data/encounters/`.
+Answer:

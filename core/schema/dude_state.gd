@@ -82,7 +82,84 @@ const SPEC := {
 	# (G3). Raised by the "thorns" op; reset to 0 at this Dude's Refresh, so it lasts "this turn",
 	# including the enemy phase that follows. Changed only by the rules core.
 	"thorns": TYPE_INT,
+	# [added, task 025] The choices this player has open on the current map node, oldest first (see
+	# OFFER_SPEC): a card reward, the Boss Gear pick, The Tailgate, Baileys or a Side Quest. The player
+	# answers one with choose_reward (reward_id = its "id"). The party leaves the node when every
+	# Dude's list is empty. [] outside a node and during fights. Changed only by the run lane.
+	"offers": {"list_of": TYPE_DICTIONARY},
+	# [added, task 025, G25] Status id -> stacks this Dude starts the next fight with ("start the next
+	# fight with Hungover for 3 turns", Gas-Station Sushi; 2 Foggy, The Unlabeled Brownie). Stacks are
+	# 1 or more and add up. The next fight's start applies them (status_changed) and empties the map.
+	# Only Dude statuses (core/combat/statuses.gd). {} when there are none. Changed only by the core.
+	"pending_statuses": {"map_of": TYPE_INT},
+	# [added, task 025] Cards this Dude has removed at Baileys this run, 0 or more. The next removal
+	# costs CARD_REMOVE_BASE + CARD_REMOVE_STEP x this (GDD "Prices at Baileys": 75, rising by 25 each
+	# time), before Medical Card. Changed only by the run lane.
+	"cards_removed": TYPE_INT,
 }
+
+## [added, task 025] Shape of one entry of "offers": one open choice. Changed only by a contract PR.
+const OFFER_SPEC := {
+	# The offer's id, "o" + a number from run_state.next_uid, unique in the run. What choose_reward's
+	# reward_id names.
+	"id": TYPE_STRING,
+	# What the choice is, one of OFFER_KINDS.
+	"kind": TYPE_STRING,
+	# For kind "side_quest", the Side Quest definition's id (data/side_quests/); "" for every other kind.
+	"def_id": TYPE_STRING,
+	# True when choose_reward may answer it with choice_index -1: skip a card reward, or leave Baileys.
+	# False for the Boss Gear pick, The Tailgate and Side Quests, which need an option.
+	"skippable": TYPE_BOOL,
+	# The options, in display order; choice_index is an index into this list (see OPTION_SPEC).
+	"options": {"list_of": TYPE_DICTIONARY},
+}
+
+## [added, task 025] Offer kinds (OFFER_SPEC "kind"). Changed only by a contract PR.
+##   "card":       a card reward after a Brawl or Rival: options of kind "card", pick 1 or skip (GDD
+##                 "Node types": "1 of 3 cards").
+##   "boss_gear":  after the boss: options of kind "gear", pick 1 ("1 of 3 Boss Gear"); no skip.
+##   "tailgate":   The Tailgate: a "nap" and a "lift" option; pick 1, no skip.
+##   "baileys":    Baileys: "card", "gear" and "shake" stock and one "remove" option. Each purchase
+##                 keeps the offer open (the bought item becomes unavailable); -1 leaves Baileys.
+##   "side_quest": a Side Quest (def_id): a "safe" and a "dumb" option; pick 1, no skip.
+const OFFER_KINDS: Array[String] = ["card", "boss_gear", "tailgate", "baileys", "side_quest"]
+
+## [added, task 025] Required fields of one option. Changed only by a contract PR.
+const OPTION_SPEC := {
+	# What picking it does, one of OPTION_KINDS.
+	"kind": TYPE_STRING,
+	# False when it cannot be picked now: already bought at Baileys, a Lift with no card to upgrade,
+	# a Side Quest option the Dude does not qualify for (G23). Picking it is rejected as bad_target.
+	"available": TYPE_BOOL,
+}
+
+## [added, task 025] Fields an option may have, by kind. Changed only by a contract PR.
+const OPTION_OPTIONAL := {
+	# "card": the card definition id taken into the run deck (data/cards/).
+	"card_id": TYPE_STRING,
+	# "gear": the Gear id gained (data/gear/).
+	"gear_id": TYPE_STRING,
+	# "shake": the Brew id sold at Baileys under the label "Shake" (data/brews/). Once bought it is a
+	# normal Brew in a Brew slot (GDD "Prices at Baileys").
+	"brew_id": TYPE_STRING,
+	# Baileys options: the price in Dolla Bills this Dude pays now, 0 or more, Medical Card included.
+	"price": TYPE_INT,
+	# "nap": the HP the Nap would restore now, 0 or more.
+	"amount": TYPE_INT,
+	# "lift" and "remove": the card_uids it may act on, in deck order; choose_reward names one in its
+	# card_uid field.
+	"card_uids": {"list_of": TYPE_STRING},
+}
+
+## [added, task 025] Option kinds (OPTION_SPEC "kind"). Changed only by a contract PR.
+##   "card":   take card_id into the run deck (at Baileys, for price).
+##   "gear":   gain gear_id (at Baileys, for price).
+##   "shake":  buy brew_id into a free Brew slot for price (Baileys).
+##   "remove": pay price to remove one of card_uids from the run deck (Baileys).
+##   "nap":    heal amount HP (The Tailgate).
+##   "lift":   upgrade one of card_uids (The Tailgate).
+##   "safe":   the Side Quest's safe option. "dumb": its dumb option (raises dumb_options_taken).
+const OPTION_KINDS: Array[String] = ["card", "gear", "shake", "remove", "nap", "lift", "safe", "dumb"]
 
 ## Shape of one card instance, the values in the "cards" map. [added]
 const CARD_SPEC := {
@@ -130,6 +207,9 @@ static func blank(player_id: String, dude_id: String) -> Dictionary:
 		"last_seq": -1,
 		"powers": [],
 		"thorns": 0,
+		"offers": [],
+		"pending_statuses": {},
+		"cards_removed": 0,
 	}
 
 
@@ -168,4 +248,40 @@ static func check(dude: Variant, path: String = "dude") -> Array[String]:
 	for status: String in dude["statuses"].keys():
 		if dude["statuses"][status] <= 0:
 			errors.append("%s.statuses.%s: stacks must be 1 or more" % [path, status])
+	# Task 025: pending statuses, the removal count and the open offers.
+	for status: String in dude["pending_statuses"].keys():
+		if dude["pending_statuses"][status] <= 0:
+			errors.append("%s.pending_statuses.%s: stacks must be 1 or more" % [path, status])
+	if dude["cards_removed"] < 0:
+		errors.append("%s.cards_removed: %d is below 0" % [path, dude["cards_removed"]])
+	# offer_ids: offer ids seen so far, to catch duplicates.
+	var offer_ids: Dictionary = {}
+	for i: int in dude["offers"].size():
+		# label: this offer's path in messages.
+		var label: String = "%s.offers[%d]" % [path, i]
+		errors.append_array(check_offer(dude["offers"][i], label))
+		if typeof(dude["offers"][i].get("id")) == TYPE_STRING:
+			if offer_ids.has(dude["offers"][i]["id"]):
+				errors.append("%s.id: duplicate offer id %s" % [label, dude["offers"][i]["id"]])
+			offer_ids[dude["offers"][i]["id"]] = true
+	return errors
+
+
+## [added, task 025] Checks one offer (OFFER_SPEC) and its options (OPTION_SPEC, OPTION_OPTIONAL).
+## Returns a list of problems; empty means valid.
+## offer: the value to check. path: label for messages, for example "dudes[0].offers[1]".
+static func check_offer(offer: Variant, path: String = "offer") -> Array[String]:
+	# errors: problems found, returned at the end.
+	var errors: Array[String] = Shape.check(offer, OFFER_SPEC, path)
+	if not errors.is_empty():
+		return errors
+	errors.append_array(Shape.check_one_of(offer["kind"], OFFER_KINDS, path + ".kind"))
+	for i: int in offer["options"].size():
+		# label: this option's path in messages.
+		var label: String = "%s.options[%d]" % [path, i]
+		# found: shape problems with this option.
+		var found: Array[String] = Shape.check(offer["options"][i], OPTION_SPEC, label, OPTION_OPTIONAL)
+		errors.append_array(found)
+		if found.is_empty():
+			errors.append_array(Shape.check_one_of(offer["options"][i]["kind"], OPTION_KINDS, label + ".kind"))
 	return errors

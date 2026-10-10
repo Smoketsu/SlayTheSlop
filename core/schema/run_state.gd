@@ -23,7 +23,24 @@ const CombatState := preload("res://core/schema/combat_state.gd")
 ## 5: task 021 added combat_state.fight_stat_changes and combat_state.pass_out_saves.
 ## 6: task 017 added enemy_state.haul, enemy_state.drops_brews and combat_state.brews_dropped.
 ## 7: task 019 added enemy_state.charge and enemy_state.fallen_skips.
-const SCHEMA_VERSION: int = 7
+## 8: task 025 added run_phase, votes, path and encounter_id here, and dude_state.offers,
+##    dude_state.pending_statuses and dude_state.cards_removed (the run flow).
+const SCHEMA_VERSION: int = 8
+
+## [added, task 025] Values of run_phase. Changed only by a contract PR. Meanings (the rules are in
+## core/run/node_flow.gd):
+##   "map":       the party stands on map.nodes[node_index] and waits for vote_node to pick one of
+##                that node's links. A new run starts here, at the entrance.
+##   "node":      the party has moved onto map.nodes[node_index] and is resolving it: a fight is
+##                running in combat, or at least one Dude has an open choice in dude_state.offers
+##                (a card reward, The Tailgate, Baileys, a Side Quest, the Boss Gear pick). When
+##                every Dude's offers are empty the party goes back to "map", or to "floor_end"
+##                after the boss.
+##   "floor_end": the floor's boss is beaten and every Boss Gear pick is made. Going down to the
+##                next floor is not built (the solo slice ends here), so every request is wrong_phase.
+##   "lost":      every Dude Passed Out in a fight, so the run is over (GDD "Death ends the run").
+##                combat keeps the lost fight; every request is wrong_phase.
+const RUN_PHASES: Array[String] = ["map", "node", "floor_end", "lost"]
 
 ## Required fields and their types. Comments give meaning, unit and range.
 const SPEC := {
@@ -71,8 +88,24 @@ const SPEC := {
 	# ("map", "encounters", "combat_ai", "side_quest") and, for per-player streams,
 	# "<stream>:<player_id>" ("shuffle:p1", "rewards:p1", "dice:p1"). Values are opaque to everything but core's RNG code.
 	"rng": {"map_of": TYPE_INT},
-	# [added] Next number used to make a card_uid ("c" + number) or enemy uid ("e" + number). Rises by 1 per uid made.
+	# [added] Next number used to make a card_uid ("c" + number), enemy uid ("e" + number) or (task 025)
+	# offer id ("o" + number). Rises by 1 per uid made.
 	"next_uid": TYPE_INT,
+	# [added, task 025] Where the run is, one of RUN_PHASES. "map" at the start of a run. Changed only
+	# by the run lane (core/run/), through apply().
+	"run_phase": TYPE_STRING,
+	# [added, task 025] player_id -> the map node id that player voted for with vote_node, while
+	# run_phase is "map". A player who votes again replaces their vote. When every Dude has voted, the
+	# party moves (ties go to designated_driver's vote, GDD "Map path") and this is emptied. {} otherwise.
+	"votes": {"map_of": TYPE_STRING},
+	# [added, task 025] Ids of the map nodes the party has moved onto on this floor, in order; the
+	# entrance is not listed. Once the party has left the entrance, the last entry is
+	# map.nodes[node_index]. Read for "the first two Brawls" (G19) and by the client to draw the path.
+	"path": {"list_of": TYPE_STRING},
+	# [added, task 025] Id of the encounter (data/encounters/, core/schema/encounter_def.gd) fought at
+	# the current node, kept until the node is left so the fight's rewards follow the encounter's kind
+	# (a Mimic Cooler at a Loot node gives a Mimic's reward, not Loot's). "" when the node has no fight.
+	"encounter_id": TYPE_STRING,
 }
 
 
@@ -98,6 +131,10 @@ static func blank(run_seed: int, dudes: Array) -> Dictionary:
 		"combat": null,
 		"rng": {},
 		"next_uid": 1,
+		"run_phase": "map",
+		"votes": {},
+		"path": [],
+		"encounter_id": "",
 	}
 
 
@@ -108,6 +145,8 @@ static func check(state: Variant, path: String = "state") -> Array[String]:
 	var errors: Array[String] = Shape.check(state, SPEC, path)
 	if not errors.is_empty():
 		return errors
+	# Task 025: the run phase is one of RUN_PHASES.
+	errors.append_array(Shape.check_one_of(state["run_phase"], RUN_PHASES, path + ".run_phase"))
 	if state["party_size"] != state["dudes"].size():
 		errors.append("%s.party_size: %d but there are %d dudes" % [path, state["party_size"], state["dudes"].size()])
 	for i: int in state["dudes"].size():
