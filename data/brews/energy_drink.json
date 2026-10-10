@@ -1,6 +1,6 @@
 {
   "id": "energy_drink",
-  "name": "Energy Drink",
+  "name": "Wake and Bake",
   "rarity": "common",
   "text": "Draw 3 cards.",
   "target": "self",
