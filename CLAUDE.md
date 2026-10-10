@@ -10,7 +10,7 @@ and can always see what the other one is doing. Follow it even when a shortcut l
 ## Status
 
 - Bootstrap (task 001): a Godot project, the shared contracts (`core/schema/`, `data/constants.json`)
-  and the task board exist. No rules code yet, and no test command until task 002 lands.
+  and the task board exist, and the test harness runs in CI (task 002). No rules code yet.
 - Current target: **GDD milestone 2, the solo slice.** Tom only, floor 1 (The Basement) only,
   about 30 cards, 10 Gear, one boss, placeholder art.
 - Out of scope until that gate passes: networking, the other four Dudes, floors 2 and 3,
@@ -250,9 +250,9 @@ All player-facing text follows the GDD "Rules for writers". The short version:
 
 | Choice | Value | Status |
 | --- | --- | --- |
-| Engine | Godot **4.7.2-stable**, official build (pinned; checksums in task 002) | Confirmed by Person A 2026-10-10; Person B confirms by approving task 001's PR |
-| Language | GDScript | Confirmed by Person A 2026-10-10; Person B as above |
-| Data format | JSON, shaped like the GDD's example card definition, parsed with `core/schema/json_values.gd` | Confirmed by Person A 2026-10-10; Person B as above |
+| Engine | Godot **4.7.2-stable**, official build (pinned; version and checksums in `tools/install_godot.sh`) | Confirmed by Person A and Person B 2026-10-10 |
+| Language | GDScript | Confirmed by Person A and Person B 2026-10-10 |
+| Data format | JSON, shaped like the GDD's example card definition, parsed with `core/schema/json_values.gd` | Confirmed by Person A 2026-10-10; Person B has not been asked separately |
 | Core classes | Plain data and `RefCounted` only, no `Node` | Follows from "the rules core is pure" |
 
 The GDD's open question on the engine is answered for this repository; the owner's GDD still
@@ -279,8 +279,24 @@ docs/            GDD.md, tasks/, changes/, proposals/
 
 ### Commands
 
-None exist yet. The PR that adds the first way to run, test or lint the project must record the
-exact commands here, in its own contract PR.
+Run these from the repository root. They work on Linux and macOS; on Windows, use WSL or follow
+the manual install steps that `tools/install_godot.sh` prints.
+
+| Command | What it does |
+| --- | --- |
+| `tools/test.sh` | Installs the pinned Godot into `.tools/` if missing (checksum verified), imports the project, runs every test. Exit 0 only if all pass. Run it before every push |
+| `tools/test.sh rng core/` | Runs only test files whose path contains any of the given words |
+| `tools/install_godot.sh` | Installs the pinned Godot if missing and prints the binary's path |
+
+- Tests are `res://tests/**/test_*.gd` files that extend `res://tests/framework/test_case.gd`.
+  Each `test_*` method runs on a fresh instance. A failed assertion, a runtime error or a script
+  that does not parse fails the run. The full interface is in task 002.
+- CI (`.github/workflows/tests.yml`) runs `tools/test.sh` on every pull request and every push to
+  `main`. A red check blocks the merge.
+- Calling Godot directly: `"$(tools/install_godot.sh)" --headless --path . --import` once, then
+  `"$(tools/install_godot.sh)" --headless --path . --script res://tests/run_tests.gd [-- filters]`.
+- There is no linter or formatter yet. Agent A's `tests/core/test_documentation.gd` checks the
+  documentation standard in Agent A's folders.
 
 ## Before you call a task done
 

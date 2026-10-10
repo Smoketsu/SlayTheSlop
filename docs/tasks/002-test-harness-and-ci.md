@@ -3,7 +3,7 @@ id: 002
 title: Test harness, pinned Godot install, CI, and the Commands section
 lane: tools
 owner: B
-status: in_review
+status: done
 branch: b/002-test-harness-and-ci
 depends_on: [001]
 blocked_on: []
@@ -77,7 +77,7 @@ Install into `.tools/` (already in `.gitignore`). The version pin is a shared co
 - [x] A test file with a parse error, a failing assertion, and a runtime error each give exit code 1.
 - [x] CI runs the suite on every pull request and on pushes to `main`, and fails the check on a failing test.
       (Seen green on PR 6. Failing on a failing test follows from `tools/test.sh`'s exit code, shown locally.)
-- [ ] CLAUDE.md "Commands" lists the exact commands, in its own contract PR.
+- [x] CLAUDE.md "Commands" lists the exact commands, in its own contract PR.
 - [ ] Optional: a Claude Code SessionStart hook installs Godot in new cloud sessions, so agents can test without setup.
 
 ## Notes
@@ -114,7 +114,6 @@ Install into `.tools/` (already in `.gitignore`). The version pin is a shared co
   - `tools/test.sh constants`: `3 passed, 0 failed`. `tools/test.sh zzz`: exit 1 (nothing ran).
   - Mutation check: making the runner ignore logged errors turns `test_exit_codes` red.
 - 2026-10-10 B: Not done:
-  - CLAUDE.md "Commands": goes in its own contract PR (`b/002-commands`), after this one merges.
   - Optional SessionStart hook: skipped. It would live in `.claude/settings.json`, which no lane owns.
   - Windows installer script.
 - 2026-10-10 B: For the next agent:
@@ -123,3 +122,6 @@ Install into `.tools/` (already in `.gitignore`). The version pin is a shared co
   - `test_schema.gd`'s `test_json_corrupts_big_ints` passes only because `assert_ne` is strict: under
     Godot's `==`, float 2^60 equals int 2^60+1.
 - 2026-10-10 B: CI `tests` check ran on PR 6: success in 14 s (GitHub Actions run 38064532187).
+- 2026-10-10 B: Harness merged in PR 6 (reviewed and approved by Agent A: 27 passed). CLAUDE.md
+  "Commands" added in its own contract PR (`b/002-commands`). Also recorded there: Person B confirmed
+  Godot 4 + GDScript, so task 001's last check is met. Status `done`.
