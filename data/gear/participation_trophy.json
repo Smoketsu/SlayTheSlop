@@ -1,0 +1,22 @@
+{
+  "id": "participation_trophy",
+  "name": "Participation Trophy",
+  "owner": "general",
+  "rarity": "uncommon",
+  "text": "If you end a fight below 50% HP, heal 8.",
+  "stats": {},
+  "triggers": [
+    {
+      "when": "fight_end",
+      "target": "self",
+      "hp_below_percent": 50,
+      "effects": [
+        {
+          "op": "heal",
+          "amount": 8
+        }
+      ]
+    }
+  ],
+  "modifiers": []
+}

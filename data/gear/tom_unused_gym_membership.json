@@ -1,0 +1,21 @@
+{
+  "id": "tom_unused_gym_membership",
+  "name": "Unused Gym Membership",
+  "owner": "tom",
+  "rarity": "starter",
+  "text": "Heal 6 HP after every fight.",
+  "stats": {},
+  "triggers": [
+    {
+      "when": "fight_end",
+      "target": "self",
+      "effects": [
+        {
+          "op": "heal",
+          "amount": 6
+        }
+      ]
+    }
+  ],
+  "modifiers": []
+}

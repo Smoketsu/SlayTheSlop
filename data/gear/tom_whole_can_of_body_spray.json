@@ -1,0 +1,22 @@
+{
+  "id": "tom_whole_can_of_body_spray",
+  "name": "Whole Can of Body Spray",
+  "owner": "tom",
+  "rarity": "rare",
+  "text": "When Tom applies Ick, the target takes 2 damage per stack applied.",
+  "stats": {},
+  "triggers": [
+    {
+      "when": "ick_applied",
+      "target": "trigger_target",
+      "amount_per_stack": true,
+      "effects": [
+        {
+          "op": "damage",
+          "amount": 2
+        }
+      ]
+    }
+  ],
+  "modifiers": []
+}

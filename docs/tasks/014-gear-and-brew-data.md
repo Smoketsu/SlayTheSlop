@@ -3,7 +3,7 @@ id: 014
 title: The slice's Gear and the eight Brews as data
 lane: content
 owner: B
-status: in_progress
+status: in_review
 branch: b/014-gear-and-brew-data
 depends_on: [021]
 blocked_on: []
@@ -28,14 +28,14 @@ once task 021 has merged; task 004's validator.
 
 ## Acceptance checks
 
-- [ ] `ls data/gear/*.json | wc -l` prints 13: the 10 Gear from G16's answer plus Beer Helmet, Dad's Platinum Card and Cursed Intramural Trophy.
-- [ ] `ls data/brews/*.json | wc -l` prints 8: Light Beer, Energy Drink, Protein Shake, Shot of Courage, Special Brownie, Hair of the Dog, Party Bowl, Smelling Salts.
-- [ ] Tom's starting Gear is `data/gear/tom_unused_gym_membership.json` (the id task 006's `tom.json` already names): heal 6 HP after every fight.
-- [ ] Ids are snake_case, Tom's Gear prefixed `tom_` (e.g. `tom_arm_wrestling_table`), the rest as task 021's format says. Medical Card is `medical_card`; no file or id uses `fake_id` (the GDD 0.5 rename).
-- [ ] Each file passes `gear_def.check()` or `brew_def.check()`, and its id equals its file name.
-- [ ] Each file has rarity, owner (Tom, general or boss) and player-facing text as the GDD table gives them. Boss Gear text states both the upside and the downside.
-- [ ] Effects and triggers use only what `core/ops/README.md` and task 021 provide. For anything missing, a task for Agent A names the exact op or trigger and its fields, and that item keeps the GDD text with empty effects until it exists.
-- [ ] Task 004's validation covers `data/gear/` and `data/brews/` (the unknown-folder rule passes), and `tom.json`'s `starting_gear` resolves. The test suite (task 002's command) passes.
+- [x] `ls data/gear/*.json | wc -l` prints 13: the 10 Gear from G16's answer plus Beer Helmet, Dad's Platinum Card and Cursed Intramural Trophy.
+- [x] `ls data/brews/*.json | wc -l` prints 8: Light Beer, Energy Drink, Protein Shake, Shot of Courage, Special Brownie, Hair of the Dog, Party Bowl, Smelling Salts.
+- [x] Tom's starting Gear is `data/gear/tom_unused_gym_membership.json` (the id task 006's `tom.json` already names): heal 6 HP after every fight.
+- [x] Ids are snake_case, Tom's Gear prefixed `tom_` (e.g. `tom_arm_wrestling_table`), the rest as task 021's format says. Medical Card is `medical_card`; no file or id uses `fake_id` (the GDD 0.5 rename).
+- [x] Each file passes `gear_def.check()` or `brew_def.check()`, and its id equals its file name.
+- [x] Each file has rarity, owner (Tom, general or boss) and player-facing text as the GDD table gives them. Boss Gear text states both the upside and the downside.
+- [x] Effects and triggers use only what `core/ops/README.md` and task 021 provide. For anything missing, a task for Agent A names the exact op or trigger and its fields, and that item keeps the GDD text with empty effects until it exists.
+- [x] Task 004's validation covers `data/gear/` and `data/brews/` (the unknown-folder rule passes), and `tom.json`'s `starting_gear` resolves. The test suite (task 002's command) passes.
 
 ## Notes
 
@@ -56,3 +56,4 @@ once task 021 has merged; task 004's validator.
 
 ## Log
 - 2026-10-10 B: Claimed. Every gap in `blocked_on` is answered (steamjgrube accepted all defaults; see `docs/proposals/decision-log.md`).
+- 2026-10-10 B: Done. 13 Gear in `data/gear/` and 8 Brews in `data/brews/`, copied from Agent A's `tests/core/items/item_fixtures.gd` (what the core's item tests play). Medical Card is `medical_card`; no `fake_id`. Boss Gear text states upside and downside. Beer Helmet is as built: its Hangover lasts the run; I7's accepted default (one fight only) needs a `lasts` option on `add_card` first (asked of Agent A in #54 and on #29), then a one-line data change here. Verified: `tools/test.sh` all passing; `tests/data/test_item_data.gd` checks the set, every file against the fixture, and the current names.

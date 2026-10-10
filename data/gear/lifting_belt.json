@@ -1,0 +1,12 @@
+{
+  "id": "lifting_belt",
+  "name": "Lifting Belt",
+  "owner": "general",
+  "rarity": "common",
+  "text": "+1 Swole",
+  "stats": {
+    "swole": 1
+  },
+  "triggers": [],
+  "modifiers": []
+}
