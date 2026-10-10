@@ -21,7 +21,8 @@ const CombatState := preload("res://core/schema/combat_state.gd")
 ## 2: task 011 added enemy_state.move_history. 3: task 009 added enemy_state.grossed_out_skips.
 ## 4: task 013 added dude_state.powers and dude_state.thorns.
 ## 5: task 021 added combat_state.fight_stat_changes and combat_state.pass_out_saves.
-const SCHEMA_VERSION: int = 5
+## 6: task 017 added enemy_state.haul, enemy_state.drops_brews and combat_state.brews_dropped.
+const SCHEMA_VERSION: int = 6
 
 ## Required fields and their types. Comments give meaning, unit and range.
 const SPEC := {

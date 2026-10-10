@@ -18,7 +18,8 @@ const BIG_SEED: int = 1152921504606846977
 ## var_to_bytes, this test fails: saves and co-op hashes from the old version would no longer
 ## match. Re-record it only after deciding, with both people, what to do about old saves.
 ## Re-recorded by task 021 (SCHEMA_VERSION 5, two new combat fields; old saves are refused by version).
-const SAMPLE_HASH: String = "6807191430cd66d2c97e9f7cef1e87871fdbb399bc4bb5515c0aa167485e833e"
+## Re-recorded again by task 017 (SCHEMA_VERSION 6, enemy haul and Brew-drop fields; same fight).
+const SAMPLE_HASH: String = "2a6f2e1970bd8bae0ee1b19478b5c843c484d5739046699d32b673ec38885298"
 
 ## Seed for the RandomNumberGenerator that makes the garbage inputs. Fixed so every run tests the same bytes.
 const GARBAGE_SEED: int = 27
