@@ -3,7 +3,8 @@
 ## What changed
 
 - `CLAUDE.md` rewritten for exactly two agents (A and B), each driven by a different person.
-  - Lane ownership split (proposed): A owns `core` and `run`; B owns `content`, `tools`, `client`.
+  - Lane ownership split: Agent A (Smoketsu) owns `core` and `run`; Agent B (steamjgrube) owns
+    `content`, `tools`, `client`.
   - Tests split by owner: A writes `tests/core/` and `tests/run/`, B the rest of `tests/`.
   - Branch prefixes `a/` and `b/`; task ids odd for A, even for B (proposed).
   - New "Suggest, do not overwrite" section: every change goes through a PR, the other person

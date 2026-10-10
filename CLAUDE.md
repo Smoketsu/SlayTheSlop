@@ -38,12 +38,12 @@ one, say so in your PR so both people can confirm or change it. Do not treat the
 
 ## The two agents
 
-### Who is who (proposed)
+### Who is who
 
 | Agent | Works for | Lanes it owns | Branch prefix |
 | --- | --- | --- | --- |
-| Agent A | Person A (fill in) | `core`, `run` | `a/` |
-| Agent B | Person B (fill in) | `content`, `tools`, `client` | `b/` |
+| Agent A | Smoketsu | `core`, `run` | `a/` |
+| Agent B | steamjgrube | `content`, `tools`, `client` | `b/` |
 
 - At the start of a session, find out which agent you are. Ask your person if you cannot tell from
   the branch you were given or from a previous task file you own.
