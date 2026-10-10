@@ -3,10 +3,10 @@ id: 009
 title: Damage order, statuses, Broken Arm and Ick
 lane: core
 owner: A
-status: open
-branch:
+status: in_progress
+branch: a/009-damage-order-and-statuses
 depends_on: [007]
-blocked_on: [G1, G2, G3, G4, G5, G6, G7]
+blocked_on: []
 files:
   - core/combat/
   - core/ops/
@@ -33,3 +33,4 @@ GDD "Damage order", "Statuses", "Tom, the Enforcer"; `data/constants.json`.
 - [ ] Every tuning number comes from `ruleset.constants`. No value from `constants.json` (0.75, 1.5, 0.4, the Ick bases, the step) is written as a literal in `core/`; the PR description says how this was checked.
 
 ## Log
+- 2026-10-10 A: Claimed. Every rule gap it waited on is answered "accept" (PR #20).

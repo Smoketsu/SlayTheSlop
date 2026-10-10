@@ -3,10 +3,10 @@ id: 023
 title: Floor map generation and the map format
 lane: run
 owner: A
-status: blocked
-branch:
+status: in_progress
+branch: a/023-floor-map-generation
 depends_on: [003]
-blocked_on: [G18]
+blocked_on: []
 files:
   - core/run/map/
   - core/schema/run_state.gd   # only to document the map shape, in its own contract PR first
@@ -33,3 +33,4 @@ GDD "Run structure" ("The loop", "Node types"); G18; `core/schema/run_state.gd`.
 ## Log
 
 - 2026-10-10 A: blocked on G18 (the GDD gives node shares but no map shape).
+- 2026-10-10 A: Claimed. Every rule gap it waited on is answered "accept" (PR #20).
