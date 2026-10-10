@@ -1,0 +1,94 @@
+## Plays the events a request returned as short animations on the combatant views, one after
+## another in event order (task 028). Lane: client (Agent B).
+##
+## It reads events only and changes only how views look: game state is never read or written here,
+## and the screen redraws every view from the returned state once play() finishes, so skipping or
+## cutting an animation short can never leave the screen wrong. With seconds <= 0 every event plays
+## instantly and play() returns without waiting, so tests never depend on frame timing.
+extends RefCounted
+
+## Animation kinds effect_for() can return, each with what the view does:
+## "damage": a hit that took HP (flash red, shake, number pops up). "blocked": a hit Guard took
+## whole (blue flash). "guard": Guard changed (number updates; a gain flashes blue). "heal": HP
+## restored (green flash). "death": an enemy died (fades out). "leave": an enemy fled or split (fades
+## out). "passed_out": a Dude Passed Out (greys and tips over). "log": no animation, the line only.
+## Changed only by the client lane.
+const KINDS: Array[String] = ["damage", "blocked", "guard", "heal", "death", "leave", "passed_out", "log"]
+
+## Seconds each animated event lasts; "log" events never wait. 0 or less plays everything
+## instantly (tests use 0). Changed by whoever owns the player (the fight screen).
+var seconds: float = 0.3
+## One line per event played, "<kind> <target>" (target "" for a log event), in order. Read by
+## tests. Only grows.
+var played: Array[String] = []
+
+
+## Returns what an event looks like on screen: {"kind": one of KINDS, "target": the player_id or
+## enemy uid it happens to ("" for "log"), "amount": the size of the change (0 when none), "value":
+## the new HP or Guard where the event says it (-1 otherwise), "blocked": Guard used up by a hit}.
+## Pure: depends on the event only.
+## event: one event from the gateway (core/schema/event.gd).
+static func effect_for(event: Dictionary) -> Dictionary:
+	# effect: the "log" default, filled in below.
+	var effect: Dictionary = {"kind": "log", "target": "", "amount": 0, "value": -1, "blocked": 0}
+	match event["type"]:
+		"damage_dealt":
+			effect = {"kind": "damage" if event["hp_lost"] > 0 else "blocked", "target": event["target_id"],
+				"amount": event["hp_lost"], "value": -1, "blocked": event["blocked"]}
+		"guard_changed":
+			effect = {"kind": "guard", "target": event["target_id"], "amount": event["delta"], "value": event["guard"], "blocked": 0}
+		"healed":
+			effect = {"kind": "heal", "target": event["target_id"], "amount": event["amount"], "value": event["hp"], "blocked": 0}
+		"enemy_died":
+			effect["kind"] = "death"
+			effect["target"] = event["enemy_uid"]
+		"enemy_fled", "enemy_split":
+			effect["kind"] = "leave"
+			effect["target"] = event["enemy_uid"]
+		"dude_passed_out":
+			effect["kind"] = "passed_out"
+			effect["target"] = event["player_id"]
+	return effect
+
+
+## Plays events in order. Before each one it calls on_event(event) (the screen shows its line),
+## then animates it and, unless seconds <= 0, waits until the animation ends before the next.
+## events: the gateway's events. views: player_id or enemy uid -> combatant_view.gd, as drawn before
+## the request. on_event: called with each event first. clock: any node in the tree, for its timers.
+func play(events: Array, views: Dictionary, on_event: Callable, clock: Node) -> void:
+	for event: Dictionary in events:
+		on_event.call(event)
+		# wait: how long this event's animation runs.
+		var wait: float = play_one(event, views)
+		if wait > 0.0:
+			await clock.get_tree().create_timer(wait).timeout
+
+
+## Starts one event's animation and returns how long it runs, in seconds: 0 for a "log" event, for
+## a target with no view (an enemy that spawned during this request), for a change that only
+## updates a number (Guard lost, a hit of 0), and when seconds <= 0.
+## event: one event. views: as in play().
+func play_one(event: Dictionary, views: Dictionary) -> float:
+	# effect: what to show.
+	var effect: Dictionary = effect_for(event)
+	played.append("%s %s" % [effect["kind"], effect["target"]])
+	# view: the combatant it happens to, or null.
+	var view: Variant = views.get(effect["target"])
+	if effect["kind"] == "log" or view == null or not is_instance_valid(view):
+		return 0.0
+	# time: this animation's length, 0 when instant.
+	var time: float = maxf(seconds, 0.0)
+	match effect["kind"]:
+		"damage", "blocked":
+			view.hit(effect["amount"], effect["blocked"], time)
+		"guard":
+			view.guard_to(effect["value"], effect["amount"], time)
+		"heal":
+			view.heal_to(effect["value"], effect["amount"], time)
+		"death", "leave":
+			view.die(time)
+		"passed_out":
+			view.pass_out(time)
+	# still: true when the view only updated a number (a Guard loss, or a hit of 0 with no Guard used).
+	var still: bool = (effect["kind"] == "guard" and effect["amount"] <= 0) or (effect["kind"] == "blocked" and effect["blocked"] <= 0)
+	return 0.0 if still else time

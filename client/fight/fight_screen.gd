@@ -5,7 +5,10 @@
 ## game state itself (CLAUDE.md "The rules core is pure"): solo uses the same request-and-events
 ## path co-op will.
 ##
-## Placeholder look: text on buttons and labels, no art. Run it with
+## Layout (task 028): Dudes on the left and enemies on the right, each a client/visual/
+## combatant_view.gd (sprite, HP bar, Guard, statuses, intent) that is clicked to target it; below
+## them the last event lines, the hand, the action buttons and the message bar. Events play through
+## client/visual/event_player.gd. Placeholder art (assets/placeholder/). Run it with
 ##   "$(tools/install_godot.sh)" --path . res://client/fight/fight_screen.tscn
 ## With no setup() call it starts a fight on the real data (client/dev/dev_fight.gd).
 extends Control
@@ -16,20 +19,31 @@ const RequestMaker := preload("res://client/fight/request_maker.gd")
 const Messages := preload("res://client/fight/messages.gd")
 const DevFight := preload("res://client/dev/dev_fight.gd")
 const EventText := preload("res://client/fight/event_text.gd")
+const CombatantView := preload("res://client/visual/combatant_view.gd")
+const EventPlayer := preload("res://client/visual/event_player.gd")
 ## The rules gateway: the real rules core (task 007), apply(ruleset, state, request). Co-op will
 ## swap in a network gateway with the same apply() here.
 const Gateway := preload("res://core/core.gd")
+## How many of the latest event lines the log under the fight shows, 1 or more. Changed only by
+## the client lane.
+const LOG_LINES: int = 4
+## Height kept for each log line, in pixels, so the hand below does not move as the log fills.
+## Changed only by the client lane.
+const LOG_LINE_PIXELS: int = 26
 
 ## Seconds each event's animation lasts. 0 makes the screen fully synchronous, which tests use.
 ## Changed by whoever creates the screen, before or after setup().
 var animation_seconds: float = 0.3
-## True to skip every event's animation and only redraw at the end. Tests use it to prove the
-## final drawing does not depend on the events.
+## True to skip every event's animation and message and only redraw at the end (the event log
+## still gets every line). Tests use it to prove the final drawing does not depend on the events.
 var skip_animations: bool = false
 ## One line per event the screen animated, in order, for tests and debugging. Only grows.
 var animation_log: Array[String] = []
 ## The message last shown to the player (a reject, a prompt or the latest event). Read by tests.
 var message: String = ""
+## Every event line (event_text.gd line()) of this fight, oldest first, whether or not animations
+## are skipped. The log shows the last LOG_LINES. Only grows.
+var event_lines: Array[String] = []
 
 ## The gateway requests go to: anything with apply(ruleset, state, request). Set by setup().
 var _gateway: Object
@@ -47,13 +61,19 @@ var _pending_card: String = ""
 var _pending_bro: bool = false
 ## True while events are animating; input is ignored meanwhile.
 var _busy: bool = false
-## Containers rebuilt on every redraw: header text, Dudes, enemies, hand, buttons, message.
+## Plays each request's events on the views. Its seconds follow animation_seconds.
+var _player := EventPlayer.new()
+## player_id or enemy uid -> its combatant_view.gd, as last drawn. Rebuilt by every redraw.
+var _views: Dictionary = {}
+## Containers rebuilt on every redraw: header text, Dudes (left), enemies (right), hand, buttons,
+## message; and the event log, rewritten on every event line.
 var _header: Label
 var _dudes_box: HBoxContainer
 var _enemies_box: HBoxContainer
 var _hand_box: HBoxContainer
 var _actions_box: HBoxContainer
 var _message_label: Label
+var _log_label: Label
 
 
 ## Gives the screen its gateway, content, starting state and local player. Call before or after
@@ -80,12 +100,22 @@ func _ready() -> void:
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(root)
 	_header = Label.new()
-	_enemies_box = HBoxContainer.new()
+	# arena: Dudes on the left, a gap, enemies on the right.
+	var arena := HBoxContainer.new()
 	_dudes_box = HBoxContainer.new()
+	_enemies_box = HBoxContainer.new()
+	# gap: pushes the enemies to the right edge.
+	var gap := Control.new()
+	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	for node: Control in [_dudes_box, gap, _enemies_box]:
+		arena.add_child(node)
+	_log_label = Label.new()
+	_log_label.modulate = Color(1, 1, 1, 0.7)
+	_log_label.custom_minimum_size = Vector2(0, LOG_LINES * LOG_LINE_PIXELS)
 	_hand_box = HBoxContainer.new()
 	_actions_box = HBoxContainer.new()
 	_message_label = Label.new()
-	for node: Control in [_header, _enemies_box, _dudes_box, _hand_box, _actions_box, _message_label]:
+	for node: Control in [_header, arena, _log_label, _hand_box, _actions_box, _message_label]:
 		root.add_child(node)
 	if _ruleset.is_empty():
 		# started: a placeholder fight on the real data.
@@ -204,13 +234,13 @@ func _send(request: Dictionary) -> void:
 	# names: display names for the event lines, from the state before and after the request.
 	var names: Dictionary = EventText.names_for(_ruleset, [_state, result["state"]])
 	_busy = true
-	for event: Dictionary in result["events"]:
-		animation_log.append(_describe(event))
-		if skip_animations:
-			continue
-		_show_message(EventText.line(event, names))
-		if animation_seconds > 0.0:
-			await get_tree().create_timer(animation_seconds).timeout
+	if skip_animations:
+		for event: Dictionary in result["events"]:
+			animation_log.append(_describe(event))
+			_log_event(EventText.line(event, names))
+	else:
+		_player.seconds = animation_seconds
+		await _player.play(result["events"], _views, _on_event.bind(names), self)
 	_state = result["state"]
 	_busy = false
 	_redraw()
@@ -227,17 +257,11 @@ func _redraw() -> void:
 		for child: Node in box.get_children():
 			box.remove_child(child)
 			child.queue_free()
+	_views = {}
 	for enemy: Dictionary in model["enemies"]:
-		# aim: who the intent targets, as text.
-		var aim: String = (" -> " + ", ".join(enemy["targets"])) if not enemy["targets"].is_empty() else ""
-		_add_button(_enemies_box, "\n".join([enemy["name"], "HP " + enemy["hp"], "Guard %d" % enemy["guard"],
-			"Intent: %s%s" % [enemy["intent"] if enemy["intent"] != "" else "?", aim], enemy["arms"],
-			"Ick " + enemy["ick"], " ".join(enemy["statuses"])]), press_enemy.bind(enemy["uid"]), not enemy["alive"])
+		_add_view(_enemies_box, enemy, true, press_enemy.bind(enemy["uid"]))
 	for dude: Dictionary in model["dudes"]:
-		_add_button(_dudes_box, "\n".join([dude["name"] + (" (you)" if dude["local"] else ""), "HP " + dude["hp"],
-			"Guard %d  Hype %d" % [dude["guard"], dude["hype"]], " ".join(dude["statuses"]), "Brews " + dude["brews"],
-			"Draw %d  Discard %d  Tapped %d" % [dude["draw"], dude["discard"], dude["tapped"]]]),
-			press_dude.bind(dude["player_id"]), dude["passed_out"])
+		_add_view(_dudes_box, dude, false, press_dude.bind(dude["player_id"]))
 		if dude["local"]:
 			for slot: int in dude["brew_ids"].size():
 				_add_button(_actions_box, "Brew: " + dude["brew_ids"][slot], press_brew.bind(slot), false)
@@ -246,6 +270,36 @@ func _redraw() -> void:
 	_add_button(_actions_box, "Bro Move", press_bro_move, not model["bro_ready"])
 	_add_button(_actions_box, "Ready", press_ready, false)
 	_message_label.text = message
+
+
+## Adds one combatant view to a container and remembers it in _views.
+## box: the container. entry: a Dude or enemy entry of the fight model. enemy: true for an enemy.
+## on_press: called when it is clicked (enabled only while the Dude is up or the enemy alive).
+func _add_view(box: Container, entry: Dictionary, enemy: bool, on_press: Callable) -> void:
+	# view: the new view.
+	var view: Button = CombatantView.new()
+	view.render(entry, enemy)
+	view.pressed.connect(on_press)
+	box.add_child(view)
+	_views[view.id] = view
+
+
+## Called by the event player before each event animates: logs it and shows its line.
+## event: the event. names: display names, from EventText.names_for().
+func _on_event(event: Dictionary, names: Dictionary) -> void:
+	animation_log.append(_describe(event))
+	# line: the event's player-facing line.
+	var line: String = EventText.line(event, names)
+	_log_event(line)
+	_show_message(line)
+
+
+## Adds a line to event_lines and shows the last LOG_LINES of them in the log.
+## line: one event line.
+func _log_event(line: String) -> void:
+	event_lines.append(line)
+	if _log_label != null:
+		_log_label.text = "\n".join(event_lines.slice(-LOG_LINES))
 
 
 ## Adds one button to a container.
@@ -291,12 +345,13 @@ func _local() -> Dictionary:
 	return {}
 
 
-## Adds the text of node and its children to lines, depth first, skipping widgets queued for deletion.
+## Adds the non-empty text of node and its children to lines, depth first, skipping widgets queued
+## for deletion.
 ## node: where to start. lines: receives the text.
 func _collect_text(node: Node, lines: Array[String]) -> void:
 	if node.is_queued_for_deletion():
 		return
-	if node is Label or node is Button:
+	if (node is Label or node is Button) and node.text != "":
 		lines.append(node.text)
 	for child: Node in node.get_children():
 		_collect_text(child, lines)
