@@ -24,6 +24,10 @@
 ## Passed Out Dudes skip Refresh (no Hype, no draw) and are not needed for Ready: they "skip turns"
 ## (GDD "Rules that change in co-op").
 ##
+## Statuses (task 009) are core/combat/statuses.gd; this file only calls it, at lines marked
+## "Task 009": Foggy at Refresh, Dude wear-off at End of turn, and, per enemy in the enemy phase,
+## the Grossed Out / Armless skip check before it acts and its wear-off right after its slot.
+##
 ## Pure: randomness only through core/rng/rng.gd (via piles.gd); no file, clock or network access.
 ## Functions ending in _in_place change the working copy they are given (see core/combat/bodies.gd).
 extends RefCounted
@@ -37,6 +41,7 @@ const Bodies := preload("res://core/combat/bodies.gd")
 const Piles := preload("res://core/combat/piles.gd")
 const Scaling := preload("res://core/combat/party_scaling.gd")
 const Intents := preload("res://core/ai/intents.gd")
+const Statuses := preload("res://core/combat/statuses.gd")
 
 ## Enemy tier (core/schema/enemy_def.gd TIERS) -> name of the constant with its solo starting Ick
 ## threshold (GDD "Statuses"). Changes only with the GDD's tiers.
@@ -85,6 +90,10 @@ static func check_start(ruleset: Dictionary, state: Dictionary, enemy_def_ids: A
 	var constants: Dictionary = ruleset["constants"]
 	if not [TYPE_INT, TYPE_FLOAT].has(typeof(constants.get("HP_SCALE_PER_EXTRA_PLAYER"))):
 		return "constant HP_SCALE_PER_EXTRA_PLAYER is missing or not a number"
+	# status_error: task 009, why a constant the damage order or statuses need is unusable, or "".
+	var status_error: String = Statuses.check_constants(constants)
+	if status_error != "":
+		return status_error
 	for def_id: Variant in enemy_def_ids:
 		if typeof(def_id) != TYPE_STRING or not ruleset["enemies"].has(def_id):
 			return "unknown enemy %s" % var_to_str(def_id)
@@ -168,7 +177,9 @@ static func _refresh_in_place(state: Dictionary, dude_index: int, events: Array)
 	if dude["ready"]:
 		dude["ready"] = false
 		events.append(Event.make("ready_changed", {"player_id": player_id, "ready": false}))
-	Piles.draw_in_place(state, dude_index, dude["draw_per_turn"], events)
+	# Task 009: Foggy draws fewer cards, then loses a stack (G1).
+	Piles.draw_in_place(state, dude_index, Statuses.refresh_draw_count(dude), events)
+	Statuses.after_refresh_in_place(state, dude_index, events)
 
 
 ## True when every Dude who is not Passed Out is ready, so the player phase can end.
@@ -189,15 +200,21 @@ static func end_player_phase_in_place(ruleset: Dictionary, state: Dictionary, ev
 	combat["phase"] = "end_of_turn"
 	for i: int in state["dudes"].size():
 		Piles.discard_hand_in_place(state, i, events)
+	# Task 009: Dudes' statuses wear off at End of turn (G1).
+	Statuses.end_of_turn_in_place(state, events)
 	combat["phase"] = "enemy"
 	for uid: String in Bodies.enemy_uids(state):
 		# enemy: the acting enemy, or {} if it died earlier this phase.
 		var enemy: Dictionary = Bodies.find_alive(state, uid)
 		if enemy.is_empty():
 			continue
-		# Task 011, G30: the enemy's Guard drops to 0 at the start of its own action.
+		# Task 011, G30: the enemy's Guard drops to 0 at the start of its own action, even one it skips.
 		Intents.begin_action_in_place(enemy, events)
-		_enemy_act_in_place(ruleset, state, enemy, events)
+		# Task 009: a Grossed Out or Armless enemy skips instead of acting (G6, G7).
+		if not Statuses.skip_action_in_place(ruleset, enemy, events):
+			_enemy_act_in_place(ruleset, state, enemy, events)
+		# Task 009: the enemy's statuses wear off right after its slot (G1).
+		Statuses.after_enemy_slot_in_place(state, uid, events)
 		if finish_if_decided_in_place(state, events):
 			return
 	start_turn_in_place(ruleset, state, events)
@@ -227,7 +244,8 @@ static func _enemy_act_in_place(ruleset: Dictionary, state: Dictionary, enemy: D
 		if not Bodies.find_alive(state, target_id).is_empty():
 			targets.append(target_id)
 	# context: who acts and who the effects land on, for the ops.
-	var context: Dictionary = {"actor_id": enemy["uid"], "targets": targets}
+	# Task 009: every enemy move's damage is attack damage (G3); it is not from a card.
+	var context: Dictionary = Ops.make_context(ruleset, enemy["uid"], targets, true, false)
 	for effect: Dictionary in move["effects"]:
 		if Bodies.is_decided(state):
 			return
