@@ -190,3 +190,149 @@ pre-boss row's size is drawn only from sizes the share can hold (about half 2 no
 The alternative (Slay the Spire's) applies the shares only to rows 2..6, which allows any row size
 but gives floors far more Brawls and Tailgates than the GDD table says.
 Answer: **accept** under Smoketsu's standing instruction to take the defaults (2026-10-10). Confirm or change.
+
+## Found while building Tom's card ops (task 013)
+
+Built as suggested so the slice can play; each is one data or one-line change if the people
+answer differently. Not yet answered.
+
+**G32. Friend Zone: which Grossed Out enemies become Exposed?** "At the start of each turn, apply 1
+Ick to all enemies. Grossed Out enemies also become Exposed for 2 turns." It can mean (a) any enemy
+that is Grossed Out while Friend Zone is active, whatever caused it, (b) only enemies Grossed Out by
+Friend Zone's own start-of-turn Ick, or (c) enemies already waiting to skip at the start of a turn.
+Suggested (as built in task 013): (a). Exposed 2 = 2 stacks, so it lasts through 2 of the players'
+turns. Reading (b) is a data change in the card (an `if` condition on the second effect).
+Answer:
+
+**G33. Chest Bump's 20 damage: one enemy or all?** "Deal 20 damage. Break 1 arm on every enemy."
+Ethan's Bro Move says "to all enemies" explicitly; Chest Bump does not. Suggested (as built): the 20
+damage goes to one enemy the player picks, and the arm break to every enemy. The `use_bro_move`
+request therefore carries an optional `target_id`; the client (task 018) must send it, or the
+request is refused as `bad_target`.
+Answer:
+
+**G34. Powers: duplicates and Passed Out Dudes.** The GDD says a Power "lasts the rest of the
+fight" but not whether two copies of the same Power both work, or whether a Passed Out Dude's
+Powers keep working (it says so only for Ethan's Nap, which "is not Passed Out"). Suggested (as
+built): every copy played works on its own (two Reply Guys apply 2 Ick twice), and a Passed Out
+Dude's Powers do not fire until he wakes.
+Answer:
+
+## Found while building the floor 1 enemies and Goblin King Chad (tasks 017 and 019)
+
+Each gap below was built as suggested so the slice can play. Each is also described in its task file (`docs/tasks/017-floor1-enemy-behaviors.md` and `docs/tasks/019-goblin-king-chad.md`) and in the header of the code file that runs it. Agent B asked for them to be listed here in the review of #50. None is answered yet.
+
+**G35. Goblin Pledge: when does it check "last goblin standing", and what counts as a goblin?**
+- Suggested (as built): it checks when it picks its intent (turn flow step 1), so the players see the call coming. The call replaces its hit that turn.
+- It can call again every time it is the last goblin; there is no once-per-fight limit.
+- "Goblin" means any enemy whose data has the tag `goblin`. Goblin King Chad and the Goblin Bouncer have that tag, so a Pledge never calls while either of them is alive.
+
+Answer:
+
+**G36. When do summoned enemies join and act?** This covers the Pledge's call, Shot-Caller's replacement and Chad's Rush.
+- Suggested (as built): each new enemy joins at the right end of the fight.
+- It has no intent until the next turn's intents, so it first acts the turn after it arrives.
+
+Answer:
+
+**G37. Keg Slime's split.** "At half HP, splits into two Foam Slimes with 10 HP each."
+- Suggested (as built): it checks for a split after the card or enemy action that did the damage, not in the middle of a multi-hit. It splits when it is above 0 HP and at or below half its max HP.
+- A hit that kills it outright leaves nothing.
+- The halves are fresh: no statuses, Ick or Guard carry over. They take the Keg Slime's position.
+- If it splits during the player phase, the halves pick intents at once and act that turn.
+
+Answer:
+
+**G38. Dorm Rats fleeing.** "They flee on turn 4 with what they stole."
+- Suggested (as built): fleeing is the rat's action in turn 4's enemy phase. Its intent is shown at turn 4's start.
+- A rat that is Grossed Out on turn 4 flees one turn later.
+- A fight where every remaining enemy fled ends as "won".
+- The haul is tracked per player. A Passed Out Dude still gets their Dolla Bills back when a rat is killed.
+
+Answer:
+
+**G39. Does stealing ignore Guard?** "Each bite steals 5 Dolla Bills."
+- Suggested (as built): yes. The steal happens whatever Guard the Dude has; only the bite's damage meets Guard.
+
+Answer:
+
+**G40. Boo-zer's Faded.** "Every other turn it is Faded and takes at most 1 damage per hit."
+- Suggested (as built): the cap (`FADED_MAX_DAMAGE`) applies to every hit, attack or not, thorns included. It applies after damage order step 5's rounding and before Guard.
+- Faded is a status with 1 stack, switched at the start of each turn, and it never wears off by itself.
+- Which turn the cycle starts on is left to the data (Agent B's task 010).
+
+Answer:
+
+**G41. Kobold RA's Noise Complaint.** "5 damage to a player who plays 5 or more cards in a turn."
+- Suggested (as built): it fires once per turn, right after the player's 5th card resolves.
+- It is not attack damage (G3), and Guard absorbs it.
+- Each Kobold complains once.
+- It still fires while the Kobold is waiting to skip an action (Grossed Out).
+
+Answer:
+
+**G42. Sewer Gator: when does its Swole arrive?** "Gains 2 Swole whenever it deals unblocked damage."
+- Suggested (as built): 2 Swole for each hit that got past Guard. It is added after the whole Death Roll, so the roll's own hits use the old Swole. Three unblocked hits give +6 for next time.
+
+Answer:
+
+**G43. Goblin Shot-Caller's turn.**
+- Suggested (as built): on its every-other turn it first replaces a dead Pledge if fewer than 2 are standing; otherwise it gives Swole.
+- "All goblins" includes the Shot-Caller itself.
+- Its escort Pledges stand to its right.
+
+Answer:
+
+**G44. Goblin King Chad's priorities.**
+- Suggested (as built), highest first:
+  1. a charge already in progress;
+  2. Keg Stand (when 2 Pledges are standing);
+  3. Rage Cage (below 50% HP);
+  4. Rush (every third turn);
+  5. Paddle Swat.
+- So below 50% HP, with 2 Pledges up, he still starts a Keg Stand.
+- Below 50% HP he never Rushes. This changes the GDD's "every third turn" for that phase.
+
+Answer:
+
+**G45. Keg Stand's timing and lifters.**
+- Suggested (as built): the charge starts when he picks his intent. The start turn and the next turn are the 2 charging turns, and the hit is the third turn's intent.
+- The lifters are the first 2 Pledges, left to right, when the charge starts. A Pledge summoned later doesn't lift, and its death doesn't count.
+- A lifter killed at any time from the start turn's intent until the hit removes 10 from the hit.
+
+Answer:
+
+**G46. "Kill both and he falls."**
+- Suggested (as built): the moment the second lifter dies, the charge ends and he gains Exposed 2.
+- He skips his next action, which is the current turn's charging or hitting action.
+- His next intent after that is chosen normally.
+
+Answer:
+
+**G47. Grossed Out on Keg Stand's hit turn.**
+- Suggested (as built): the skip wastes the hit, and the charge still ends.
+
+Answer:
+
+## Smaller interpretations made while building (tasks 013, 015, 017 and 021)
+
+Agent B listed these in the review of #50 as not yet recorded anywhere a person would see them. Each is built as described.
+
+**G48. Snap City's "now Armless".** An enemy that was already Armless before the hit still counts as "now Armless".
+Answer:
+
+**G49. When do thorns fire?** Thorns fire even when Guard absorbs the whole hit. They also fire after the hit Passes Out the Dude.
+Answer:
+
+**G50. The Bro Move.** The Bro Move is not a card play. It ignores Detention's limit and does not fill the Bro Meter.
+Answer:
+
+**G51. Stat floors.** Gear and Brew stat changes (`gain_stat`) stop at a floor for some stats:
+- `max_hp` never goes below 1. Lowering max HP below current HP lowers HP too.
+- `hype_per_turn`, `draw_per_turn` and `brew_slots` never go below 0.
+- Swole, Chill and Clout have no floor.
+
+Answer:
+
+**G52. Fight-only stats after a loss.** Stat changes that last for one fight (Protein Shake) are reverted when the fight ends, whether it was won or lost.
+Answer:

@@ -195,8 +195,9 @@ func test_dead_target_is_bad_target() -> void:
 	assert_eq(after["dudes"][0]["hype"], state["dudes"][0]["hype"] - 1, "only the first card's Hype is spent")
 
 
-## use_brew: empty_slot for an empty slot; a filled slot is unplayable until Brews exist.
-## use_bro_move: not_ready below BRO_METER_MAX; unplayable at max until task 013.
+## use_brew: empty_slot for an empty slot; a Brew the ruleset does not have is unplayable (task 021).
+## use_bro_move: not_ready below BRO_METER_MAX; at max it applies since task 013 (its tests are in
+## tests/core/ops/test_bro_meter.gd), but a bad target is bad_target.
 func test_brew_and_bro_move_rejects() -> void:
 	# rules: the test ruleset.
 	var rules: Dictionary = Fixtures.ruleset()
@@ -211,7 +212,8 @@ func test_brew_and_bro_move_rejects() -> void:
 	filled["dudes"][0]["brews"] = ["test_brew"]
 	filled["bro_meter"] = rules["constants"]["BRO_METER_MAX"]
 	_assert_rejected(rules, filled, Fixtures.request("use_brew", "p1", 0, {"slot": 0, "target_id": ""}), "unplayable")
-	_assert_rejected(rules, filled, Fixtures.request("use_bro_move", "p1", 0), "unplayable")
+	_assert_rejected(rules, filled, Fixtures.request("use_bro_move", "p1", 0, {"target_id": "e99"}), "bad_target")
+	assert_eq(Core.apply(rules, filled, Fixtures.request("use_bro_move", "p1", 0))["reject"], "", "at max it applies")
 
 
 ## apply() changes none of its arguments, whether the request is applied or rejected, and an

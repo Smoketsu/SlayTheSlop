@@ -10,11 +10,16 @@
 ##   "cards":     Dictionary, card id -> card definition (core/schema/card_def.gd), from data/cards/.
 ##   "enemies":   Dictionary, enemy id -> enemy definition (core/schema/enemy_def.gd), from data/enemies/.
 ##   "dudes":     Dictionary, Dude id -> Dude definition (core/schema/dude_def.gd), from data/dudes/.
+##   "gear":      Dictionary, Gear id -> Gear definition (core/schema/gear_def.gd), from data/gear/ (task 021).
+##   "brews":     Dictionary, Brew id -> Brew definition (core/schema/brew_def.gd), from data/brews/ (task 021).
 ## Definitions are the parsed JSON (through json_values.parse, so whole numbers are ints),
 ## unchanged. Keys are inserted in sorted file-path order, so the result is the same on every run.
 ##
-## Not checked yet: a Dude's starting_gear. No Gear definition format exists until task 021, so
-## data/gear/ is an unknown folder here and Gear ids cannot be resolved. Task 021 adds both.
+## Cross-references checked: each Dude's starter_deck and bro_move name cards, and its
+## starting_gear names Gear (task 021); the card_id of every add_card effect (task 015) in cards
+## (effects and trigger lists), enemy moves, Gear triggers and Brews names a card. Other effect ops
+## are not checked here: a card or Brew with an op the core lacks is refused when used
+## (unplayable), and Gear with one is skipped when it fires.
 ##
 ## Pure: works on text the caller already read. No file, clock, network or random access.
 extends RefCounted
@@ -23,6 +28,8 @@ const JsonValues := preload("res://core/schema/json_values.gd")
 const CardDef := preload("res://core/schema/card_def.gd")
 const EnemyDef := preload("res://core/schema/enemy_def.gd")
 const DudeDef := preload("res://core/schema/dude_def.gd")
+const GearDef := preload("res://core/schema/gear_def.gd")
+const BrewDef := preload("res://core/schema/brew_def.gd")
 
 ## Repo-relative path of the constants file. Fixed by the repository layout; changes only with it.
 const CONSTANTS_PATH := "data/constants.json"
@@ -39,6 +46,8 @@ const KINDS := {
 	"data/cards/": {"key": "cards", "label": "card", "schema": CardDef},
 	"data/enemies/": {"key": "enemies", "label": "enemy", "schema": EnemyDef},
 	"data/dudes/": {"key": "dudes", "label": "dude", "schema": DudeDef},
+	"data/gear/": {"key": "gear", "label": "gear", "schema": GearDef},
+	"data/brews/": {"key": "brews", "label": "brew", "schema": BrewDef},
 }
 
 ## Value types a constant may have: whole numbers, multipliers and switches.
@@ -57,7 +66,7 @@ static func build(files: Dictionary) -> Dictionary:
 	# errors: every problem found, returned at the end.
 	var errors: Array[String] = []
 	# ruleset: the result being filled; returned only when no error was found.
-	var ruleset: Dictionary = {"constants": {}, "cards": {}, "enemies": {}, "dudes": {}}
+	var ruleset: Dictionary = {"constants": {}, "cards": {}, "enemies": {}, "dudes": {}, "gear": {}, "brews": {}}
 	# id_paths: ruleset key -> {definition id -> path of the first file that used it}, to report duplicates.
 	var id_paths: Dictionary = {}
 	for kind: Dictionary in KINDS.values():
@@ -95,6 +104,8 @@ static func build(files: Dictionary) -> Dictionary:
 			continue
 		_add_definition(files[path], path, KINDS[folder], ruleset, id_paths, errors)
 	_check_references(ruleset, id_paths, errors)
+	# Task 015: add_card effects must name a card.
+	_check_added_cards(ruleset, id_paths, errors)
 	if not errors.is_empty():
 		ruleset = {}
 	freeze(ruleset)
@@ -199,7 +210,7 @@ static func _add_definition(text: String, path: String, kind: Dictionary, rulese
 
 
 ## Checks that ids named inside definitions exist: each Dude's starter_deck entries and bro_move
-## must be cards in the ruleset. starting_gear is not checked until a Gear format exists (task 021).
+## must be cards in the ruleset, and its starting_gear entries Gear in the ruleset (task 021).
 ## ruleset: the ruleset built so far (only valid definitions are in it).
 ## id_paths: ruleset key -> {id -> path}, used to name the Dude's file in messages.
 ## errors: the list problems are appended to.
@@ -220,3 +231,60 @@ static func _check_references(ruleset: Dictionary, id_paths: Dictionary, errors:
 					path, i, dude["starter_deck"][i]])
 		if not cards.has(dude["bro_move"]):
 			errors.append("%s: dude.bro_move: card \"%s\" is not a valid card in data/cards/" % [path, dude["bro_move"]])
+		for i: int in dude["starting_gear"].size():
+			if not ruleset["gear"].has(dude["starting_gear"][i]):
+				errors.append("%s: dude.starting_gear[%d]: gear \"%s\" is not a valid Gear in data/gear/" % [
+					path, i, dude["starting_gear"][i]])
+
+
+## Task 015: checks that every add_card effect names a card in the ruleset. Looks at each card's
+## effects and trigger lists (card_def.gd TRIGGER_FIELDS), each enemy move's effects and (task 021)
+## each Gear trigger's and Brew's effects. Effects that
+## are not Dictionaries or have no String card_id are left to Ops.check(), which reports them.
+## ruleset: the ruleset built so far (only valid definitions are in it).
+## id_paths: ruleset key -> {id -> path}, used to name the file in messages.
+## errors: the list problems are appended to.
+static func _check_added_cards(ruleset: Dictionary, id_paths: Dictionary, errors: Array[String]) -> void:
+	# lists: [path, label, effects list] for every effects list to scan, in sorted id order.
+	var lists: Array = []
+	# card_ids: card ids, sorted for stable messages.
+	var card_ids: Array = ruleset["cards"].keys()
+	card_ids.sort()
+	for card_id: String in card_ids:
+		# card: the card definition.
+		var card: Dictionary = ruleset["cards"][card_id]
+		lists.append([id_paths["cards"][card_id], "card.effects", card["effects"]])
+		for field: String in CardDef.TRIGGER_FIELDS:
+			if card.has(field):
+				lists.append([id_paths["cards"][card_id], "card." + field, card[field]])
+	# enemy_ids: enemy ids, sorted for stable messages.
+	var enemy_ids: Array = ruleset["enemies"].keys()
+	enemy_ids.sort()
+	for enemy_id: String in enemy_ids:
+		for move: Dictionary in ruleset["enemies"][enemy_id]["moves"]:
+			lists.append([id_paths["enemies"][enemy_id], "enemy.moves.%s.effects" % move["id"], move["effects"]])
+	# gear_ids: task 021, Gear ids, sorted for stable messages; each trigger's effects are scanned.
+	var gear_ids: Array = ruleset["gear"].keys()
+	gear_ids.sort()
+	for gear_id: String in gear_ids:
+		# triggers: the Gear's trigger list.
+		var triggers: Array = ruleset["gear"][gear_id]["triggers"]
+		for j: int in triggers.size():
+			lists.append([id_paths["gear"][gear_id], "gear.triggers[%d].effects" % j, triggers[j]["effects"]])
+	# brew_ids: task 021, Brew ids, sorted for stable messages; effects and solo effects are scanned.
+	var brew_ids: Array = ruleset["brews"].keys()
+	brew_ids.sort()
+	for brew_id: String in brew_ids:
+		# brew: the Brew definition.
+		var brew: Dictionary = ruleset["brews"][brew_id]
+		lists.append([id_paths["brews"][brew_id], "brew.effects", brew["effects"]])
+		if brew.has("solo"):
+			lists.append([id_paths["brews"][brew_id], "brew.solo.effects", brew["solo"]["effects"]])
+	for entry: Array in lists:
+		for i: int in entry[2].size():
+			# effect: one effect of the list.
+			var effect: Variant = entry[2][i]
+			if typeof(effect) == TYPE_DICTIONARY and effect.get("op") == "add_card" \
+					and typeof(effect.get("card_id")) == TYPE_STRING and not ruleset["cards"].has(effect["card_id"]):
+				errors.append("%s: %s[%d].card_id: card \"%s\" is not a valid card in data/cards/" % [
+					entry[0], entry[1], i, effect["card_id"]])

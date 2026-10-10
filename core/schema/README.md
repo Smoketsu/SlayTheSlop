@@ -21,6 +21,8 @@ covers the rules that span files.
 | `card_def.gd` | A card definition file in `data/cards/` | "Card definition fields" |
 | `enemy_def.gd` | An enemy definition file in `data/enemies/` | "Enemy fields" (fixed values) |
 | `dude_def.gd` | A Dude definition file in `data/dudes/` | The Dude attribute tables (no field table; added) |
+| `gear_def.gd` | A Gear definition file in `data/gear/`: stats, triggers, modifiers | "Items" Gear tables (no field table; added, task 021) |
+| `brew_def.gd` | A Brew definition file in `data/brews/`, with an optional solo variant | "Items" Brews table (no field table; added, task 021) |
 | `shape.gd` | The type checker the files above use | — |
 | `json_values.gd` | JSON parsing that turns whole numbers back into ints | — |
 
@@ -28,7 +30,8 @@ Each state or definition file has a `SPEC` (field → type), a `blank()` or noth
 `check(value) -> Array[String]` that returns every problem found (empty means valid). Checks are
 strict: unknown fields are errors, and an `int` field holding `3.0` is an error.
 
-Gear, Brew and Side Quest definition formats are not here yet (tasks 021 and 025).
+The Side Quest definition format is not here yet (task 025). Which effect operations, Gear trigger
+points and targets exist is the core lane's catalogue, `core/ops/README.md`.
 
 ## The core's entry point
 
@@ -109,11 +112,28 @@ Used as keys in `statuses`, as `effects[].status` in `apply_status`, and in `sta
 | `foggy` | Foggy | `statuses` (Dudes) |
 | `broken_arm` | Broken Arm | `enemy.broken_arms` (not `statuses`), capped at `arm_count` |
 | `ick` | Ick | `enemy.ick` (not `statuses`) |
+| `faded` | Faded (Boo-zer, GDD "Floor 1") | `statuses` (enemies), always 1 stack. Set and cleared only by an enemy's `periodic_statuses` at the start of each turn (task 017), never by `apply_status`, and it does not wear off. A hit on a Faded enemy deals at most `FADED_MAX_DAMAGE` |
 
-Grossed Out is not a status: a pending skip is counted in `enemy.grossed_out_skips` (task 009), and
+A fall (task 019, Goblin King Chad's Keg Stand) is not a status either: its pending skip is counted
+in `enemy.fallen_skips`. Grossed Out is not a status: a pending skip is counted in `enemy.grossed_out_skips` (task 009), and
 Armless is worked out from `broken_arms == arm_count > 0` and `armless_used`.
 
 Bugs (Nate) and later statuses are added when they are built.
+
+## Powers and thorns (task 013)
+
+- A played card of type `power` leaves the four piles and its `card_uid` goes into
+  `dude.powers` (`card_moved` with `to: "powers"`). It is active for the rest of the fight; the
+  next fight's start empties the list, because every fight rebuilds the piles from `deck`.
+  `dude_state.check()` treats `powers` as a fifth place a card can be: a uid may be there or in
+  one pile, never both.
+- What an active Power does is its definition's optional `power_triggers` list
+  (`card_def.gd` `TRIGGER_SPEC`, `POWER_WHENS`, `POWER_TARGETS`); the core runs it
+  (`core/combat/powers.gd`, `core/ops/README.md`).
+- `dude.thorns` (Chrome Dome) is damage dealt back to each enemy that hits the Dude, per hit
+  (G9). It resets to 0 at the Dude's Refresh. Changes emit `thorns_changed`.
+- `use_bro_move` may carry an optional `target_id` (`request.gd` `OPTIONAL`), for a Bro Move whose
+  card targets one enemy (Chest Bump). The core announces it with `bro_move_used`.
 
 ## Serialization
 

@@ -45,8 +45,12 @@ const SCRIPT: Array = [
 	["ready", "", "", 18, "wrong_phase"],
 ]
 
-## Snapshot.state_hash of the final state, recorded on Godot 4.7.2-stable.
-const FINAL_HASH: String = "3dc80199b5320e6d06b51c9c226a5c9ce0057ceb1f2dec660aea50c0bab87fac"
+## Snapshot.state_hash of the final state, recorded on Godot 4.7.2-stable. Task 013 re-recorded it
+## twice: for dude_state.powers / thorns and SCHEMA_VERSION 4, then because the solo Bro Meter now
+## fills on every 3rd card in a turn (bro_meter differs; with that gain switched off the hash was
+## unchanged). The fight is still won in turn 4.
+## Re-recorded again by task 021 (SCHEMA_VERSION 5, two new combat fields; same fight).
+const FINAL_HASH: String = "f6bd6fbb25cf7b3ff7d3d3c55486f8132d93b64ee646c448dd65dbaecb4bda06"
 
 
 ## Plays the whole fight: start_fight on SEED, then every SCRIPT request, checking each step.

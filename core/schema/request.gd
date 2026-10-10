@@ -4,7 +4,8 @@
 ## In solo play the client builds these and calls apply() directly; in co-op the host
 ## receives the same Dictionaries over the network. There is one code path.
 ##
-## Every request has the COMMON fields plus the fields of its type in TYPES.
+## Every request has the COMMON fields plus the fields of its type in TYPES, and may have the
+## fields of its type in OPTIONAL (task 013).
 ## join_lobby, ping_card and emote are not here: they never reach the rules core.
 ##
 ## Who may change this file: a contract PR (see CLAUDE.md "Shared contracts").
@@ -60,6 +61,16 @@ const TYPES := {
 	},
 }
 
+## [added, task 013] Request type -> fields it MAY carry (in addition to COMMON and TYPES), with
+## their types. A request without them is still well-formed, so older senders keep working.
+const OPTIONAL := {
+	"use_bro_move": {
+		# The chosen enemy uid when the Dude's Bro Move card has target "enemy" (Chest Bump), the
+		# player's own id or "" for "self", "" otherwise. Missing means "".
+		"target_id": TYPE_STRING,
+	},
+}
+
 ## Reason codes the core returns when it refuses a request. Short, snake_case, stable:
 ## the client maps them to messages. no_hype and bad_target are from the GDD; the rest are
 ## [added]. Add new codes here in a contract PR.
@@ -95,4 +106,4 @@ static func check(request: Variant, path: String = "request") -> Array[String]:
 	# spec: COMMON merged with this type's own fields.
 	var spec: Dictionary = COMMON.duplicate()
 	spec.merge(TYPES[kind])
-	return Shape.check(request, spec, path)
+	return Shape.check(request, spec, path, OPTIONAL.get(kind, {}))

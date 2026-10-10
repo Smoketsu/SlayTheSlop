@@ -48,12 +48,22 @@ static func check(effect: Dictionary, path: String) -> Array[String]:
 ## context: {"actor_id": who gains it, "targets": unused here, "constants": ruleset.constants,
 ##           "from_card": true when a card's effect, false or missing otherwise}. events: appended to.
 static func run(state: Dictionary, effect: Dictionary, context: Dictionary, events: Array) -> void:
+	gain_in_place(state, effect["amount"], context, events)
+
+
+## Task 013: the guard rule for any base amount, shared with guard_per_broken_arm: the actor gains
+## base + Chill (Dudes) Guard, reduced by Hungover for Guard from cards. Emits guard_changed when
+## the Guard actually changes. Does nothing if the actor is gone. An enemy's Guard gain is a buff
+## (G10), which Reply Guy reacts to through the guard_changed event (core/combat/powers.gd).
+## state: the working copy. base: Guard before Chill, 0 or more.
+## context: as for run(). events: appended to.
+static func gain_in_place(state: Dictionary, base: int, context: Dictionary, events: Array) -> void:
 	# body: the actor, inside state.
 	var body: Dictionary = Bodies.find_alive(state, context["actor_id"])
 	if body.is_empty():
 		return
 	# gain: Guard gained; Chill exists on Dudes only, so enemies add 0.
-	var gain: int = maxi(0, effect["amount"] + body.get("chill", 0))
+	var gain: int = maxi(0, base + body.get("chill", 0))
 	if context.get("from_card", false) and Statuses.stacks(body, "hungover") > 0:
 		gain = Ratio.floor_times(gain, Ratio.from_constant(context["constants"]["HUNGOVER_MULT"]))
 	if gain == 0:

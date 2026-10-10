@@ -4,7 +4,8 @@
 ## request; that task may move or replace it. Each Dude, in seat order "p1".."p4":
 ##   hp = max_hp = the definition's max_hp; hype_per_turn = BASE_HYPE; draw_per_turn = BASE_DRAW;
 ##   deck = the starter deck as fresh card_uids from next_uid ("c1", "c2" ...), in definition order;
-##   gear = the definition's starting_gear (ids only: Gear effects are task 021);
+##   gear = the definition's starting_gear, each gained with core/combat/gear_triggers.gd gain_in_place, so
+##   its stats apply (task 021);
 ##   brew_slots = 0 and dolla_bills = 0, because neither number is a constant yet (G22 and G20 in
 ##   docs/proposals/solo-slice-rule-gaps.md are unanswered). Everything else is DudeState.blank().
 ## The random streams come from Rng.with_new_streams.
@@ -15,6 +16,7 @@ extends RefCounted
 const RunState := preload("res://core/schema/run_state.gd")
 const DudeState := preload("res://core/schema/dude_state.gd")
 const Rng := preload("res://core/rng/rng.gd")
+const GearTriggers := preload("res://core/combat/gear_triggers.gd")
 
 ## Most players in a run (GDD "Online multiplayer": 1-4 players). Fixed by the GDD, not tuning.
 const MAX_PARTY_SIZE: int = 4
@@ -58,7 +60,8 @@ static func build_run_state(ruleset: Dictionary, run_seed: int, dude_ids: Array)
 		dude["hype_per_turn"] = ruleset["constants"]["BASE_HYPE"]
 		dude["draw_per_turn"] = ruleset["constants"]["BASE_DRAW"]
 		for gear_id: String in definition["starting_gear"]:
-			dude["gear"].append(gear_id)
+			# Task 021: the Gear's stats apply; the events are dropped (building a run is not a request).
+			GearTriggers.gain_in_place(ruleset, dude, gear_id, [])
 		for card_id: String in definition["starter_deck"]:
 			if not ruleset["cards"].has(card_id):
 				return {"state": {}, "error": "Dude %s: unknown starter card %s" % [dude_id, card_id]}

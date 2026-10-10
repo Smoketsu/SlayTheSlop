@@ -136,6 +136,75 @@ func test_grossed_out_skips_is_checked() -> void:
 	assert_eq(EnemyState.check(enemy).size(), 1, "missing")
 
 
+## Task 013: powers and thorns start empty and 0; a Power uid must be a card and in no pile; thorns
+## may not be negative; both are required.
+func test_powers_and_thorns_are_checked() -> void:
+	# state: the sample, changed below.
+	var state: Dictionary = _sample_state()
+	# dude: its Dude.
+	var dude: Dictionary = state["dudes"][0]
+	assert_eq([dude["powers"], dude["thorns"]], [[], 0], "blank values")
+	dude["cards"]["c4"] = {"def_id": "tom_reply_guy", "upgraded": false}
+	dude["powers"] = ["c4"]
+	dude["thorns"] = 3
+	assert_no_errors(RunState.check(state), "an active Power and 3 thorns")
+	dude["powers"] = ["c4", "c99"]
+	assert_eq(RunState.check(state).size(), 1, "Power uid not in cards")
+	dude["powers"] = ["c2"]
+	assert_eq(RunState.check(state).size(), 1, "Power uid also in the hand")
+	dude["powers"] = ["c4"]
+	dude["thorns"] = -1
+	assert_eq(RunState.check(state).size(), 1, "negative thorns")
+	dude["thorns"] = 0
+	dude.erase("powers")
+	assert_eq(RunState.check(state).size(), 1, "powers is required")
+
+
+## Task 013: power_triggers on a Power card are checked: when, target, subject only where there is
+## one, effects with an op, and only on type "power".
+func test_power_triggers_are_checked() -> void:
+	# reply_guy: Reply Guy from the GDD, as task 013's ops express it.
+	var reply_guy: Dictionary = {"id": "tom_reply_guy", "name": "Reply Guy", "owner": "tom", "type": "power",
+		"rarity": "uncommon", "cost": 1, "target": "none", "effects": [], "keywords": [], "crunch": null,
+		"upgrade": {}, "power_triggers": [{"when": "enemy_buffed", "target": "subject",
+			"effects": [{"op": "apply_status", "status": "ick", "stacks": 2}]}]}
+	assert_no_errors(CardDef.check(reply_guy), "Reply Guy")
+	# bad: copies of reply_guy, each broken one way.
+	var bad: Dictionary = reply_guy.duplicate(true)
+	bad["type"] = "skill"
+	assert_eq(CardDef.check(bad).size(), 1, "not a Power")
+	bad = reply_guy.duplicate(true)
+	bad["power_triggers"][0]["when"] = "sometimes"
+	assert_eq(CardDef.check(bad).size(), 1, "unknown when")
+	bad = reply_guy.duplicate(true)
+	bad["power_triggers"][0]["target"] = "everyone"
+	assert_eq(CardDef.check(bad).size(), 1, "unknown target")
+	bad = reply_guy.duplicate(true)
+	bad["power_triggers"][0]["when"] = "turn_start"
+	assert_eq(CardDef.check(bad).size(), 1, "turn_start has no subject")
+	bad = reply_guy.duplicate(true)
+	bad["power_triggers"][0]["effects"] = [{"amount": 2}]
+	assert_eq(CardDef.check(bad).size(), 1, "effect without op")
+	bad = reply_guy.duplicate(true)
+	bad["power_triggers"][0].erase("target")
+	assert_eq(CardDef.check(bad).size(), 1, "missing target")
+	bad = reply_guy.duplicate(true)
+	bad["power_triggers"] = [{"when": "turn_start", "target": "all_enemies", "effects": [], "extra": 1}]
+	assert_eq(CardDef.check(bad).size(), 1, "unknown trigger field")
+
+
+## Task 013: use_bro_move may carry a String target_id, and the new events are well-formed.
+func test_bro_move_request_and_task_013_events() -> void:
+	assert_no_errors(Request.check({"type": "use_bro_move", "player_id": "p1", "seq": 4, "target_id": "e3"}), "with target")
+	assert_eq(Request.check({"type": "use_bro_move", "player_id": "p1", "seq": 4, "target_id": 3}).size(), 1, "int target")
+	assert_eq(Request.check({"type": "set_ready", "player_id": "p1", "seq": 4, "ready": true, "target_id": ""}).size(), 1,
+		"target_id is optional only on use_bro_move")
+	assert_no_errors(Event.check(Event.make("bro_move_used", {"player_id": "p1", "def_id": "tom_chest_bump", "target_id": "e3"})), "bro_move_used")
+	assert_no_errors(Event.check(Event.make("thorns_changed", {"target_id": "p1", "delta": 3, "thorns": 3})), "thorns_changed")
+	assert_no_errors(Event.check(Event.make("power_triggered", {"player_id": "p1", "card_uid": "c4",
+		"when": "turn_start", "subject_id": ""})), "power_triggered")
+
+
 ## Requests: a valid play_card passes; unknown types, missing fields and float seqs fail.
 func test_request_shapes() -> void:
 	# good: a well-formed play_card.
@@ -214,6 +283,30 @@ func test_bad_card_definitions_fail() -> void:
 	assert_false(CardDef.check(bad).is_empty(), "id without owner prefix")
 
 
+## Task 015: the Junk fields. Rarity "special" (G17), the trigger lists, play_limit_in_hand, lasts
+## and removable are accepted when well formed, and each malformed value is caught.
+func test_junk_card_fields() -> void:
+	# junk: a Detention-like card using every new field once.
+	var junk: Dictionary = {"id": "junk_detention", "name": "Detention", "owner": "junk", "type": "junk",
+		"rarity": "special", "cost": -1, "target": "none", "effects": [], "keywords": [], "crunch": null,
+		"upgrade": {}, "on_draw": [{"op": "lose_hype", "amount": 1}],
+		"on_end_of_turn_in_hand": [{"op": "self_damage", "amount": 2}], "play_limit_in_hand": 4,
+		"lasts": "fight", "removable": false}
+	assert_no_errors(CardDef.check(junk), "junk card with every new field")
+	assert_true(CardDef.RARITIES.has("special"), "G17 rarity")
+	# cases: [field, bad value, label]; each makes the card invalid on its own.
+	var cases: Array = [["rarity", "junky", "unknown rarity"], ["lasts", "forever", "unknown lasts"],
+		["lasts", 1, "lasts not text"], ["play_limit_in_hand", -1, "negative limit"],
+		["play_limit_in_hand", 4.0, "float limit"], ["removable", "no", "removable not bool"],
+		["on_draw", [{"amount": 1}], "on_draw entry without op"], ["on_draw", {"op": "lose_hype"}, "on_draw not a list"],
+		["on_end_of_turn_in_hand", [{"op": 3}], "end-of-turn op not text"]]
+	for case: Array in cases:
+		# bad: the card with one field broken.
+		var bad: Dictionary = junk.duplicate(true)
+		bad[case[0]] = case[1]
+		assert_false(CardDef.check(bad).is_empty(), case[2])
+
+
 ## A minimal enemy and Dude definition are valid; a duplicate move id is caught.
 func test_enemy_and_dude_definitions() -> void:
 	# pledge: Goblin Pledge from the GDD floor 1 table, moves only.
@@ -282,3 +375,138 @@ func test_json_values_normalize() -> void:
 	var broken: Dictionary = JsonValues.parse('{"a": }')
 	assert_false(broken["ok"], "invalid JSON must fail")
 	assert_true(broken["error"].begins_with("line "), "error should name a line: " + broken["error"])
+
+
+## Returns a valid enemy definition that uses every behavior field task 017 added, for the tests below.
+func _behavior_enemy() -> Dictionary:
+	return {"id": "goblin_shot_caller", "name": "Goblin Shot-Caller", "floor": 1, "tier": "rival",
+		"max_hp": 60, "arm_count": 2, "tags": ["goblin"], "arrives_with": ["goblin_pledge", "goblin_pledge"],
+		"move_rules": [{"move_id": "replace", "when": [{"if": "turn_cycle", "every": 2, "first_turn": 2},
+			{"if": "count_below", "def_id": "goblin_pledge", "count": 2}]},
+			{"move_id": "pump", "when": [{"if": "last_of_tag", "tag": "goblin"}, {"if": "turn_at_least", "turn": 4},
+				{"if": "count_at_least", "def_id": "goblin_pledge", "count": 1}, {"if": "hp_below_percent", "percent": 50}]}],
+		"triggers": [{"id": "noise_complaint", "on": "cards_played", "cards": 5, "repeat": false,
+			"effects": [{"op": "damage", "amount": 5}]},
+			{"id": "momentum", "on": "unblocked_damage", "effects": [{"op": "gain_swole", "amount": 2}]}],
+		"split": {"into": "foam_slime", "count": 2, "at_hp_percent": 50},
+		"periodic_statuses": [{"status": "faded", "every": 2, "first_turn": 1}],
+		"drops_brews": 1,
+		"moves": [{"id": "hit", "weight": 1, "intent": "attack", "effects": [{"op": "damage", "amount": 10}]},
+			{"id": "replace", "weight": 0, "intent": "summon", "effects": [{"op": "summon_enemy", "enemy_id": "goblin_pledge", "count": 1}]},
+			{"id": "pump", "weight": 0, "intent": "buff", "effects": [{"op": "gain_swole", "amount": 2, "tag": "goblin"}]}]}
+
+
+## Task 017's optional enemy fields: a definition using all of them is valid, and each kind of
+## mistake in them is reported exactly once.
+func test_enemy_behavior_fields() -> void:
+	assert_no_errors(EnemyDef.check(_behavior_enemy()), "every behavior field")
+	# cases: label -> a function that breaks a copy of the valid definition one way.
+	var cases: Dictionary = {
+		"duplicate tag": func(e: Dictionary) -> void: e["tags"] = ["goblin", "goblin"],
+		"arrives_with not a list": func(e: Dictionary) -> void: e["arrives_with"] = "goblin_pledge",
+		"rule names an unknown move": func(e: Dictionary) -> void: e["move_rules"][0]["move_id"] = "kick",
+		"rule without conditions": func(e: Dictionary) -> void: e["move_rules"][0]["when"] = [],
+		"unknown condition": func(e: Dictionary) -> void: e["move_rules"][0]["when"][0] = {"if": "moon_is_full"},
+		"condition missing a field": func(e: Dictionary) -> void: e["move_rules"][0]["when"][0].erase("every"),
+		"condition with an extra field": func(e: Dictionary) -> void: e["move_rules"][0]["when"][1]["tag"] = "goblin",
+		"condition turn 0": func(e: Dictionary) -> void: e["move_rules"][1]["when"][1]["turn"] = 0,
+		"percent above 100": func(e: Dictionary) -> void: e["move_rules"][1]["when"][3]["percent"] = 101,
+		"unknown trigger kind": func(e: Dictionary) -> void: e["triggers"][0]["on"] = "card_drawn",
+		"trigger missing repeat": func(e: Dictionary) -> void: e["triggers"][0].erase("repeat"),
+		"duplicate trigger id": func(e: Dictionary) -> void: e["triggers"][1]["id"] = "noise_complaint",
+		"trigger cards 0": func(e: Dictionary) -> void: e["triggers"][0]["cards"] = 0,
+		"split at 100 percent": func(e: Dictionary) -> void: e["split"]["at_hp_percent"] = 100,
+		"split count 0": func(e: Dictionary) -> void: e["split"]["count"] = 0,
+		"split missing into": func(e: Dictionary) -> void: e["split"].erase("into"),
+		"periodic unknown status": func(e: Dictionary) -> void: e["periodic_statuses"][0]["status"] = "exposed",
+		"periodic every 0": func(e: Dictionary) -> void: e["periodic_statuses"][0]["every"] = 0,
+		"negative drops_brews": func(e: Dictionary) -> void: e["drops_brews"] = -1,
+		"float drops_brews": func(e: Dictionary) -> void: e["drops_brews"] = 1.0,
+	}
+	for label: String in cases.keys():
+		# bad: a fresh copy, broken by this case.
+		var bad: Dictionary = _behavior_enemy()
+		cases[label].call(bad)
+		assert_eq(EnemyDef.check(bad).size(), 1, label + ": " + str(EnemyDef.check(bad)))
+
+
+## Task 017's state fields: enemy haul and drops_brews, combat brews_dropped. Blank values are valid,
+## filled values are valid, and bad ones are reported.
+func test_haul_and_brew_fields() -> void:
+	# enemy: a blank enemy state, changed below.
+	var enemy: Dictionary = EnemyState.blank("e1", "dorm_rat")
+	assert_eq(enemy["haul"], {}, "blank haul")
+	assert_eq(enemy["drops_brews"], 0, "blank drops_brews")
+	enemy["haul"] = {"p1": 5, "p2": 10}
+	enemy["drops_brews"] = 1
+	assert_no_errors(EnemyState.check(enemy), "filled")
+	enemy["haul"] = {"p1": 0}
+	assert_eq(EnemyState.check(enemy).size(), 1, "zero haul entry")
+	enemy["haul"] = {"p1": 5.0}
+	assert_eq(EnemyState.check(enemy).size(), 1, "float haul entry")
+	enemy["haul"] = {}
+	enemy["drops_brews"] = -1
+	assert_eq(EnemyState.check(enemy).size(), 1, "negative drops_brews")
+	# combat: a blank fight, changed below.
+	var combat: Dictionary = CombatState.blank()
+	assert_eq(combat["brews_dropped"], 0, "blank brews_dropped")
+	combat["brews_dropped"] = -1
+	assert_eq(CombatState.check(combat).size(), 1, "negative brews_dropped")
+	combat.erase("brews_dropped")
+	assert_eq(CombatState.check(combat).size(), 1, "brews_dropped is required")
+
+
+## Task 017's event types have the documented shapes.
+func test_task_017_events() -> void:
+	# good: one valid event of each new type.
+	var good: Array = [
+		Event.make("enemy_fled", {"enemy_uid": "e3"}),
+		Event.make("enemy_split", {"enemy_uid": "e3"}),
+		Event.make("dolla_bills_stolen", {"enemy_uid": "e3", "player_id": "p1", "amount": 5}),
+		Event.make("dolla_bills_returned", {"enemy_uid": "e3", "player_id": "p1", "amount": 5}),
+		Event.make("brew_dropped", {"enemy_uid": "e3", "count": 1}),
+		Event.make("enemy_triggered", {"enemy_uid": "e3", "trigger_id": "noise_complaint", "target_id": "p1"}),
+	]
+	for event: Dictionary in good:
+		assert_no_errors(Event.check(event), event["type"])
+	assert_eq(Event.check(Event.make("dolla_bills_stolen", {"enemy_uid": "e3", "player_id": "p1"})).size(), 1, "missing amount")
+
+
+## Task 019's charge: a definition with a valid charge passes and each mistake is reported once;
+## the state's charge and fallen_skips start at null and 0 and are checked; the new events are valid.
+func test_charge_fields() -> void:
+	# chad: a Chad-like definition with a Keg Stand charge.
+	var chad: Dictionary = {"id": "goblin_king_chad", "name": "Goblin King Chad", "floor": 1, "tier": "boss",
+		"max_hp": 140, "arm_count": 2,
+		"charge": {"move_id": "keg_stand", "turns": 2, "release_move_id": "keg_stand_slam",
+			"helper_def_id": "goblin_pledge", "helpers": 2, "fall_exposed": 2},
+		"moves": [{"id": "keg_stand", "weight": 0, "intent": "charge", "target": "none", "effects": []},
+			{"id": "keg_stand_slam", "weight": 0, "intent": "attack", "effects": [{"op": "charged_hit", "amount": 30, "cut_per_helper_lost": 10}]},
+			{"id": "paddle_swat", "weight": 1, "intent": "attack", "effects": [{"op": "damage", "amount": 12}]}]}
+	assert_no_errors(EnemyDef.check(chad), "charge")
+	# cases: label -> a function that breaks a copy one way.
+	var cases: Dictionary = {
+		"unknown charge move": func(e: Dictionary) -> void: e["charge"]["move_id"] = "lift",
+		"unknown release move": func(e: Dictionary) -> void: e["charge"]["release_move_id"] = "slam",
+		"turns 0": func(e: Dictionary) -> void: e["charge"]["turns"] = 0,
+		"negative fall_exposed": func(e: Dictionary) -> void: e["charge"]["fall_exposed"] = -1,
+		"missing helpers": func(e: Dictionary) -> void: e["charge"].erase("helpers"),
+	}
+	for label: String in cases.keys():
+		# bad: a fresh copy, broken by this case.
+		var bad: Dictionary = chad.duplicate(true)
+		cases[label].call(bad)
+		assert_eq(EnemyDef.check(bad).size(), 1, label)
+	# enemy: a blank enemy state, changed below.
+	var enemy: Dictionary = EnemyState.blank("e1", "goblin_king_chad")
+	assert_eq([enemy["charge"], enemy["fallen_skips"]], [null, 0])
+	enemy["charge"] = {"turns_charged": 1, "helper_uids": ["e2", "e3"], "fall_exposed": 2}
+	enemy["fallen_skips"] = 1
+	assert_no_errors(EnemyState.check(enemy), "charging")
+	enemy["charge"] = {"turns_charged": 1}
+	assert_eq(EnemyState.check(enemy).size(), 2, "charge missing two fields")
+	enemy["charge"] = null
+	enemy["fallen_skips"] = -1
+	assert_eq(EnemyState.check(enemy).size(), 1, "negative fallen_skips")
+	assert_no_errors(Event.check(Event.make("charge_started", {"enemy_uid": "e1", "helper_uids": ["e2", "e3"]})), "charge_started")
+	assert_no_errors(Event.check(Event.make("enemy_fell", {"enemy_uid": "e1"})), "enemy_fell")

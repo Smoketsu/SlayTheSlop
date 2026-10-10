@@ -217,9 +217,10 @@ func test_play_card() -> void:
 	assert_eq(result["state"]["combat"]["enemies"][0]["hp"], 11)
 	assert_eq(result["state"]["combat"]["enemies"][0]["guard"], 0, "guard op does not land on the target")
 	assert_eq(result["state"]["dudes"][0]["guard"], 3)
-	# Freebie costs 0: no hype_changed.
+	# Freebie costs 0: no hype_changed. Task 013: it is the third card this turn, so the solo Bro
+	# Meter gains 1 (BRO_METER_SOLO_CARDS is 3).
 	result = _ok(rules, result["state"], Fixtures.play("p1", 2, freebie, ""))
-	assert_eq(_types(result["events"]), ["card_played", "guard_changed", "card_moved"])
+	assert_eq(_types(result["events"]), ["card_played", "guard_changed", "card_moved", "bro_meter_changed"])
 	assert_eq(result["state"]["dudes"][0]["cards_played_this_turn"], 3)
 
 
