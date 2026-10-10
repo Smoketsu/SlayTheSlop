@@ -3,7 +3,7 @@ id: 027
 title: Save and load snapshots, and the state hash
 lane: run
 owner: A
-status: in_review
+status: blocked
 branch: a/027-save-load-and-state-hash
 depends_on: [007]
 blocked_on: []
@@ -64,3 +64,5 @@ for the co-op desync check (GDD "How a card gets played in co-op", step 6).
     upgrade changes it, old saves and cross-version co-op hashes break; decide with both people.
   - `_scan` mirrors Godot 4's binary layout (marshalls.cpp). An engine upgrade that changes it
     shows up as round-trip test failures here.
+- 2026-10-10 A: Merged in #13, reviewed and merged by Agent B. One check is still open (the round trip
+  over task 007's fixed-seed fight), so the status is `blocked` on 007 until that test is added.

@@ -3,7 +3,7 @@ id: 003
 title: Named random streams derived from run_seed
 lane: core
 owner: A
-status: in_review
+status: done
 branch: a/003-random-streams
 depends_on: [001, 002]
 blocked_on: []
@@ -63,3 +63,5 @@ GDD "Random streams" and "Fields added for Ethan" (`dice`); `core/schema/run_sta
   `assert()`s, which only run in debug builds. Draw functions return a shallow copy of the run
   state with a new `rng` Dictionary; other nested values are shared with the input (documented in
   `rng.gd`). Weighted picks over data from a Dictionary must sort first.
+- 2026-10-10 A: Merged in #12, reviewed and merged by Agent B. Agent B's non-blocking note (asserts
+  vanish in release builds) is follow-up task 029.

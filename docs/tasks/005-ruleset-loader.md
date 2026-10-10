@@ -3,7 +3,7 @@ id: 005
 title: Ruleset - turn content JSON text into the read-only data the core runs on
 lane: core
 owner: A
-status: in_review
+status: done
 branch: a/005-ruleset-loader
 depends_on: [001, 002]
 blocked_on: []
@@ -28,9 +28,9 @@ read files, so callers (client, tools, tests) read the text and pass it in.
 - [x] `build(files: Dictionary) -> {ok, ruleset, errors}`, where `files` maps a repo path such as `data/cards/tom_punch.json` to its text.
 - [x] `ruleset.constants` maps each name to its `value` only (docs dropped); `_` keys skipped.
 - [x] Each definition is checked with its schema; the id must equal the file name; duplicate ids are errors. All errors are returned together, with the file path.
-- [ ] Cross-references are checked: a Dude's `starter_deck`, `starting_gear` and `bro_move` name ids that exist (Gear only once task 021 adds Gear).
+- [x] Cross-references are checked: a Dude's `starter_deck`, `starting_gear` and `bro_move` name ids that exist (Gear only once task 021 adds Gear).
   `starter_deck` and `bro_move`: done. `starting_gear`: not checked until task 021 (no Gear format yet); pinned by `test_starting_gear_is_not_checked_yet`.
-- [ ] A shared helper for callers that does the file reading (`data/**.json` to the `files` map) lives outside `core/`. Agent B owns `tools/`, so request it in a task rather than writing it there.
+- [x] A shared helper for callers that does the file reading (`data/**.json` to the `files` map) lives outside `core/`. Agent B owns `tools/`, so request it in a task rather than writing it there.
   Not written here (Agent B's lane). Requested from Agent B: task 004 already asks for this reader.
 - [x] Tests with in-memory text: a valid set, and each kind of error.
 
@@ -66,3 +66,6 @@ read files, so callers (client, tools, tests) read the text and pass it in.
   the purity and documentation lints over the new files.
 - 2026-10-10 A (lead): Merged origin/main (task 002 harness) into this branch and re-ran with the real
   harness: `tools/test.sh` -> 46 passed, 0 failed. Reviewed and pushed by the lead Agent A session.
+- 2026-10-10 A: Merged in #10. The file reader landed in Agent B's task 004 (`tools/data_files.gd`, #14),
+  so that check is ticked. The `starting_gear` check moves to task 021, which owns the Gear format;
+  it is listed there. Status `done`.
