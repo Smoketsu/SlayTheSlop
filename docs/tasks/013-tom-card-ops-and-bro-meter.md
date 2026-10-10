@@ -3,10 +3,10 @@ id: 013
 title: Effect ops for Tom's cards, Powers, the solo Bro Meter and Chest Bump
 lane: core
 owner: A
-status: open
-branch:
+status: in_progress
+branch: a/013-tom-card-ops-and-bro-meter
 depends_on: [009]
-blocked_on: [G9, G10]
+blocked_on: []
 files:
   - core/combat/
   - core/ops/
@@ -33,3 +33,4 @@ GDD "Tom, the Enforcer" (card table), "Bro Meter", "Card types and keywords"; `c
 - [ ] `core/ops/README.md` lists every op added.
 
 ## Log
+- 2026-10-10 A: Claimed. Every rule gap it waited on is answered (#20); task 009 is merged.
