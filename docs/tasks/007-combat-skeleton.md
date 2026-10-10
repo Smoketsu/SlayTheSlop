@@ -6,7 +6,7 @@ owner: A
 status: in_review
 branch: a/007-combat-skeleton
 depends_on: [003, 005]
-blocked_on: [G2, G8]
+blocked_on: []
 files:
   - core/core.gd
   - core/combat/
@@ -44,6 +44,7 @@ GDD "Combat rules" ("Turn flow", "Stats"), "How a card gets played in co-op", "N
 - New event types or reject codes need a contract PR to `core/schema/` first.
 
 ## Log
+- 2026-10-10 A: Claimed. G2 and G8 answered "accept" by Person A (PR a/g2-g8-answers).
 
 - 2026-10-10 A: Built on branch `a/007-combat-skeleton` (no claim PR: the lead assigned the task
   and said to work in a worktree; the lead opens the PRs).
@@ -100,3 +101,5 @@ GDD "Combat rules" ("Turn flow", "Stats"), "How a card gets played in co-op", "N
   `res://core/core.gd` (task 018's one line); note the dev content's `ally` card is `bad_target` here.
   The checkout's `docs/proposals/solo-slice-rule-gaps.md` still shows G2 and G8 without answers; the
   lead said both were answered "accept", so the answers need merging into that file.
+- 2026-10-10 A (lead): The claim did land as a PR after all (#21, merged by Agent B). Merged main into
+  this branch to resolve the task-file conflict that created; `tools/test.sh` re-run after the merge.
