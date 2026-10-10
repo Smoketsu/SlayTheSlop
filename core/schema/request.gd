@@ -31,7 +31,8 @@ const TYPES := {
 		"dude_id": TYPE_STRING,
 	},
 	"vote_node": {
-		# The map node the player votes for. Format set by the run lane's map.
+		# The map node the player votes for. Format set by the run lane's map: the id ("r<row>c<column>")
+		# of one of the links of the node the party stands on (task 025, core/run/node_flow.gd).
 		"node_id": TYPE_STRING,
 	},
 	"play_card": {
@@ -54,9 +55,13 @@ const TYPES := {
 		"ready": TYPE_BOOL,
 	},
 	"choose_reward": {
-		# Which reward screen the choice is for. Format set by the run lane.
+		# Which reward screen the choice is for. Format set by the run lane (task 025): the "id" of one
+		# of the player's open offers in dude_state.offers. Every node choice uses this request: card
+		# rewards, the Boss Gear pick, The Tailgate (Nap or Lift), Baileys (each purchase, a removal,
+		# leaving) and Side Quests (safe or dumb).
 		"reward_id": TYPE_STRING,
-		# Which option was picked, 0 or more, or -1 to skip.
+		# Which option was picked: an index into the offer's options, 0 or more, or -1 to skip (a card
+		# reward) or leave (Baileys). -1 is refused (bad_target) for an offer whose "skippable" is false.
 		"choice_index": TYPE_INT,
 	},
 }
@@ -68,6 +73,12 @@ const OPTIONAL := {
 		# The chosen enemy uid when the Dude's Bro Move card has target "enemy" (Chest Bump), the
 		# player's own id or "" for "self", "" otherwise. Missing means "".
 		"target_id": TYPE_STRING,
+	},
+	"choose_reward": {
+		# [added, task 025] The card the picked option acts on: one of the option's card_uids, for a
+		# "lift" (The Tailgate) or "remove" (Baileys) option. Required for those two kinds, refused
+		# (bad_target) with any other. Missing means "".
+		"card_uid": TYPE_STRING,
 	},
 }
 
@@ -87,6 +98,18 @@ const REJECT_REASONS: Array[String] = [
 	"empty_slot",    # use_brew names a slot with no Brew in it.
 	"not_ready",     # use_bro_move while the Bro Meter is below BRO_METER_MAX.
 ]
+# [added, task 025] The run flow's requests reuse the codes above, so the client's message for every
+# code keeps working (tests/client checks one exists per code):
+#   wrong_phase  vote_node outside run_phase "map"; choose_reward outside run_phase "node", or naming
+#                no open offer of this player; pick_dude (the lobby is not built).
+#   bad_target   vote_node names no link of the party's node, or a node the ruleset has nothing for
+#                (no encounter or Side Quest); choose_reward's choice_index is out of range, -1 on an
+#                offer whose "skippable" is false, an option whose "available" is false, or a missing
+#                or wrong card_uid for a "lift" or "remove" option (or any card_uid for another kind).
+#   unplayable   a Baileys option costs more Dolla Bills than the Dude holds, or a Shake is bought
+#                with every Brew slot full.
+# Separate codes (bad_node, unknown_reward, bad_choice, no_dolla_bills, no_slot) are proposed for a
+# later contract PR made together with the client's messages for them (docs/tasks/025-run-flow.md).
 
 
 ## Checks a request's shape (not whether it is legal right now; that is the core's job).
