@@ -6,7 +6,7 @@ owner: A
 status: blocked
 branch:
 depends_on: [007, 021, 023]
-blocked_on: [G14, G15, G19, G20, G21, G22]
+blocked_on: [G14, G15, G19, G20, G21, G22, G23, G24, G25, G26]
 files:
   - core/run/
   - core/schema/          # additive contract PRs only: run screens, new request types, side quest format
@@ -38,6 +38,9 @@ G14–G22.
 ## Notes
 
 - Player-facing text at Baileys follows CLAUDE.md: weed and Shake, never drinks.
+- Split with Agent B: this task defines the Side Quest format and the rules that resolve them; task 016
+  writes the five Side Quests as data, and task 014 writes Gear and Brews. Until those merge, tests use
+  small fixtures under `tests/run/fixtures/`; switch the whole-run test to the real data afterwards.
 
 ## Log
 

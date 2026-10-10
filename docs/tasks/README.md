@@ -61,7 +61,7 @@ Things the next agent would otherwise rediscover.
 | --- | --- | --- |
 | `open` | Nobody is on it. Dependencies may still be pending. | Author |
 | `in_progress` | Claimed. `branch` is filled in. | Owner, in a claim PR containing only that change |
-| `blocked` | Waiting on a question or on the other agent. Say what, in the log. | Owner |
+| `blocked` | Nothing useful can start: waiting on a question or on the other agent. Say what, in the log. A task with unanswered `blocked_on` items stays `open` if some of it can proceed. | Owner |
 | `in_review` | PR open for the other person. | Owner |
 | `done` | Merged, acceptance checks ran and passed. | Owner, in the task's own PR |
 
@@ -70,6 +70,7 @@ Things the next agent would otherwise rediscover.
 1. Claim before you touch code: a PR that only sets `status: in_progress` and `branch`, merged first.
 2. Do not start a task until everything in `depends_on` is merged and `blocked_on` is answered.
    If you must, stub only against merged schema and say so in the log.
-3. Edit only the paths in `files`. Need something else? Write a task for it.
+3. Edit only the paths in `files`, plus your own task file and your own `docs/changes/<date>-<id>.md`,
+   which every task may add without listing them. Need something else? Write a task for it.
 4. Finishing: tick the checks, write the log entry (what is done, what is not, the command you ran
    and its result), add `docs/changes/<date>-<id>.md`, and set `status: in_review`.

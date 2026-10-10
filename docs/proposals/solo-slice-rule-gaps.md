@@ -134,3 +134,38 @@ Answer:
 `BRAWL_BREW_CHANCE` 0.4, `RIVAL_DOLLA_MIN` / `_MAX` 25 / 35, `TAILGATE_NAP_HEAL` 0.3,
 `CARD_REMOVE_BASE` 75, `CARD_REMOVE_STEP` 25, `BRO_METER_SOLO_CARDS` 3.
 Answer:
+
+## Side Quests and items (block tasks 014, 016, 021, 025)
+
+Found while writing the content tasks.
+
+**G23. Betting more than you have.** The Beer Pong Table bets 50 Dolla Bills. Suggested: the dumb
+option is not offered below 50 Dolla Bills.
+Answer:
+
+**G24. "A random Gear"** (3 a.m. Tattoo). From which pool? Suggested: the same pool as Loot nodes
+(general and the Dude's own Gear, not Boss Gear, nothing already owned), using the `side_quest` stream.
+Answer:
+
+**G25. "Start the next fight with ..."** (Gas-Station Sushi, The Unlabeled Brownie). Suggested: the
+status is stored as pending on the Dude and applied when the next fight starts. This needs a new
+Dude state field; Agent A adds it in a contract PR.
+Answer:
+
+**G26. Medical Card's 20% off.** Does it apply to card removal, and how do prices round?
+Suggested: it applies to every Baileys price including removal; round down.
+Answer:
+
+**G27. What is a debuff?** (Hair of the Dog, and Nate's later cards.) Suggested: Exposed, Noodle
+Arms, Hungover and Foggy. Broken Arm and Ick are on enemies only and never count.
+Answer:
+
+**G28. Rarity of starting and Boss Gear.** Unused Gym Membership and the three Boss Gear have no
+rarity in the GDD. Suggested: rarity `starter` for starting Gear and `boss` for Boss Gear; neither
+is ever offered at Baileys or as Loot.
+Answer:
+
+**G29. Does Baileys say which Brew a Shake is?** Suggested: yes, by name and effect; "Shake" is
+only the shop's label. Also note that the Brew "Protein Shake" will sit under a "Shake" label;
+the people may want to rename one of them.
+Answer:
