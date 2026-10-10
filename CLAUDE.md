@@ -195,7 +195,7 @@ The same seed and the same requests must always produce the same state.
 Networking is out of scope, but the solo slice must not need a rewrite to add it.
 
 - State holds a list of Dudes and a `party_size`, even though both are 1 for now.
-- Per-player things stay per-player: deck, hand, Hype, HP, Beer Money, random streams.
+- Per-player things stay per-player: deck, hand, Hype, HP, Dolla Bills, random streams.
 - Requests carry `player_id` and `seq`. Every applied request raises `state_version` by 1.
 - State must serialize to a full snapshot and load back to an identical state.
 - Signature mechanics of other Dudes (Auras, Abs, Puppets, Crash, Rolls) are not built yet.
@@ -203,9 +203,9 @@ Networking is out of scope, but the solo slice must not need a rewrite to add it
 
 ## Naming and identifiers
 
-- Use the GDD's field names in code and data exactly: `hype`, `guard`, `beer_money`, `swole`,
+- Use the GDD's field names in code and data exactly: `hype`, `guard`, `dolla_bills`, `swole`,
   `chill`, `clout`, `broken_arms`, `ick_threshold`, `abs_ready`, and so on.
-- Use the GDD's themed terms in everything a player reads: Hype, Guard, Beer Money, Gear, Brew,
+- Use the GDD's themed terms in everything a player reads: Hype, Guard, Dolla Bills, Gear, Brew,
   Shake, Rival, Side Quest, The Tailgate, Baileys, Tapped, Keg Level. The glossary is in
   "Tone and humor".
 - Content ids are `snake_case` in the form `owner_card_name`, for example `tom_arm_bar`.
@@ -232,9 +232,9 @@ All player-facing text follows the GDD "Rules for writers". The short version:
 - No slurs, no sexual content, no jokes that need a victim to work.
 - Tom's Ick is repellence that works on every enemy alike. Do not write it as hostility toward
   women. He thinks it is charisma.
-- **Baileys sells weed, not drinks.** Anything sold at, said at or tied to Baileys is weed or
-  Shake. Do not write Brews, beer or other drinks into Baileys. Brews still exist elsewhere
-  (rewards, Loot, Mimic Cooler).
+- **Baileys sells weed, not drinks.** At Baileys every Brew is shown as Shake; it is still a
+  normal Brew in data and in a Brew slot. Anything said or sold at Baileys is weed or Shake.
+  Do not write beer or other drinks into Baileys.
 - The Dudes, Dylan and Baileys may be named after real people or places. Do not add surnames,
   likenesses or personal details beyond what the GDD already contains.
 - Firefly, Dragon Quest, Warhammer and Dungeons & Dragons are real brands and their use is an
