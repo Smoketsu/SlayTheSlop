@@ -67,8 +67,9 @@ const SPEC := {
 	"passed_out": TYPE_BOOL,
 	# True once the player has ended their turn. Cleared at Refresh.
 	"ready": TYPE_BOOL,
-	# [added] The seq of the last request from this player that core accepted or rejected, -1 before any.
-	# Lets core drop duplicates: a request with seq <= last_seq is rejected as "stale_seq".
+	# [added] The seq of the last request from this player that core APPLIED, -1 before any. A rejected
+	# request leaves it unchanged (the whole state is unchanged), so its seq may be reused. Lets core
+	# drop duplicates: a request with seq <= last_seq is rejected as "stale_seq". Set only by core.
 	"last_seq": TYPE_INT,
 }
 
