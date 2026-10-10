@@ -446,3 +446,43 @@ func test_task_017_events() -> void:
 	for event: Dictionary in good:
 		assert_no_errors(Event.check(event), event["type"])
 	assert_eq(Event.check(Event.make("dolla_bills_stolen", {"enemy_uid": "e3", "player_id": "p1"})).size(), 1, "missing amount")
+
+
+## Task 019's charge: a definition with a valid charge passes and each mistake is reported once;
+## the state's charge and fallen_skips start at null and 0 and are checked; the new events are valid.
+func test_charge_fields() -> void:
+	# chad: a Chad-like definition with a Keg Stand charge.
+	var chad: Dictionary = {"id": "goblin_king_chad", "name": "Goblin King Chad", "floor": 1, "tier": "boss",
+		"max_hp": 140, "arm_count": 2,
+		"charge": {"move_id": "keg_stand", "turns": 2, "release_move_id": "keg_stand_slam",
+			"helper_def_id": "goblin_pledge", "helpers": 2, "fall_exposed": 2},
+		"moves": [{"id": "keg_stand", "weight": 0, "intent": "charge", "target": "none", "effects": []},
+			{"id": "keg_stand_slam", "weight": 0, "intent": "attack", "effects": [{"op": "charged_hit", "amount": 30, "cut_per_helper_lost": 10}]},
+			{"id": "paddle_swat", "weight": 1, "intent": "attack", "effects": [{"op": "damage", "amount": 12}]}]}
+	assert_no_errors(EnemyDef.check(chad), "charge")
+	# cases: label -> a function that breaks a copy one way.
+	var cases: Dictionary = {
+		"unknown charge move": func(e: Dictionary) -> void: e["charge"]["move_id"] = "lift",
+		"unknown release move": func(e: Dictionary) -> void: e["charge"]["release_move_id"] = "slam",
+		"turns 0": func(e: Dictionary) -> void: e["charge"]["turns"] = 0,
+		"negative fall_exposed": func(e: Dictionary) -> void: e["charge"]["fall_exposed"] = -1,
+		"missing helpers": func(e: Dictionary) -> void: e["charge"].erase("helpers"),
+	}
+	for label: String in cases.keys():
+		# bad: a fresh copy, broken by this case.
+		var bad: Dictionary = chad.duplicate(true)
+		cases[label].call(bad)
+		assert_eq(EnemyDef.check(bad).size(), 1, label)
+	# enemy: a blank enemy state, changed below.
+	var enemy: Dictionary = EnemyState.blank("e1", "goblin_king_chad")
+	assert_eq([enemy["charge"], enemy["fallen_skips"]], [null, 0])
+	enemy["charge"] = {"turns_charged": 1, "helper_uids": ["e2", "e3"], "fall_exposed": 2}
+	enemy["fallen_skips"] = 1
+	assert_no_errors(EnemyState.check(enemy), "charging")
+	enemy["charge"] = {"turns_charged": 1}
+	assert_eq(EnemyState.check(enemy).size(), 2, "charge missing two fields")
+	enemy["charge"] = null
+	enemy["fallen_skips"] = -1
+	assert_eq(EnemyState.check(enemy).size(), 1, "negative fallen_skips")
+	assert_no_errors(Event.check(Event.make("charge_started", {"enemy_uid": "e1", "helper_uids": ["e2", "e3"]})), "charge_started")
+	assert_no_errors(Event.check(Event.make("enemy_fell", {"enemy_uid": "e1"})), "enemy_fell")

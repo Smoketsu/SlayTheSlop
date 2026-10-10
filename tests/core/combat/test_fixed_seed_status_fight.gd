@@ -31,7 +31,8 @@ const RECORDED: Array = ["won", 8, 32]
 ## Re-recorded by task 021: SCHEMA_VERSION 5 and the two new combat fields change the bytes; the
 ## fight itself is the same.
 ## Re-recorded again by task 017 (SCHEMA_VERSION 6, enemy haul and Brew-drop fields; same fight).
-const FINAL_HASH: String = "82bfc93a0a53b5e0b5500dc25d4dd5e114836fe402c277883f10d0572e450d5c"
+## Re-recorded again by task 019 (SCHEMA_VERSION 7, enemy charge and fallen_skips; same fight).
+const FINAL_HASH: String = "373aecf6fd3779e85291ce842c79f227cb51a870d3eb2667831a3dbe749bb720"
 
 
 ## Returns the bot's next request for p1 in this state (see the file header).

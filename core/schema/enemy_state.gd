@@ -56,6 +56,25 @@ const SPEC := {
 	# drops_brews when it joins the fight (Mimic Cooler: 1), so the death can be reported without the
 	# content data. Changed only by the rules core.
 	"drops_brews": TYPE_INT,
+	# [added, task 019] The charge in progress (enemy_def.gd CHARGE_DEF_SPEC; see CHARGE_SPEC), or
+	# null when it is not charging. Goblin King Chad's Keg Stand. Changed only by the rules core.
+	"charge": [TYPE_DICTIONARY, TYPE_NIL],
+	# [added, task 019] Actions this enemy will skip because it fell (every helper of its charge died),
+	# 0 or more. Each fall adds 1; each action it skips in the enemy phase uses 1 (enemy_skipped,
+	# reason "fallen"). Changed only by the rules core.
+	"fallen_skips": TYPE_INT,
+}
+
+## [added, task 019] Shape of a charge in progress (enemy "charge").
+const CHARGE_SPEC := {
+	# Intents it has shown with the charge's move_id so far, 1..the definition's turns.
+	"turns_charged": TYPE_INT,
+	# Uids of the enemies holding the charge up, chosen when it started. One that is no longer in the
+	# fight was killed during the charge.
+	"helper_uids": {"list_of": TYPE_STRING},
+	# Exposed stacks it gains if it falls, copied from the definition when the charge starts, so the
+	# fall can happen where the content data is not available. 0 or more.
+	"fall_exposed": TYPE_INT,
 }
 
 ## Shape of an intent (GDD "intent").
@@ -89,6 +108,8 @@ static func blank(uid: String, def_id: String) -> Dictionary:
 		"move_history": [],
 		"haul": {},
 		"drops_brews": 0,
+		"charge": null,
+		"fallen_skips": 0,
 	}
 
 
@@ -105,6 +126,10 @@ static func check(enemy: Variant, path: String = "enemy") -> Array[String]:
 		errors.append("%s.broken_arms: %d is outside 0..arm_count (%d)" % [path, enemy["broken_arms"], enemy["arm_count"]])
 	if enemy["grossed_out_skips"] < 0:
 		errors.append("%s.grossed_out_skips: %d is below 0" % [path, enemy["grossed_out_skips"]])
+	if enemy["charge"] != null:
+		errors.append_array(Shape.check(enemy["charge"], CHARGE_SPEC, path + ".charge"))
+	if enemy["fallen_skips"] < 0:
+		errors.append("%s.fallen_skips: %d is below 0" % [path, enemy["fallen_skips"]])
 	if enemy["drops_brews"] < 0:
 		errors.append("%s.drops_brews: %d is below 0" % [path, enemy["drops_brews"]])
 	for player_id: String in enemy["haul"].keys():

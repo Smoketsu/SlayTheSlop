@@ -5,7 +5,7 @@
 ## fields added by task 017 (floor 1): groups (tags), escorts that arrive with it (arrives_with),
 ## rules that pick a move in certain situations (move_rules), things it does outside its own turn
 ## (triggers), splitting at low HP (split), statuses on a cycle of turns (periodic_statuses) and
-## Brew drops (drops_brews). What each one does in a fight is in core/combat/enemy_behaviors.gd and
+## Brew drops (drops_brews); task 019 added a charged attack held up by helpers (charge). What each one does in a fight is in core/combat/enemy_behaviors.gd and
 ## core/ops/README.md; this file only checks the shape. Anything still not expressible is described
 ## in "text" and listed in a task for the core lane.
 ##
@@ -74,6 +74,9 @@ const OPTIONAL := {
 	# The core only reports the drop (combat_state.brews_dropped and a brew_dropped event); the run
 	# lane grants the Brews. Absent: 0.
 	"drops_brews": TYPE_INT,
+	# [added, task 019] A charged attack that helpers hold up (see CHARGE_DEF_SPEC): Goblin King Chad's
+	# Keg Stand. Absent: it never charges.
+	"charge": TYPE_DICTIONARY,
 }
 
 ## Shape of one move.
@@ -186,6 +189,30 @@ const PERIODIC_SPEC := {
 ## [added, task 017] Statuses that periodic_statuses may set (core/schema/README.md "Status ids").
 const PERIODIC_STATUSES: Array[String] = ["faded"]
 
+## [added, task 019] Shape of "charge" (Goblin King Chad's Keg Stand: "His Pledges lift him and he
+## charges for 2 turns, then hits one Dude for 30. Each Pledge killed during the charge removes 10
+## damage. Kill both and he falls: he skips a turn and is Exposed for 2.").
+## The charge starts when the enemy's intent becomes move_id (normally through a move rule). That
+## turn and the next turns-1 its intent stays move_id; the turn after, it is release_move_id; then
+## the charge is over. The helpers are the first "helpers" other enemies of helper_def_id, left to
+## right, when it starts. If every helper dies during the charge it falls: the charge ends, it skips
+## its next action and gains fall_exposed Exposed. The release move's damage is cut per helper lost
+## by the charged_hit op (core/ops/README.md).
+const CHARGE_DEF_SPEC := {
+	# The move shown while charging, one of this enemy's move ids. Picking it starts the charge.
+	"move_id": TYPE_STRING,
+	# Turns it charges, the starting turn included, 1 or more (Keg Stand: 2).
+	"turns": TYPE_INT,
+	# The move used the turn after the charge, one of this enemy's move ids (Keg Stand's hit).
+	"release_move_id": TYPE_STRING,
+	# Id of the enemy definition whose members hold the charge up (Keg Stand: "goblin_pledge").
+	"helper_def_id": TYPE_STRING,
+	# How many of them hold it up, 1 or more (Keg Stand: 2, "kill both and he falls").
+	"helpers": TYPE_INT,
+	# Exposed stacks it gains when it falls, 0 or more (Keg Stand: 2).
+	"fall_exposed": TYPE_INT,
+}
+
 
 ## Checks an enemy definition. Returns a list of problems; empty means valid.
 ## enemy: the parsed definition. path: label for messages, usually the file path.
@@ -281,6 +308,26 @@ static func _check_behaviors(enemy: Dictionary, move_ids: Dictionary, path: Stri
 				errors.append("%s: every and first_turn must be 1 or more" % periodic_path)
 	if enemy.get("drops_brews", 0) < 0:
 		errors.append("%s.drops_brews: must be 0 or more" % path)
+	if enemy.has("charge"):
+		errors.append_array(_check_charge(enemy["charge"], move_ids, path + ".charge"))
+	return errors
+
+
+## Task 019: checks "charge": its shape, that both move ids are this enemy's, and the ranges.
+## Returns a list of problems.
+## charge: the value of "charge". move_ids: the enemy's move ids, as keys. path: label for messages.
+static func _check_charge(charge: Variant, move_ids: Dictionary, path: String) -> Array[String]:
+	# errors: problems found, returned at the end.
+	var errors: Array[String] = Shape.check(charge, CHARGE_DEF_SPEC, path)
+	if not errors.is_empty():
+		return errors
+	for field: String in ["move_id", "release_move_id"]:
+		if not move_ids.has(charge[field]):
+			errors.append("%s.%s: %s is not one of this enemy's move ids" % [path, field, charge[field]])
+	if charge["turns"] < 1 or charge["helpers"] < 1:
+		errors.append("%s: turns and helpers must be 1 or more" % path)
+	if charge["fall_exposed"] < 0:
+		errors.append("%s.fall_exposed: must be 0 or more" % path)
 	return errors
 
 

@@ -49,7 +49,8 @@ const SCRIPT: Array = [
 ## Re-recorded by task 021: SCHEMA_VERSION 5 and the two new combat fields change the bytes; the
 ## fight itself is the same.
 ## Re-recorded again by task 017 (SCHEMA_VERSION 6, enemy haul and Brew-drop fields; same fight).
-const FINAL_HASH: String = "1d7486669977b13c4307a6479d0e5fac91e674adeb423f21a9dc2238ae8dce76"
+## Re-recorded again by task 019 (SCHEMA_VERSION 7, enemy charge and fallen_skips; same fight).
+const FINAL_HASH: String = "8fd3c9bf137328760b7ec9cab678638d2ffde8c46562c917eceb18d79a30fa8d"
 
 
 ## Plays the whole fight: start_fight on SEED, then every SCRIPT request, checking each step.
