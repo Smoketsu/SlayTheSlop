@@ -4,7 +4,7 @@
 
 - Added `docs/proposals/decision-log.md`: one row per rule decision with the default now in force,
   where it comes from, and an empty `Revisit?` column for later. It covers:
-  - G1–G52 (`solo-slice-rule-gaps.md`) and I1–I9 (`item-rule-gaps.md`).
+  - G1–G53 (`solo-slice-rule-gaps.md`, G53 from #53) and I1–I9 (`item-rule-gaps.md`).
   - The data format (JSON), which closes task 001's last open check.
   - The six Junk defaults from #42.
   - G14 (16 new Tom cards, through task 012) and G29 (Shake label).

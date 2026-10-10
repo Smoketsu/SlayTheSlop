@@ -86,6 +86,7 @@ option on the core's `add_card` op (Agent A's lane) and then a data change in `b
 
 | Decision | Default now in force | Source | Revisit? |
 | --- | --- | --- | --- |
+| G53: trigger depth | `MAX_TRIGGER_DEPTH` = 8: Power triggers may nest at most 8 deep, so a self-feeding Power can't loop forever (Reply Guy → Gross Out → Friend Zone needs 2) | #53, task 031 | |
 | Data format | JSON, shaped like the GDD's example card, parsed with `core/schema/json_values.gd` (closes task 001's last open check) | `CLAUDE.md` Tech stack | |
 | Junk: cards created mid-fight | A card with no `lasts` lasts the run, even when `add_card` creates it during a fight | #42 decision 1 | |
 | Junk: Hangover from Beer Helmet | Superseded by I7's default: the Beer Helmet Hangover lasts one fight only | #42 decision 2 | |
