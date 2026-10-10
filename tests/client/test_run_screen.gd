@@ -3,8 +3,8 @@
 ## check in docs/tasks/020-client-run-screens.md: the screen comes from the state alone, New Run and
 ## Continue, a corrupt save, run over, and one code path.
 ##
-## The map and offer screens belong to task 020's other half; here their request_made signal is
-## emitted directly with the request a player's click would make (run_screen_api.md).
+## The map vote in the one-code-path test goes through the map screen's own press_node(), as a click
+## does; the reject test emits request_made directly with a node no click could pick.
 extends "res://tests/framework/test_case.gd"
 
 const RunScreen := preload("res://client/run/run_screen.tscn")
@@ -73,7 +73,7 @@ func test_screen_for_routes_from_state_alone() -> void:
 
 
 ## One code path: from the menu with a fixed seed, the run screen's input handlers play to the first
-## reward (the map's vote through request_made, the whole fight through the fight screen's presses
+## reward (the map's vote through the map screen's press_node(), the whole fight through the fight screen's presses
 ## with the state frozen read-only before each); replaying the requests it sent straight through
 ## Core.apply() from NewRun.start() gives an equal final state. The reward state is also saved.
 func test_one_code_path_from_menu_to_first_reward() -> void:
@@ -84,7 +84,7 @@ func test_one_code_path_from_menu_to_first_reward() -> void:
 	screen.press_new_run(str(SEED))
 	assert_eq(screen.current, "map", "New Run opens the map")
 	_freeze(screen.run_state())
-	screen.child_screen().request_made.emit({"type": "vote_node", "node_id": _vote(screen.run_state())["node_id"]})
+	screen.child_screen().press_node(_vote(screen.run_state())["node_id"])
 	assert_eq(screen.current, "fight", "the vote starts the Brawl")
 	# steps: presses made in the fight.
 	var steps: int = 0

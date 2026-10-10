@@ -56,6 +56,13 @@ const SCREEN_OFFER: String = "offer"
 const SCREEN_WON: String = "won"
 ## Run over, every Dude Passed Out: run_phase "lost".
 const SCREEN_LOST: String = "lost"
+## Reject code -> message shown instead of Messages.reject() while the offer screen is up, where the
+## fight wording reads wrong (an "unplayable" Baileys buy is a missing Dolla Bill or Brew slot, not a
+## card). Keys are reject codes from core/schema/request.gd; values are player-facing text. Lane:
+## client (Agent B); add a key when a run reject needs its own wording.
+const OFFER_REJECTS := {
+	"unplayable": "You can't take that right now: not enough Dolla Bills, or no free Brew slot.",
+}
 
 ## Run-over texts, by screen name. Player-facing; writers may change them.
 const RUN_OVER_TEXT := {
@@ -200,11 +207,19 @@ func send(partial: Dictionary) -> String:
 	# result: {"state", "events", "reject"}.
 	var result: Dictionary = apply(_ruleset, _state, request)
 	if result["reject"] != "":
-		_show_message(Messages.reject(result["reject"]))
+		_show_message(_reject_text(result["reject"]))
 		return result["reject"]
 	_show_message("")
 	_take_state(result["state"])
 	return ""
+
+
+## The message for a reject code: OFFER_REJECTS while the offer screen is up, else Messages.reject().
+## code: a reject code from core/schema/request.gd. Returns player-facing text.
+func _reject_text(code: String) -> String:
+	if current == SCREEN_OFFER and OFFER_REJECTS.has(code):
+		return OFFER_REJECTS[code]
+	return Messages.reject(code)
 
 
 ## The gateway every request of this run goes through, the fight screen's included: records the
