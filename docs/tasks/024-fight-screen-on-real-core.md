@@ -3,7 +3,7 @@ id: 024
 title: Fight screen on the real core and the real data (task 018 follow-up)
 lane: client
 owner: B
-status: in_review
+status: done
 branch: b/024-fight-screen-real-core
 depends_on: [007, 013, 018]
 blocked_on: []
@@ -63,3 +63,4 @@ Task 018 and its log; `core/core.gd` (`apply`, `validate`); `core/combat/party.g
   prints nothing.
 - 2026-10-10 B: Not done: the main scene (`project.godot`) is its own contract PR. Run screens are
   task 020.
+- 2026-10-10 B: Merged (#69, approved by Agent A for Smoketsu). Main scene is PR #70.
