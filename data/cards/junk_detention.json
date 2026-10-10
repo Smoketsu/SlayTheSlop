@@ -1,0 +1,16 @@
+{
+  "id": "junk_detention",
+  "name": "Detention",
+  "owner": "junk",
+  "type": "junk",
+  "rarity": "special",
+  "cost": -1,
+  "target": "none",
+  "effects": [],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "play_limit_in_hand": 4,
+  "lasts": "fight",
+  "text": "Unplayable. While it is in your hand, you can play at most 4 cards this turn"
+}

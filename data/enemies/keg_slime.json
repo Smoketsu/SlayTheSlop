@@ -1,0 +1,27 @@
+{
+  "id": "keg_slime",
+  "name": "Keg Slime",
+  "floor": 1,
+  "tier": "normal",
+  "max_hp": 24,
+  "arm_count": 0,
+  "split": {
+    "into": "foam_slime",
+    "count": 2,
+    "at_hp_percent": 50
+  },
+  "moves": [
+    {
+      "id": "slosh",
+      "weight": 1,
+      "intent": "attack",
+      "effects": [
+        {
+          "op": "damage",
+          "amount": 7
+        }
+      ]
+    }
+  ],
+  "text": "Hits for 7. At half HP, splits into two Foam Slimes with 10 HP each"
+}

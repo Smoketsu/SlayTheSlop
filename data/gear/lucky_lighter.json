@@ -1,0 +1,12 @@
+{
+  "id": "lucky_lighter",
+  "name": "Lucky Lighter",
+  "owner": "general",
+  "rarity": "common",
+  "text": "+1 Chill",
+  "stats": {
+    "chill": 1
+  },
+  "triggers": [],
+  "modifiers": []
+}

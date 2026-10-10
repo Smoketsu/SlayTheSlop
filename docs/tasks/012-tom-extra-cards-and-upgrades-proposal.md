@@ -3,10 +3,10 @@ id: 012
 title: Proposal - Tom's new slice cards and an upgrade for every Tom card
 lane: content
 owner: B
-status: open
-branch:
+status: in_progress
+branch: b/012-tom-cards-proposal
 depends_on: [006]
-blocked_on: [G14, G15]
+blocked_on: []
 files:
   - docs/proposals/tom-slice-cards.md
   - docs/tasks/          # only for the follow-up tasks, after both people have answered
@@ -53,3 +53,4 @@ files and `core/ops/README.md` (from task 007), so the proposal knows which ops 
   files, and, if new ops were approved, a core task for Agent A with the exact ops and fields.
 
 ## Log
+- 2026-10-10 B: Claimed. Every gap in `blocked_on` is answered (steamjgrube accepted all defaults; see `docs/proposals/decision-log.md`). Starts once task 006 merges (depends_on).

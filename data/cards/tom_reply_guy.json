@@ -1,0 +1,27 @@
+{
+  "id": "tom_reply_guy",
+  "name": "Reply Guy",
+  "owner": "tom",
+  "type": "power",
+  "rarity": "uncommon",
+  "cost": 1,
+  "target": "none",
+  "effects": [],
+  "power_triggers": [
+    {
+      "when": "enemy_buffed",
+      "target": "subject",
+      "effects": [
+        {
+          "op": "apply_status",
+          "status": "ick",
+          "stacks": 2
+        }
+      ]
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Whenever an enemy gains a buff, apply 2 Ick to it"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "hair_of_the_dog",
+  "name": "Hair of the Dog",
+  "rarity": "uncommon",
+  "text": "Remove all your debuffs and Tap every Junk card in your hand.",
+  "target": "self",
+  "effects": [
+    {
+      "op": "remove_debuffs"
+    },
+    {
+      "op": "tap_cards",
+      "card_type": "junk"
+    }
+  ]
+}

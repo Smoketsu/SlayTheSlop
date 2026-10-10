@@ -1,0 +1,37 @@
+{
+  "id": "hall_monitor_golem",
+  "name": "Hall Monitor Golem",
+  "floor": 1,
+  "tier": "rival",
+  "max_hp": 75,
+  "arm_count": 2,
+  "triggers": [
+    {
+      "id": "detention",
+      "on": "cards_played",
+      "cards": 3,
+      "repeat": true,
+      "effects": [
+        {
+          "op": "add_card",
+          "card_id": "junk_detention",
+          "to": "discard_pile"
+        }
+      ]
+    }
+  ],
+  "moves": [
+    {
+      "id": "stomp",
+      "weight": 1,
+      "intent": "attack",
+      "effects": [
+        {
+          "op": "damage",
+          "amount": 14
+        }
+      ]
+    }
+  ],
+  "text": "Every third card a player plays in a turn adds Detention to their discard pile. Hits for 14"
+}

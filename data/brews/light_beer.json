@@ -1,0 +1,13 @@
+{
+  "id": "light_beer",
+  "name": "Light Beer",
+  "rarity": "common",
+  "text": "Heal 10 HP.",
+  "target": "self",
+  "effects": [
+    {
+      "op": "heal",
+      "amount": 10
+    }
+  ]
+}

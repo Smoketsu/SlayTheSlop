@@ -1,0 +1,15 @@
+{
+  "id": "protein_shake",
+  "name": "Protein Shake",
+  "rarity": "common",
+  "text": "Gain 3 Swole for this fight.",
+  "target": "self",
+  "effects": [
+    {
+      "op": "gain_stat",
+      "stat": "swole",
+      "amount": 3,
+      "duration": "fight"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "id": "tom_chest_bump",
+  "name": "Chest Bump",
+  "owner": "tom",
+  "type": "attack",
+  "rarity": "special",
+  "cost": 0,
+  "target": "enemy",
+  "effects": [
+    {
+      "op": "damage",
+      "amount": 20
+    },
+    {
+      "op": "apply_status",
+      "status": "broken_arm",
+      "stacks": 1,
+      "target": "all_enemies"
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Deal 20 damage. Break 1 arm on every enemy"
+}

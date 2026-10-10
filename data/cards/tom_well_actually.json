@@ -1,0 +1,20 @@
+{
+  "id": "tom_well_actually",
+  "name": "Well, Actually",
+  "owner": "tom",
+  "type": "skill",
+  "rarity": "starter",
+  "cost": 0,
+  "target": "enemy",
+  "effects": [
+    {
+      "op": "apply_status",
+      "status": "ick",
+      "stacks": 2
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Apply 2 Ick"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "dads_platinum_card",
+  "name": "Dad's Platinum Card",
+  "owner": "boss",
+  "rarity": "boss",
+  "text": "+1 Hype per turn. You no longer earn Dolla Bills from fights.",
+  "stats": {
+    "hype_per_turn": 1
+  },
+  "triggers": [],
+  "modifiers": [
+    {
+      "kind": "fight_dolla_bills_percent",
+      "amount": 0
+    }
+  ]
+}

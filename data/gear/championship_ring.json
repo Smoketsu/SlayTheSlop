@@ -1,0 +1,17 @@
+{
+  "id": "championship_ring",
+  "name": "Championship Ring",
+  "owner": "general",
+  "rarity": "rare",
+  "text": "Attacks that cost 2 or more Hype deal 4 more damage.",
+  "stats": {},
+  "triggers": [],
+  "modifiers": [
+    {
+      "kind": "card_damage",
+      "amount": 4,
+      "card_type": "attack",
+      "min_cost": 2
+    }
+  ]
+}

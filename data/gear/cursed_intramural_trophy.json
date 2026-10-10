@@ -1,0 +1,24 @@
+{
+  "id": "cursed_intramural_trophy",
+  "name": "Cursed Intramural Trophy",
+  "owner": "boss",
+  "rarity": "boss",
+  "text": "+1 Draw per turn. Every enemy starts each fight with 1 Swole.",
+  "stats": {
+    "draw_per_turn": 1
+  },
+  "triggers": [
+    {
+      "when": "fight_start",
+      "target": "all_enemies",
+      "effects": [
+        {
+          "op": "gain_stat",
+          "stat": "swole",
+          "amount": 1
+        }
+      ]
+    }
+  ],
+  "modifiers": []
+}

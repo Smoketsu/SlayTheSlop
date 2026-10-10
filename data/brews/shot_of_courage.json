@@ -1,0 +1,14 @@
+{
+  "id": "shot_of_courage",
+  "name": "Shot of Courage",
+  "rarity": "common",
+  "text": "Apply 3 Exposed to all enemies.",
+  "target": "all_enemies",
+  "effects": [
+    {
+      "op": "apply_status",
+      "status": "exposed",
+      "stacks": 3
+    }
+  ]
+}
