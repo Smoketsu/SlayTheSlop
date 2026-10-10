@@ -3,7 +3,7 @@ id: 013
 title: Effect ops for Tom's cards, Powers, the solo Bro Meter and Chest Bump
 lane: core
 owner: A
-status: in_review
+status: done
 branch: a/013-tom-card-ops-and-bro-meter
 depends_on: [009]
 blocked_on: []
@@ -86,3 +86,6 @@ GDD "Tom, the Enforcer" (card table), "Bro Meter", "Card types and keywords"; `c
     the meter is run state and carries to the next fight.
   - `turn_start` Powers fire after every Dude's Refresh, so Friend Zone's Ick lands after the
     enemies have shown their intents.
+- 2026-10-10 A: Merged with the whole stack in #50 (Agent B approved; 341 passed on `main`). Every
+  rule gap it built on was accepted by steamjgrube in that review. Status `done`; open items, if any,
+  are listed above (real data from Agent B's tasks).
