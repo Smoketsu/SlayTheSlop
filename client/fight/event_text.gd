@@ -10,7 +10,9 @@ extends RefCounted
 const Messages := preload("res://client/fight/messages.gd")
 
 ## Event type -> template. {field} is replaced with the event's value; {field@} with the display
-## name of the id in that field (a Dude, an enemy or a card copy). Changed only by the client lane.
+## name of the id in that field (a Dude, an enemy, a card copy, a map node or a Side Quest), or, for
+## a code field (status, node_type, kind, won), its word from messages.gd field_word(). Changed only
+## by the client lane.
 const TEMPLATES := {
 	"fight_started": "A fight breaks out!",
 	"turn_started": "Turn {turn}.",
@@ -52,6 +54,22 @@ const TEMPLATES := {
 	"enemy_triggered": "{enemy_uid@} reacts.",
 	"charge_started": "{enemy_uid@} starts charging!",
 	"enemy_fell": "{enemy_uid@} falls over!",
+	# Task 025, the run flow. item_bought and brew_gained never say "Brew": either may come from
+	# Baileys, where every Brew is a Shake, so they name only the Brew itself.
+	"floor_started": "Floor {floor} begins.",
+	"vote_cast": "{player_id@} votes for {node_id@}.",
+	"node_entered": "The party heads into {node_type@}.",
+	"offer_opened": "{player_id@} has a choice: {kind@}.",
+	"offer_closed": "{player_id@} is done choosing.",
+	"item_bought": "{player_id@} pays {price} Dolla Bills at Baileys.",
+	"card_upgraded": "{card_uid@} is upgraded.",
+	"brew_gained": "{player_id@} stashes {brew_id@} for later.",
+	"brew_not_kept": "{player_id@} has no room for {brew_id@}.",
+	"side_quest_rolled": "{side_quest_id@}: {percent}% chance... {won@}",
+	"pending_status_added": "{player_id@} will start the next fight with {stacks} {status@}.",
+	"dude_revived": "{player_id@} wakes up with {hp} HP.",
+	"floor_ended": "Floor {floor} cleared!",
+	"run_ended": "The run is over: {result}.",
 }
 
 
@@ -66,20 +84,21 @@ static func line(event: Dictionary, names: Dictionary) -> String:
 	for key: String in keys:
 		# value: this field's value.
 		var value: Variant = event[key]
-		text = text.replace("{%s@}" % key, names.get(str(value), Messages.status_name(str(value))) if key == "status" else names.get(str(value), str(value)))
+		text = text.replace("{%s@}" % key, names.get(str(value), Messages.field_word(key, str(value))))
 		text = text.replace("{%s:+}" % key, ("+%d" % value) if typeof(value) == TYPE_INT and value >= 0 else str(value))
 		text = text.replace("{%s}" % key, str(value))
 	return text
 
 
-## Returns id -> display name for every Dude, enemy and card copy in the given states, and every
-## card, enemy, Gear and Brew definition in the ruleset. Pass the states from before and after a
-## request so enemies that died or fled still have names.
+## Returns id -> display name for every Dude, enemy, card copy and map node in the given states, and
+## every card, enemy, Gear, Brew and Side Quest definition in the ruleset. A map node is named by its
+## type (messages.gd NODE_TYPES). Pass the states from before and after a request so enemies that
+## died or fled still have names.
 ## ruleset: read-only content. states: run states to read, oldest first.
 static func names_for(ruleset: Dictionary, states: Array) -> Dictionary:
 	# names: the result.
 	var names: Dictionary = {}
-	for kind: String in ["cards", "enemies", "gear", "brews", "dudes"]:
+	for kind: String in ["cards", "enemies", "gear", "brews", "side_quests", "dudes"]:
 		for id: String in ruleset.get(kind, {}):
 			names[id] = ruleset[kind][id].get("name", id)
 	for state: Dictionary in states:
@@ -87,6 +106,9 @@ static func names_for(ruleset: Dictionary, states: Array) -> Dictionary:
 			names[dude["player_id"]] = ruleset["dudes"].get(dude["dude_id"], {}).get("name", dude["player_id"])
 			for uid: String in dude["cards"]:
 				names[uid] = ruleset["cards"].get(dude["cards"][uid]["def_id"], {}).get("name", uid)
+		# node: one map node of this state's floor (run_state.gd "map"; none while map is {}).
+		for node: Dictionary in state.get("map", {}).get("nodes", []):
+			names[node["id"]] = Messages.field_word("node_type", node["type"])
 		if state.get("combat") != null:
 			for enemy: Dictionary in state["combat"]["enemies"]:
 				names[enemy["uid"]] = ruleset["enemies"].get(enemy["def_id"], {}).get("name", enemy["uid"])
