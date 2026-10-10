@@ -15,6 +15,15 @@
 ##     what the op did (core/combat/powers.gd), so Reply Guy reacts to an enemy's Guard and Friend
 ##     Zone to a Grossed Out enemy wherever they happen. Trigger effects run through run() too.
 ##
+## Task 031: trigger depth. Because trigger effects run through run(), a trigger can set off another
+## trigger, and a Power that feeds itself (an "enemy_buffed" Power whose effects buff an enemy) would
+## fire forever. The op context's "trigger_depth" (DEPTH_KEY) counts how deeply the current effects
+## are nested inside Power triggers: 0 for a card, move, Brew, Gear or turn start's own effects,
+## 1 inside a trigger they set off, 2 inside a trigger that one sets off, and so on. No trigger fires
+## from effects already at depth MAX_TRIGGER_DEPTH (data/constants.json), so at most that many
+## triggers nest in one chain. Reply Guy's Ick Grossing Out an enemy, which fires Friend Zone, is a
+## legitimate chain of 2. The GDD is silent on this rule (gap G53).
+##
 ## Pure: no file, clock, network or random access.
 extends RefCounted
 
@@ -80,9 +89,35 @@ const GENERIC_FIELDS := {
 	"target": TYPE_STRING,
 }
 
+## Task 031: the op context key holding the trigger depth (see the file header), an int 0 or more.
+## make_context() sets it; fire_power_triggers_in_place() raises it by 1 for a trigger's effects.
+## Only the core lane changes this name.
+const DEPTH_KEY: String = "trigger_depth"
+
+## Task 031: ops that run further effects through run() themselves ("draw" runs each drawn card's
+## on_draw effects, core/combat/card_triggers.gd) and whose own events never set off a Power
+## trigger (draw's are deck_shuffled and card_moved). The nested run() calls already fired the
+## triggers for the nested effects' events, so run() does not react to this op's events a second
+## time. An op may be listed only if no event it emits itself is one core/combat/powers.gd reacts
+## to. Only the core lane changes this.
+const NESTING_OPS: Array[String] = ["draw"]
+
+## Task 031: name of the constant holding the deepest trigger nesting allowed (data/constants.json
+## MAX_TRIGGER_DEPTH, an int 1 or more). Only the core lane changes this name; the value is tuning.
+const MAX_DEPTH_CONSTANT: String = "MAX_TRIGGER_DEPTH"
+
 ## Task 013: values of an effect's "target". "all_enemies": every enemy still in the fight when the
 ## effect runs, left to right. Only the core lane adds one.
 const EFFECT_TARGETS: Array[String] = ["all_enemies"]
+
+
+## Task 031: returns why the trigger-depth constant cannot be used, or "" when it can.
+## Fight.check_start calls it, so a fight never starts with an unusable cap.
+## constants: ruleset.constants.
+static func check_constants(constants: Dictionary) -> String:
+	if typeof(constants.get(MAX_DEPTH_CONSTANT)) != TYPE_INT or constants[MAX_DEPTH_CONSTANT] < 1:
+		return "constant %s is missing or not an int 1 or more" % MAX_DEPTH_CONSTANT
+	return ""
 
 
 ## True when op names an operation the core can run.
@@ -136,7 +171,8 @@ static func needs_target(effects: Array) -> bool:
 
 
 ## Runs one effect that passed check(): applies its "target" and "if" (task 013), runs the op, then
-## fires the Power triggers that react to the op's events (task 013).
+## fires the Power triggers that react to the op's events (task 013), at most MAX_TRIGGER_DEPTH deep
+## and not again for an op in NESTING_OPS (task 031).
 ## state: the working copy, changed by the op. effect: the effect.
 ## context: {"actor_id": String, the player_id or enemy uid using the card or move;
 ##           "targets": Array of ids the effect lands on, chosen by the card's target or the intent;
@@ -147,7 +183,9 @@ static func needs_target(effects: Array) -> bool:
 ##           "ruleset": the whole read-only content, for Power triggers (task 013) and ops that
 ##                      read definitions (tap_cards, task 021; summon_enemy and gain_swole with a
 ##                      tag, task 017); without it no Power trigger fires;
-##           "cards": ruleset.cards, read-only, card id -> definition, for add_card (task 015)}.
+##           "cards": ruleset.cards, read-only, card id -> definition, for add_card (task 015);
+##           "trigger_depth": int, 0 or more, how deeply these effects are nested inside Power
+##                            triggers (DEPTH_KEY, task 031); a context without it counts as 0}.
 ## make_context() builds one. events: the event list, appended to.
 static func run(state: Dictionary, effect: Dictionary, context: Dictionary, events: Array) -> void:
 	# here: the context for this effect, with the effect's own target when it has one.
@@ -162,17 +200,27 @@ static func run(state: Dictionary, effect: Dictionary, context: Dictionary, even
 	OPS[effect["op"]].run(state, effect, here, events)
 	# ruleset: the content, for the triggers.
 	var ruleset: Dictionary = context.get("ruleset", {})
-	if not ruleset.is_empty():
-		fire_power_triggers_in_place(ruleset, state, Powers.reactions(ruleset, state, events, start), events)
+	# Task 031: a nesting op's events were already reacted to inside it (NESTING_OPS).
+	if not ruleset.is_empty() and not NESTING_OPS.has(effect["op"]):
+		fire_power_triggers_in_place(ruleset, state, Powers.reactions(ruleset, state, events, start), events,
+			here.get(DEPTH_KEY, 0))
 
 
 ## Task 013: fires Power triggers, in order (records from core/combat/powers.gd reactions() or
 ## matching()). For each: skipped if its Dude is Passed Out by now or it is a "subject" trigger whose
 ## enemy has died; otherwise power_triggered, then its effects in order, with the Dude as the actor,
 ## not attack damage, from a card. Effects that fail check() are skipped. Stops once the fight is decided.
+## Task 031: fires nothing when depth has reached MAX_TRIGGER_DEPTH, or when that constant is
+## unusable (check_constants; a fight cannot start then). The triggers' effects run at depth + 1.
 ## ruleset: the read-only content. state: the working copy. records: the triggers to fire.
-## events: the event list, appended to.
-static func fire_power_triggers_in_place(ruleset: Dictionary, state: Dictionary, records: Array, events: Array) -> void:
+## events: the event list, appended to. depth: the trigger depth of the effects that set these
+## triggers off (DEPTH_KEY), int 0 or more; 0 (the default) for a turn start or a test.
+static func fire_power_triggers_in_place(ruleset: Dictionary, state: Dictionary, records: Array, events: Array,
+		depth: int = 0) -> void:
+	# constants: the tuning constants, for the depth cap.
+	var constants: Dictionary = ruleset["constants"]
+	if check_constants(constants) != "" or depth >= constants[MAX_DEPTH_CONSTANT]:
+		return
 	for record: Dictionary in records:
 		if Bodies.is_decided(state):
 			return
@@ -186,6 +234,8 @@ static func fire_power_triggers_in_place(ruleset: Dictionary, state: Dictionary,
 			"when": record["when"], "subject_id": record["subject_id"]}))
 		# context: the Power's Dude acting on the targets.
 		var context: Dictionary = make_context(ruleset, record["player_id"], targets, false, true)
+		# Task 031: one level deeper than the effects that set this trigger off.
+		context[DEPTH_KEY] = depth + 1
 		for effect: Variant in record["effects"]:
 			if Bodies.is_decided(state):
 				return
@@ -198,8 +248,12 @@ static func fire_power_triggers_in_place(ruleset: Dictionary, state: Dictionary,
 ## for Power triggers (task 013). An op context also works here (task 015 passes one where a ruleset
 ## is expected): its "ruleset" entry is used. actor_id: who uses the card or move. targets: ids the
 ## effects land on. attack: true for attack damage (G3). from_card: true when the effects come from a card.
+## Task 031: the new context's trigger_depth is the passed op context's, so effects run from inside
+## an op (a draw's on_draw effects, core/combat/card_triggers.gd) stay in the same chain; it is 0
+## when a ruleset is passed (a ruleset has no DEPTH_KEY entry).
 static func make_context(ruleset: Dictionary, actor_id: String, targets: Array, attack: bool, from_card: bool) -> Dictionary:
 	# content: the real ruleset, unwrapped when an op context was passed in its place.
 	var content: Dictionary = ruleset.get("ruleset", ruleset)
 	return {"actor_id": actor_id, "targets": targets, "constants": content["constants"],
-		"attack": attack, "from_card": from_card, "ruleset": content, "cards": content.get("cards", {})}
+		"attack": attack, "from_card": from_card, "ruleset": content, "cards": content.get("cards", {}),
+		DEPTH_KEY: ruleset.get(DEPTH_KEY, 0)}

@@ -114,10 +114,12 @@ const DUDES := {
 
 ## Returns the ruleset with Tom's test cards and Dudes added to tests/core/combat/fixtures.gd's (GEAR included, task 021)
 ## content. Empty if the build fails (the calling test's assertions then fail).
-static func ruleset() -> Dictionary:
+## extra_cards: task 031, more card definitions by id for one test file's own cards (for example a
+## Power that feeds itself); empty (the default) adds none. Ids must not repeat CARDS' ids.
+static func ruleset(extra_cards: Dictionary = {}) -> Dictionary:
 	# files: repo path -> JSON text, as a content reader would give them.
 	var files: Dictionary = {"data/constants.json": FileAccess.get_file_as_string(Fixtures.CONSTANTS_FILE)}
-	for kind: Array in [["cards", Fixtures.CARDS], ["cards", CARDS], ["enemies", Fixtures.ENEMIES],
+	for kind: Array in [["cards", Fixtures.CARDS], ["cards", CARDS], ["cards", extra_cards], ["enemies", Fixtures.ENEMIES],
 			["dudes", Fixtures.DUDES], ["dudes", DUDES], ["gear", Fixtures.GEAR]]:
 		for id: String in kind[1]:
 			files["data/%s/%s.json" % [kind[0], id]] = JSON.stringify(kind[1][id])

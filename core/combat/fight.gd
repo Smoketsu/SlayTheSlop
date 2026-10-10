@@ -123,6 +123,9 @@ static func check_start(ruleset: Dictionary, state: Dictionary, enemy_def_ids: A
 	# Task 013: the Bro Meter's constants.
 	if BroMeter.check_constants(constants) != "":
 		return BroMeter.check_constants(constants)
+	# Task 031: the Power trigger depth cap (core/ops/ops.gd).
+	if Ops.check_constants(constants) != "":
+		return Ops.check_constants(constants)
 	for def_id: Variant in enemy_def_ids:
 		if typeof(def_id) != TYPE_STRING or not ruleset["enemies"].has(def_id):
 			return "unknown enemy %s" % var_to_str(def_id)

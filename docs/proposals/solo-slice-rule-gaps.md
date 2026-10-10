@@ -336,3 +336,27 @@ Answer:
 
 **G52. Fight-only stats after a loss.** Stat changes that last for one fight (Protein Shake) are reverted when the fight ends, whether it was won or lost.
 Answer:
+
+## Found while guarding Power triggers (task 031)
+
+Agent B's review of #50 noted that a Power can set itself off. Built as suggested so data can never
+hang a fight; answered below.
+
+**G53. Powers that set each other off: how deep may a chain go?** Power trigger effects can set off
+more triggers, and the GDD says nothing about a limit. Reply Guy's Ick can Gross Out an enemy, which
+fires Friend Zone: a legitimate chain of 2. A Power that feeds itself (for example "whenever an
+enemy gains a buff, it gains 1 Swole", which is another buff) would fire forever and hang the game.
+No slice card does this, but content could.
+- Suggested (as built in task 031): at most `MAX_TRIGGER_DEPTH` triggers nest in one chain,
+  suggested value 8 (`data/constants.json`). A trigger set off by a card, enemy move, Brew, Gear
+  trigger or the start of a turn is depth 1; a trigger set off by its effects is depth 2; and so
+  on. Past the cap, effects still happen but set off no further trigger, silently (no event).
+- A draw inside a trigger stays in the same chain: a card drawn that way runs its `on_draw` at
+  that trigger's depth.
+- Each event sets off each matching trigger once (task 031 also fixed a draw's `on_draw` events
+  setting triggers off twice).
+- Alternatives: a smaller or larger cap; a once-per-op limit (each Power fires at most once per
+  card or move, however the chain loops); or a content rule (no Power may react to what its own
+  effects cause), checked by data validation instead of the core.
+Answer: accept, with `MAX_TRIGGER_DEPTH` = 8 (steamjgrube, Person B, 2026-10-10: "go with all defaults";
+approved in the review of #53 and recorded in `docs/proposals/decision-log.md`, #54).
