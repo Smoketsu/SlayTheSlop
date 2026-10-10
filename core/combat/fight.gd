@@ -12,16 +12,21 @@
 ## The fight is won when every enemy is dead and lost when every Dude is Passed Out; it is checked
 ## after every card and every enemy action (combat.result, phase "over", fight_ended).
 ##
-## STUB for task 011 (enemy AI): every enemy always uses its FIRST move. A move with an op that
-## needs a target (core/ops/ops.gd needs_target) is aimed at the first Dude, in seat order, who is
-## not Passed Out; other moves have no targets. When the enemy acts, targets that have Passed Out
-## since are skipped (not re-aimed). The GDD's multi-target rule (MULTI_TARGET_PARTY_SIZE) is
-## task 011's too.
-## Not in the GDD and not decided here: enemy Guard is never reset (the GDD's Refresh resets
-## players' Guard only); see task 007's log.
+## Enemy AI (task 011) lives in core/ai/. This file calls it at two points:
+##   - Intents (step 1). For each enemy, Intents.set_intent_in_place picks the move (scripted
+##     pattern, or a weighted draw from combat_ai that never picks one move three times in a row)
+##     and the targets (1 Dude, MULTI_TARGET_COUNT Dudes at MULTI_TARGET_PARTY_SIZE players, or
+##     every Dude for an area attack; never a Passed Out Dude).
+##   - Enemy phase (step 5). Intents.begin_action_in_place drops the enemy's Guard to 0 at the
+##     start of its own action, before it acts (G30).
+## When the enemy acts, targets that have Passed Out since are skipped, not re-aimed (core/ai/targeting.gd).
 ##
 ## Passed Out Dudes skip Refresh (no Hype, no draw) and are not needed for Ready: they "skip turns"
 ## (GDD "Rules that change in co-op").
+##
+## Statuses (task 009) are core/combat/statuses.gd; this file only calls it, at lines marked
+## "Task 009": Foggy at Refresh, Dude wear-off at End of turn, and, per enemy in the enemy phase,
+## the Grossed Out / Armless skip check before it acts and its wear-off right after its slot.
 ##
 ## Pure: randomness only through core/rng/rng.gd (via piles.gd); no file, clock or network access.
 ## Functions ending in _in_place change the working copy they are given (see core/combat/bodies.gd).
@@ -35,6 +40,8 @@ const Ops := preload("res://core/ops/ops.gd")
 const Bodies := preload("res://core/combat/bodies.gd")
 const Piles := preload("res://core/combat/piles.gd")
 const Scaling := preload("res://core/combat/party_scaling.gd")
+const Intents := preload("res://core/ai/intents.gd")
+const Statuses := preload("res://core/combat/statuses.gd")
 
 ## Enemy tier (core/schema/enemy_def.gd TIERS) -> name of the constant with its solo starting Ick
 ## threshold (GDD "Statuses"). Changes only with the GDD's tiers.
@@ -69,8 +76,8 @@ static func start_fight(ruleset: Dictionary, state: Dictionary, enemy_def_ids: A
 
 
 ## Returns why a fight cannot start, or "" when it can: a fight is already running, there are no
-## Dudes, no or unknown enemies, a constant start_fight needs is missing, or a Dude's shuffle stream
-## is missing.
+## Dudes, no or unknown enemies, a constant start_fight or the enemy AI needs is missing, or a
+## Dude's shuffle stream or the combat_ai stream is missing.
 ## ruleset: the read-only content. state: the run state. enemy_def_ids: the enemies asked for.
 static func check_start(ruleset: Dictionary, state: Dictionary, enemy_def_ids: Array) -> String:
 	if state.get("combat") != null and state["combat"]["phase"] != "over":
@@ -83,6 +90,10 @@ static func check_start(ruleset: Dictionary, state: Dictionary, enemy_def_ids: A
 	var constants: Dictionary = ruleset["constants"]
 	if not [TYPE_INT, TYPE_FLOAT].has(typeof(constants.get("HP_SCALE_PER_EXTRA_PLAYER"))):
 		return "constant HP_SCALE_PER_EXTRA_PLAYER is missing or not a number"
+	# status_error: task 009, why a constant the damage order or statuses need is unusable, or "".
+	var status_error: String = Statuses.check_constants(constants)
+	if status_error != "":
+		return status_error
 	for def_id: Variant in enemy_def_ids:
 		if typeof(def_id) != TYPE_STRING or not ruleset["enemies"].has(def_id):
 			return "unknown enemy %s" % var_to_str(def_id)
@@ -93,7 +104,8 @@ static func check_start(ruleset: Dictionary, state: Dictionary, enemy_def_ids: A
 	for dude: Dictionary in state["dudes"]:
 		if not state["rng"].has(Rng.key_for("shuffle", dude["player_id"])):
 			return "random stream shuffle:%s is missing (build the run with Rng.with_new_streams)" % dude["player_id"]
-	return ""
+	# Task 011: the enemy AI's own needs (constants, combat_ai stream).
+	return Intents.check_start(ruleset, state)
 
 
 ## start_fight()'s work, on a working copy, for code that is already inside apply(). The caller must
@@ -137,29 +149,13 @@ static func start_turn_in_place(ruleset: Dictionary, state: Dictionary, events: 
 	events.append(Event.make("turn_started", {"turn": combat["turn"]}))
 	combat["phase"] = "intents"
 	for enemy: Dictionary in combat["enemies"]:
-		enemy["intent"] = stub_intent(ruleset, state, enemy)
-		events.append(Event.make("intent_set", {"enemy_uid": enemy["uid"], "move_id": enemy["intent"]["move_id"],
-			"target_ids": enemy["intent"]["target_ids"].duplicate()}))
+		# Task 011: move, targets, move_history and intent_set (core/ai/intents.gd).
+		Intents.set_intent_in_place(ruleset, state, enemy, events)
 	combat["phase"] = "refresh"
 	for i: int in state["dudes"].size():
 		if not state["dudes"][i]["passed_out"]:
 			_refresh_in_place(state, i, events)
 	combat["phase"] = "player"
-
-
-## STUB until task 011: returns the intent an enemy shows: its first move, aimed at the first Dude
-## who is not Passed Out when the move needs a target, otherwise at nobody.
-## ruleset: the read-only content. state: the run state. enemy: the enemy state.
-static func stub_intent(ruleset: Dictionary, state: Dictionary, enemy: Dictionary) -> Dictionary:
-	# move: the move it will use.
-	var move: Dictionary = ruleset["enemies"][enemy["def_id"]]["moves"][0]
-	# target_ids: who it is aimed at.
-	var target_ids: Array = []
-	# awake: Dudes who can be targeted, in seat order.
-	var awake: Array = Bodies.awake_dude_ids(state)
-	if Ops.needs_target(move["effects"]) and not awake.is_empty():
-		target_ids.append(awake[0])
-	return {"move_id": move["id"], "target_ids": target_ids}
 
 
 ## Turn flow step 2 for one Dude. Emits guard_changed, hype_changed and ready_changed only for values
@@ -181,7 +177,9 @@ static func _refresh_in_place(state: Dictionary, dude_index: int, events: Array)
 	if dude["ready"]:
 		dude["ready"] = false
 		events.append(Event.make("ready_changed", {"player_id": player_id, "ready": false}))
-	Piles.draw_in_place(state, dude_index, dude["draw_per_turn"], events)
+	# Task 009: Foggy draws fewer cards, then loses a stack (G1).
+	Piles.draw_in_place(state, dude_index, Statuses.refresh_draw_count(dude), events)
+	Statuses.after_refresh_in_place(state, dude_index, events)
 
 
 ## True when every Dude who is not Passed Out is ready, so the player phase can end.
@@ -202,13 +200,21 @@ static func end_player_phase_in_place(ruleset: Dictionary, state: Dictionary, ev
 	combat["phase"] = "end_of_turn"
 	for i: int in state["dudes"].size():
 		Piles.discard_hand_in_place(state, i, events)
+	# Task 009: Dudes' statuses wear off at End of turn (G1).
+	Statuses.end_of_turn_in_place(state, events)
 	combat["phase"] = "enemy"
 	for uid: String in Bodies.enemy_uids(state):
 		# enemy: the acting enemy, or {} if it died earlier this phase.
 		var enemy: Dictionary = Bodies.find_alive(state, uid)
 		if enemy.is_empty():
 			continue
-		_enemy_act_in_place(ruleset, state, enemy, events)
+		# Task 011, G30: the enemy's Guard drops to 0 at the start of its own action, even one it skips.
+		Intents.begin_action_in_place(enemy, events)
+		# Task 009: a Grossed Out or Armless enemy skips instead of acting (G6, G7).
+		if not Statuses.skip_action_in_place(ruleset, enemy, events):
+			_enemy_act_in_place(ruleset, state, enemy, events)
+		# Task 009: the enemy's statuses wear off right after its slot (G1).
+		Statuses.after_enemy_slot_in_place(state, uid, events)
 		if finish_if_decided_in_place(state, events):
 			return
 	start_turn_in_place(ruleset, state, events)
@@ -238,7 +244,8 @@ static func _enemy_act_in_place(ruleset: Dictionary, state: Dictionary, enemy: D
 		if not Bodies.find_alive(state, target_id).is_empty():
 			targets.append(target_id)
 	# context: who acts and who the effects land on, for the ops.
-	var context: Dictionary = {"actor_id": enemy["uid"], "targets": targets}
+	# Task 009: every enemy move's damage is attack damage (G3); it is not from a card.
+	var context: Dictionary = Ops.make_context(ruleset, enemy["uid"], targets, true, false)
 	for effect: Dictionary in move["effects"]:
 		if Bodies.is_decided(state):
 			return

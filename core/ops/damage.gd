@@ -1,20 +1,32 @@
-## The "damage" effect operation (task 007). Lane: core (Agent A). Catalogue: core/ops/README.md.
+## The "damage" effect operation (tasks 007 and 009). Lane: core (Agent A). Catalogue: core/ops/README.md.
 ##
 ## Fields: amount (int, 0 or more: base damage of one hit) and hits (int, 1 or more, optional,
 ## default DEFAULT_HITS: how many times the hit repeats). Recipients: the effect's targets, that is
 ## the card's chosen target(s) or the enemy intent's target_ids.
 ##
-## Damage order (GDD "Combat rules"), as far as task 007 goes:
-##   step 1: base amount + the attacker's Swole, per hit (never below 0);
-##   steps 2-4 (Noodle Arms, Broken Arm, Exposed): NOT YET, task 009;
-##   step 5: Guard absorbs the damage and is reduced by what it absorbed (G2, answered "accept"),
+## Damage order (GDD "Combat rules"), for each hit, worked out by hit_amount():
+##   step 1: base amount + the attacker's Swole (never below 0);
+##   step 2: x NOODLE_MULT if the attacker has Noodle Arms;
+##   step 3: x (1 - BROKEN_ARM_MAX_REDUCTION x k / n) if the attacker is an enemy with k of its n
+##           arms broken (n above 0);
+##   step 4: x EXPOSED_MULT if the target is Exposed;
+##   step 5: round down ONCE, then Guard absorbs the damage and is reduced by what it absorbed (G2),
 ##           the rest comes off HP, HP never goes below 0, and a body at 0 HP dies or Passes Out.
+## Steps 2-4 multiply exact ratios (core/ops/ratio.gd), never floats, so there is no drift.
+##
+## G3 (answered "accept"): only attack damage gets steps 1-4: damage effects on Attack cards, Bro
+## Moves and enemy moves. The caller says which through context "attack" (core/combat/play.gd sets
+## it for cards of type "attack", core/combat/fight.gd for every enemy move). A damage effect that is
+## not an attack (for example on a Skill card) deals exactly amount: Swole is "added to every hit of
+## every attack" (GDD "Stats"), so it is left out too. Self-damage, Burn and the like are other ops.
 ##
 ## Changes the working copy it is given (see core/combat/bodies.gd). Pure.
 extends RefCounted
 
 const Event := preload("res://core/schema/event.gd")
 const Bodies := preload("res://core/combat/bodies.gd")
+const Statuses := preload("res://core/combat/statuses.gd")
+const Ratio := preload("res://core/ops/ratio.gd")
 
 ## True: an enemy move with this op needs Dudes to aim at, so its intent shows targets.
 const NEEDS_TARGET: bool = true
@@ -48,10 +60,12 @@ static func check(effect: Dictionary, path: String) -> Array[String]:
 
 
 ## Runs a damage effect: for each hit in turn, every target still alive takes one hit (hit 1 lands
-## on every target, then hit 2 ...). Stops as soon as the fight is decided. Swole is read from the
-## attacker before each hit.
+## on every target, then hit 2 ...). Stops as soon as the fight is decided. The attacker's Swole and
+## statuses, and the target's, are read again before each hit.
 ## state: the working copy. effect: a damage effect that passed check().
-## context: {"actor_id": who deals it, "targets": Array of ids it lands on}. events: appended to.
+## context: {"actor_id": who deals it, "targets": Array of ids it lands on, "constants":
+##           ruleset.constants, "attack": true when this is attack damage (G3), false or missing
+##           otherwise}. events: the event list, appended to.
 static func run(state: Dictionary, effect: Dictionary, context: Dictionary, events: Array) -> void:
 	# hits: how many times to repeat the hit.
 	var hits: int = effect.get("hits", DEFAULT_HITS)
@@ -59,13 +73,53 @@ static func run(state: Dictionary, effect: Dictionary, context: Dictionary, even
 		for target_id: String in context["targets"]:
 			if Bodies.is_decided(state):
 				return
-			if Bodies.find_alive(state, target_id).is_empty():
+			# target: the body taking the hit, or {} if it is gone.
+			var target: Dictionary = Bodies.find_alive(state, target_id)
+			if target.is_empty():
 				continue
 			# attacker: the body dealing the hit, or {} if it is gone.
 			var attacker: Dictionary = Bodies.find_alive(state, context["actor_id"])
-			# swole: the attacker's Swole, added to every hit (GDD "Stats").
-			var swole: int = attacker.get("swole", 0)
-			deal_in_place(state, context["actor_id"], target_id, maxi(0, effect["amount"] + swole), events)
+			deal_in_place(state, context["actor_id"], target_id,
+				hit_amount(context["constants"], attacker, target, effect["amount"], context.get("attack", false)), events)
+
+
+## Damage order steps 1-4 and step 5's rounding: returns the damage of one hit before Guard.
+## Reads only. See the file header for each step.
+## constants: ruleset.constants; reads NOODLE_MULT, BROKEN_ARM_MAX_REDUCTION, EXPOSED_MULT.
+## attacker: the Dude or enemy dealing the hit, or {} when it is gone (no Swole, no statuses).
+## target: the Dude or enemy taking it. base: the effect's amount, 0 or more.
+## attack: true for attack damage (G3); false skips steps 1-4 and returns base.
+static func hit_amount(constants: Dictionary, attacker: Dictionary, target: Dictionary, base: int, attack: bool) -> int:
+	if not attack:
+		return maxi(0, base)
+	# raw: step 1, base + Swole, never below 0.
+	var raw: int = maxi(0, base + attacker.get("swole", 0))
+	return Ratio.floor_times(raw, multiplier(constants, attacker, target))
+
+
+## Damage order steps 2-4 as one exact ratio (core/ops/ratio.gd): Noodle Arms, Broken Arm (enemy
+## attackers only) and Exposed. Reads only.
+## constants: ruleset.constants. attacker: the attacker's state, or {}. target: the target's state.
+static func multiplier(constants: Dictionary, attacker: Dictionary, target: Dictionary) -> Array:
+	# product: the ratio built up step by step.
+	var product: Array = Ratio.ONE
+	if not attacker.is_empty() and Statuses.stacks(attacker, "noodle_arms") > 0:
+		product = Ratio.times(product, Ratio.from_constant(constants["NOODLE_MULT"]))
+	if not attacker.is_empty() and Statuses.is_enemy(attacker) and attacker["arm_count"] > 0:
+		product = Ratio.times(product, broken_arm_factor(constants, attacker["broken_arms"], attacker["arm_count"]))
+	if Statuses.stacks(target, "exposed") > 0:
+		product = Ratio.times(product, Ratio.from_constant(constants["EXPOSED_MULT"]))
+	return product
+
+
+## Returns 1 - BROKEN_ARM_MAX_REDUCTION x broken / arms as an exact ratio (GDD "Statuses", Broken Arm).
+## constants: ruleset.constants; BROKEN_ARM_MAX_REDUCTION must be 0..1 (Statuses.check_constants).
+## broken: arms broken, 0..arms. arms: the enemy's arm_count, 1 or more.
+static func broken_arm_factor(constants: Dictionary, broken: int, arms: int) -> Array:
+	# reduction: BROKEN_ARM_MAX_REDUCTION as a ratio [p, q]. The result, (q x arms - p x broken) /
+	# (q x arms), is 1 - (p / q) x (broken / arms).
+	var reduction: Array = Ratio.from_constant(constants[Statuses.BROKEN_ARM_CONSTANT])
+	return Ratio.reduced(reduction[1] * arms - reduction[0] * broken, reduction[1] * arms)
 
 
 ## Damage order step 5 for one hit of final size amount: Guard absorbs and is used up, the rest
@@ -73,7 +127,7 @@ static func run(state: Dictionary, effect: Dictionary, context: Dictionary, even
 ## enemy_died or dude_passed_out). Guard lost here gets no guard_changed event: damage_dealt.blocked
 ## says it. Does nothing if target_id names no living body.
 ## state: the working copy. source_id: who deals it ("" for no attacker). target_id: who takes it.
-## amount: damage after steps 1-4, 0 or more. events: the event list, appended to.
+## amount: damage after steps 1-4, already rounded down, 0 or more. events: the event list, appended to.
 static func deal_in_place(state: Dictionary, source_id: String, target_id: String, amount: int, events: Array) -> void:
 	# body: the target, inside state.
 	var body: Dictionary = Bodies.find_alive(state, target_id)
