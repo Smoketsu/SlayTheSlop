@@ -8,6 +8,8 @@
 ##   4. the card goes to tapped_pile if it has the "tapped" keyword, otherwise to discard_pile (card_moved).
 ##      Task 013: a card of type "power" goes to the Dude's powers list instead (active for the fight).
 ##   5. Task 013: the solo Bro Meter may gain a point (core/combat/bro_meter.gd).
+## Task 021 (core/combat/gear_triggers.gd): in step 3 the effects come from GearTriggers.card_effects (Championship
+## Ring) and the player's Gear reacts after each one (Body Spray); after step 4, card_played Gear fires.
 ## Core.apply() then ends the fight if it is decided.
 ##
 ## Rules decided here (task 007's log lists them for the people to confirm):
@@ -34,6 +36,7 @@ const Bodies := preload("res://core/combat/bodies.gd")
 const Powers := preload("res://core/combat/powers.gd")
 const BroMeter := preload("res://core/combat/bro_meter.gd")
 const CardTriggers := preload("res://core/combat/card_triggers.gd")
+const GearTriggers := preload("res://core/combat/gear_triggers.gd")
 
 ## Card type (core/schema/card_def.gd TYPES) whose damage effects are attack damage (G3, task 009).
 const ATTACK_TYPE: String = "attack"
@@ -126,10 +129,14 @@ static func resolve_in_place(ruleset: Dictionary, state: Dictionary, dude_index:
 		"target_id": request["target_id"]}))
 	if cost != 0:
 		events.append(Event.make("hype_changed", {"player_id": dude["player_id"], "delta": -cost, "hype": dude["hype"]}))
-	for effect: Dictionary in card["effects"]:
+	# Task 021: Gear card_damage modifiers (Championship Ring) raise the card's damage effects.
+	for effect: Dictionary in GearTriggers.card_effects(ruleset, dude, card):
 		if Bodies.is_decided(state):
 			break
+		# first: task 021, where this effect's events start, so the player's Gear can react to them.
+		var first: int = events.size()
 		Ops.run(state, effect, context, events)
+		GearTriggers.after_effect_in_place(ruleset, state, dude["player_id"], events, first)
 	# pile: where the card goes once played. Task 013: a Power goes to the Dude's powers list and
 	# stays active for the fight (core/combat/powers.gd).
 	var pile: String = "tapped_pile" if card["keywords"].has("tapped") else "discard_pile"
@@ -137,5 +144,7 @@ static func resolve_in_place(ruleset: Dictionary, state: Dictionary, dude_index:
 		pile = POWERS_LIST
 	dude[pile].append(uid)
 	events.append(Event.make("card_moved", {"player_id": dude["player_id"], "card_uid": uid, "from": "hand", "to": pile}))
+	# Task 021: the player's Gear that fires after a card is played.
+	GearTriggers.card_played_in_place(ruleset, state, dude_index, card, context["targets"], events)
 	# Task 013: the solo Bro Meter counts cards played this turn (core/combat/bro_meter.gd).
 	BroMeter.after_card_played_in_place(ruleset, state, dude, events)

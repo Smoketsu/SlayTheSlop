@@ -85,7 +85,7 @@ const ENEMIES := {
 }
 
 
-## Returns the shared fixture ruleset plus JUNK, CARDS and ENEMIES, built with the real build() and
+## Returns the shared fixture ruleset (with its GEAR, task 021) plus JUNK, CARDS and ENEMIES, built with the real build() and
 ## the real constants file. Empty if the build fails.
 static func ruleset() -> Dictionary:
 	return build_result()["ruleset"]
@@ -97,7 +97,7 @@ static func build_result(extra: Dictionary = {}) -> Dictionary:
 	# files: repo path -> JSON text, as a content reader would give them.
 	var files: Dictionary = {"data/constants.json": FileAccess.get_file_as_string(Fixtures.CONSTANTS_FILE)}
 	for kind: Array in [["cards", Fixtures.CARDS], ["enemies", Fixtures.ENEMIES], ["dudes", Fixtures.DUDES],
-			["cards", JUNK], ["cards", CARDS], ["enemies", ENEMIES]]:
+			["gear", Fixtures.GEAR], ["cards", JUNK], ["cards", CARDS], ["enemies", ENEMIES]]:
 		for id: String in kind[1]:
 			files["data/%s/%s.json" % [kind[0], id]] = JSON.stringify(kind[1][id])
 	files.merge(extra, true)

@@ -150,12 +150,20 @@ const DUDES := {
 }
 
 
+## Test Gear definitions, by id (task 021). Shapes follow core/schema/gear_def.gd. test_gear is
+## test_dude's starting Gear and does nothing, so the fights here are not changed by Gear.
+const GEAR := {
+	"test_gear": {"id": "test_gear", "name": "Test Gear", "owner": "general", "rarity": "starter",
+		"text": "Does nothing.", "stats": {}, "triggers": [], "modifiers": []},
+}
+
+
 ## Returns the test ruleset, built with the real build() and the real constants file. Empty if the
 ## build fails (the calling test's assertions then fail).
 static func ruleset() -> Dictionary:
 	# files: repo path -> JSON text, as a content reader would give them.
 	var files: Dictionary = {"data/constants.json": FileAccess.get_file_as_string(CONSTANTS_FILE)}
-	for kind: Array in [["cards", CARDS], ["enemies", ENEMIES], ["dudes", DUDES]]:
+	for kind: Array in [["cards", CARDS], ["enemies", ENEMIES], ["dudes", DUDES], ["gear", GEAR]]:
 		for id: String in kind[1]:
 			files["data/%s/%s.json" % [kind[0], id]] = JSON.stringify(kind[1][id])
 	# built: build()'s result.

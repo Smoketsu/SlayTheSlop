@@ -80,13 +80,17 @@ static func is_decided(state: Dictionary) -> bool:
 
 ## Handles a body that has just reached 0 HP. An enemy dies: enemy_died is emitted and it is
 ## removed from combat.enemies. A Dude is Passed Out: passed_out becomes true and dude_passed_out
-## is emitted. Does nothing if id names no living body.
+## is emitted, unless the fight holds a pass-out save for them (task 021, Smelling Salts solo:
+## combat.pass_out_saves), which is used up instead: their HP becomes the saved HP (at most
+## max_hp) and pass_out_prevented is emitted. Does nothing if id names no living body.
 ## state: the working copy, changed here. id: the player_id or enemy uid at 0 HP.
 ## events: the event list, appended to.
 static func knock_out_in_place(state: Dictionary, id: String, events: Array) -> void:
 	# index: position of a Dude with this id, or -1.
 	var index: int = dude_index(state, id)
 	if index != -1:
+		if _use_pass_out_save_in_place(state, index, events):
+			return
 		if not state["dudes"][index]["passed_out"]:
 			state["dudes"][index]["passed_out"] = true
 			events.append(Event.make("dude_passed_out", {"player_id": id}))
@@ -95,3 +99,23 @@ static func knock_out_in_place(state: Dictionary, id: String, events: Array) -> 
 	if index != -1:
 		state["combat"]["enemies"].remove_at(index)
 		events.append(Event.make("enemy_died", {"enemy_uid": id}))
+
+
+## Task 021: uses the fight's pass-out save for a Dude who would pass out, if there is one: HP
+## becomes the saved HP (at most max_hp), the save is removed, pass_out_prevented is emitted, and
+## true is returned. Returns false (and changes nothing) when there is no fight, the Dude is already
+## Passed Out, or no save is held.
+## state: the working copy. index: the Dude's seat, 0-based. events: the event list, appended to.
+static func _use_pass_out_save_in_place(state: Dictionary, index: int, events: Array) -> bool:
+	# dude: the Dude at 0 HP, inside state.
+	var dude: Dictionary = state["dudes"][index]
+	if state["combat"] == null or dude["passed_out"]:
+		return false
+	# saves: player_id -> HP to stay at, inside the fight.
+	var saves: Dictionary = state["combat"].get("pass_out_saves", {})
+	if not saves.has(dude["player_id"]):
+		return false
+	dude["hp"] = mini(saves[dude["player_id"]], dude["max_hp"])
+	saves.erase(dude["player_id"])
+	events.append(Event.make("pass_out_prevented", {"player_id": dude["player_id"], "hp": dude["hp"]}))
+	return true

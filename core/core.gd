@@ -22,7 +22,8 @@
 ##                  fight request (pick_dude, vote_node and choose_reward wait for the run flow, task 025).
 ##   passed_out     the Dude is Passed Out.
 ##   then per type: play_card -> core/combat/play.gd check() (not_in_hand, unplayable, no_hype,
-##                  bad_target); use_brew -> empty_slot, else unplayable (Brews are task 021);
+##                  bad_target); use_brew -> core/combat/brews.gd check() (empty_slot, unplayable,
+##                  bad_target; task 021);
 ##                  use_bro_move -> core/combat/bro_move.gd check() (not_ready below BRO_METER_MAX,
 ##                  unplayable, bad_target; task 013).
 ##
@@ -35,6 +36,9 @@
 ## ready, the turn ends and the next one runs to its player phase, all inside this one call
 ## (core/combat/fight.gd).
 ##
+## use_brew (task 021) drinks a Brew (core/combat/brews.gd). When any applied request ends the
+## fight, Gear's end-of-fight point runs at the end of the same call (core/combat/gear_triggers.gd).
+##
 ## Pure and deterministic: no file, clock, network, scene tree or global randomness.
 extends RefCounted
 
@@ -44,6 +48,8 @@ const Bodies := preload("res://core/combat/bodies.gd")
 const Fight := preload("res://core/combat/fight.gd")
 const Play := preload("res://core/combat/play.gd")
 const BroMove := preload("res://core/combat/bro_move.gd")
+const Brews := preload("res://core/combat/brews.gd")
+const GearTriggers := preload("res://core/combat/gear_triggers.gd")
 
 ## Request types that act inside a fight's player phase. Every other type is wrong_phase for now.
 const FIGHT_REQUESTS: Array[String] = ["play_card", "set_ready", "use_brew", "use_bro_move"]
@@ -66,6 +72,10 @@ static func apply(ruleset: Dictionary, state: Dictionary, request: Variant) -> D
 	# index: the requesting Dude's seat, 0-based.
 	var index: int = Bodies.dude_index(next, request["player_id"])
 	match request["type"]:
+		"use_brew":
+			# Task 021: core/combat/brews.gd.
+			Brews.resolve_in_place(ruleset, next, index, request, events)
+			Fight.finish_if_decided_in_place(ruleset, next, events)
 		"play_card":
 			Play.resolve_in_place(ruleset, next, index, request, events)
 			Fight.finish_if_decided_in_place(ruleset, next, events)
@@ -75,6 +85,8 @@ static func apply(ruleset: Dictionary, state: Dictionary, request: Variant) -> D
 			# Task 013: empty the Bro Meter and play the Dude's Bro Move.
 			BroMove.resolve_in_place(ruleset, next, index, request, events)
 			Fight.finish_if_decided_in_place(ruleset, next, events)
+	# Task 021: if this request ended the fight, end-of-fight Gear runs (core/combat/gear_triggers.gd).
+	GearTriggers.after_request_in_place(ruleset, state, next, events)
 	next["dudes"][index]["last_seq"] = request["seq"]
 	next["state_version"] = state["state_version"] + 1
 	return {"state": next, "events": events, "reject": ""}
@@ -102,9 +114,8 @@ static func validate(ruleset: Dictionary, state: Dictionary, request: Variant) -
 		"play_card":
 			return Play.check(ruleset, state, dude, request)
 		"use_brew":
-			if request["slot"] < 0 or request["slot"] >= dude["brews"].size():
-				return "empty_slot"
-			return "unplayable"
+			# Task 021: empty_slot, unplayable, bad_target (core/combat/brews.gd).
+			return Brews.check(ruleset, state, dude, request)
 		"use_bro_move":
 			# Task 013.
 			return BroMove.check(ruleset, state, dude, request)

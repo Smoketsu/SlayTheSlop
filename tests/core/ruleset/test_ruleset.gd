@@ -34,6 +34,13 @@ func _values() -> Dictionary:
 		"data/dudes/tom.json": {"id": "tom", "name": "Tom", "title": "the Enforcer", "max_hp": 80,
 			"starter_deck": ["tom_punch", "tom_punch"], "starting_gear": ["tom_unused_gym_membership"],
 			"bro_move": "tom_chest_bump"},
+		# Task 021: one Gear (Tom's starting Gear) and one Brew.
+		"data/gear/tom_unused_gym_membership.json": {"id": "tom_unused_gym_membership", "name": "Unused Gym Membership",
+			"owner": "tom", "rarity": "starter", "text": "Heal 6 HP after every fight.", "stats": {},
+			"triggers": [{"when": "fight_end", "target": "self", "effects": [{"op": "heal", "amount": 6}]}],
+			"modifiers": []},
+		"data/brews/light_beer.json": {"id": "light_beer", "name": "Light Beer", "rarity": "common",
+			"text": "Heal 10 HP.", "target": "self", "effects": [{"op": "heal", "amount": 10}]},
 	}
 
 
@@ -88,6 +95,8 @@ func test_valid_set_builds() -> void:
 	}, "cards")
 	assert_eq(ruleset["enemies"], {"goblin_pledge": values["data/enemies/goblin_pledge.json"]}, "enemies")
 	assert_eq(ruleset["dudes"], {"tom": values["data/dudes/tom.json"]}, "dudes")
+	assert_eq(ruleset["gear"], {"tom_unused_gym_membership": values["data/gear/tom_unused_gym_membership.json"]}, "gear")
+	assert_eq(ruleset["brews"], {"light_beer": values["data/brews/light_beer.json"]}, "brews")
 
 
 ## Fixed case: whole-number constants come out as ints and multipliers as floats, so the core can
@@ -178,18 +187,18 @@ func test_duplicate_ids_are_reported() -> void:
 	_assert_error(errors, "data/cards/tom_punch_copy.json", "must equal the file name")
 
 
-## Files outside the known folders are errors: an unknown kind (Gear has no format yet), a
+## Files outside the known folders are errors: an unknown kind (Side Quests have no format yet), a
 ## sub-folder, a file outside data/, and a file without the .json extension.
 func test_unknown_folders_and_files_are_reported() -> void:
 	# files: the valid set plus four files the builder must refuse.
 	var files: Dictionary = _texts(_values())
-	files["data/gear/tom_unused_gym_membership.json"] = '{"id": "tom_unused_gym_membership"}'
+	files["data/side_quests/beer_pong_table.json"] = '{"id": "beer_pong_table"}'
 	files["data/cards/old/tom_kick.json"] = "{}"
 	files["docs/tom.json"] = "{}"
 	files["data/cards/tom_punch.txt"] = "{}"
 	# errors: what build() found.
 	var errors: Array = Ruleset.build(files)["errors"]
-	_assert_error(errors, "data/gear/tom_unused_gym_membership.json", "not in a known data folder")
+	_assert_error(errors, "data/side_quests/beer_pong_table.json", "not in a known data folder")
 	_assert_error(errors, "data/cards/old/tom_kick.json", "not in a known data folder")
 	_assert_error(errors, "docs/tom.json", "not in a known data folder")
 	_assert_error(errors, "data/cards/tom_punch.txt", "must end in .json")
@@ -242,13 +251,31 @@ func test_reference_to_invalid_card_is_reported() -> void:
 	_assert_error(errors, "data/dudes/tom.json", "bro_move: card \"tom_chest_bump\"")
 
 
-## starting_gear is NOT checked yet: no Gear format exists until task 021. This test pins that
-## gap so task 021 changes it on purpose (it should then expect an error here).
-func test_starting_gear_is_not_checked_yet() -> void:
-	# values: the valid set, whose Tom names a Gear id that no file defines.
+## Task 021: a Dude's starting_gear must name Gear in data/gear/ (this replaces task 005's
+## test_starting_gear_is_not_checked_yet, which pinned the old gap).
+func test_starting_gear_must_name_gear() -> void:
+	# values: the valid set, whose Tom names a Gear id that no file defines after his real one.
 	var values: Dictionary = _values()
-	values["data/dudes/tom.json"]["starting_gear"] = ["no_such_gear"]
-	assert_true(Ruleset.build(_texts(values))["ok"], "unknown Gear ids are accepted until task 021")
+	values["data/dudes/tom.json"]["starting_gear"] = ["tom_unused_gym_membership", "no_such_gear"]
+	# result: what build() returned.
+	var result: Dictionary = Ruleset.build(_texts(values))
+	assert_false(result["ok"], "an unknown Gear id fails the build")
+	_assert_error(result["errors"], "data/dudes/tom.json", "starting_gear[1]: gear \"no_such_gear\"")
+	assert_eq(result["errors"].size(), 1, "only the bad Gear id: %s" % str(result["errors"]))
+
+
+## Task 021: a Gear or Brew file that fails its schema is reported, and a Dude naming the broken
+## Gear is reported too.
+func test_bad_gear_and_brew_files_are_reported() -> void:
+	# values: the valid set with the Gear and the Brew each broken.
+	var values: Dictionary = _values()
+	values["data/gear/tom_unused_gym_membership.json"]["rarity"] = "boss"
+	values["data/brews/light_beer.json"]["target"] = "puppet"
+	# errors: what build() found.
+	var errors: Array = Ruleset.build(_texts(values))["errors"]
+	_assert_error(errors, "data/gear/tom_unused_gym_membership.json", "gear.rarity")
+	_assert_error(errors, "data/brews/light_beer.json", "brew.target")
+	_assert_error(errors, "data/dudes/tom.json", "starting_gear[0]: gear \"tom_unused_gym_membership\"")
 
 
 ## Every problem in every file comes back from one call, and a failed build returns no ruleset.
@@ -327,3 +354,4 @@ func test_real_constants_file_builds() -> void:
 		assert_eq(typeof(constants.get(name)), TYPE_FLOAT, "%s must be a float" % name)
 	assert_eq(typeof(constants.get("NAP_WAKE_ON_ASSIST")), TYPE_BOOL, "NAP_WAKE_ON_ASSIST must be a bool")
 	assert_eq(result["ruleset"].get("cards"), {}, "no cards from constants alone")
+	assert_eq([result["ruleset"].get("gear"), result["ruleset"].get("brews")], [{}, {}], "no Gear or Brews either")

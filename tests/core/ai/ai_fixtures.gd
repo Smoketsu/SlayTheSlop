@@ -60,7 +60,8 @@ static func ruleset() -> Dictionary:
 	# enemies: task 007's test enemies and this file's, by id.
 	var enemies: Dictionary = Fixtures.ENEMIES.duplicate(true)
 	enemies.merge(ENEMIES)
-	for kind: Array in [["cards", Fixtures.CARDS], ["enemies", enemies], ["dudes", Fixtures.DUDES]]:
+	# Task 021: Fixtures.GEAR holds test_dude's starting Gear, which the build now checks.
+	for kind: Array in [["cards", Fixtures.CARDS], ["enemies", enemies], ["dudes", Fixtures.DUDES], ["gear", Fixtures.GEAR]]:
 		for id: String in kind[1]:
 			files["data/%s/%s.json" % [kind[0], id]] = JSON.stringify(kind[1][id])
 	# built: build()'s result.

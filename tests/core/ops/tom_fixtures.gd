@@ -112,13 +112,13 @@ const DUDES := {
 }
 
 
-## Returns the ruleset with Tom's test cards and Dudes added to tests/core/combat/fixtures.gd's
+## Returns the ruleset with Tom's test cards and Dudes added to tests/core/combat/fixtures.gd's (GEAR included, task 021)
 ## content. Empty if the build fails (the calling test's assertions then fail).
 static func ruleset() -> Dictionary:
 	# files: repo path -> JSON text, as a content reader would give them.
 	var files: Dictionary = {"data/constants.json": FileAccess.get_file_as_string(Fixtures.CONSTANTS_FILE)}
 	for kind: Array in [["cards", Fixtures.CARDS], ["cards", CARDS], ["enemies", Fixtures.ENEMIES],
-			["dudes", Fixtures.DUDES], ["dudes", DUDES]]:
+			["dudes", Fixtures.DUDES], ["dudes", DUDES], ["gear", Fixtures.GEAR]]:
 		for id: String in kind[1]:
 			files["data/%s/%s.json" % [kind[0], id]] = JSON.stringify(kind[1][id])
 	# built: build()'s result.

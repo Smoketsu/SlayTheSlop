@@ -304,6 +304,71 @@ The actor loses Hype (task 015, Hangover). File: `core/ops/lose_hype.gd`.
 
 Example: `{ "op": "lose_hype", "amount": 1 }` (Hangover's `on_draw`).
 
+### `heal`
+
+Restore HP to each target (task 021). File: `core/ops/heal.gd`.
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `amount` | int, 0 or more | HP restored to each target, capped at its `max_hp` |
+
+- **Lands on:** `targets`. A Passed Out Dude is not healed (waking is another rule).
+- **Events:** `healed` (`amount` = HP actually restored, `hp` = new value), only when HP changes.
+
+Example: `{ "op": "heal", "amount": 10 }` (Light Beer).
+
+### `gain_stat`
+
+Change a stat (task 021). File: `core/ops/gain_stat.gd`.
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `stat` | text | `swole`, `chill`, `clout`, `max_hp`, `hype_per_turn`, `draw_per_turn` or `brew_slots` (`core/schema/gear_def.gd` `STATS`). Enemies only have `swole` |
+| `amount` | int, not 0 | Change; negative lowers the stat |
+| `duration` | text, optional | `"fight"`: undone when the fight ends (recorded in `combat.fight_stat_changes`). Absent: permanent for the run |
+
+- **Lands on:** `targets` that have the stat. Floors: `max_hp` 1; `hype_per_turn`, `draw_per_turn`,
+  `brew_slots` 0. Swole, Chill and Clout may go negative. Lowering `max_hp` below `hp` lowers `hp`.
+- Raising `max_hp` does not raise `hp` (Gallon Jug; task 021 log).
+- `duration: "fight"` outside a fight does nothing.
+- **Events:** `stat_changed` (`delta`, `value`), only when the stat changes.
+
+Example: `{ "op": "gain_stat", "stat": "swole", "amount": 3, "duration": "fight" }` (Protein Shake).
+
+### `remove_debuffs`
+
+No fields (task 021). File: `core/ops/remove_debuffs.gd`. Each target loses every stack of every
+debuff (G27: `exposed`, `foggy`, `hungover`, `noodle_arms`; `core/combat/statuses.gd` `DEBUFFS`).
+**Events:** `status_changed` per debuff removed. Example: `{ "op": "remove_debuffs" }` (Hair of the Dog).
+
+### `tap_cards`
+
+Tap cards in the actor's hand (task 021). File: `core/ops/tap_cards.gd`.
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `card_type` | text | One of `core/schema/card_def.gd` `TYPES`: every card of this type in the hand is Tapped |
+
+- **Lands on:** the actor's own hand (a Dude; enemies do nothing), in hand order, to `tapped_pile`.
+- **Events:** `card_moved` (`hand` -> `tapped_pile`) per card.
+
+Example: `{ "op": "tap_cards", "card_type": "junk" }` (Hair of the Dog).
+
+### `prevent_pass_out`
+
+Hold a Dude up once (task 021). File: `core/ops/prevent_pass_out.gd`.
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `hp` | int, 1 or more | HP the Dude is left at instead of passing out |
+
+- **Lands on:** `targets` that are Dudes not Passed Out. Sets `combat.pass_out_saves[player_id]`. The
+  next time that Dude would pass out this fight, HP becomes `hp` (capped at `max_hp`) and the save is
+  used up (`pass_out_prevented`). A second use before then replaces the first; saves do not stack.
+- Outside a fight it does nothing.
+
+Example: `{ "op": "prevent_pass_out", "hp": 1 }` (Smelling Salts, solo).
+
 ## Powers (task 013)
 
 A card of `type: "power"` is played like any card (cost, `card_played`, its `effects` if any),
@@ -365,6 +430,61 @@ The six Junk cards (GDD "Junk cards") as data, rarity `special` (G17):
 | Detention | -1 | `"play_limit_in_hand": 4`, `"lasts": "fight"` |
 | Burn | -1 | `"on_end_of_turn_in_hand": [{"op": "self_damage", "amount": 2}]`, `"lasts": "fight"` |
 
+## Gear (task 021)
+
+Format: `core/schema/gear_def.gd`. Rules: `core/combat/gear_triggers.gd`.
+
+- **`stats`** are added once when the Gear is gained (`gear_gained`, then `stat_changed`), including
+  starting Gear. Gear is never lost in the slice.
+- **Order:** Dudes in seat order, each Dude's Gear in the order gained, each Gear's triggers in
+  definition order. A Passed Out Dude's Gear does not fire.
+- **A trigger whose effects use an op the core lacks, or bad fields, is skipped whole.**
+  `GearTriggers.check(definition)` reports these for content tests.
+- **Effects from Gear** are not attack damage (G3) and not "from cards" (G4). Each fire emits
+  `gear_triggered` first.
+
+### Gear trigger points (`when`)
+
+| `when` | Fires |
+| --- | --- |
+| `fight_start` | Once per fight, after `fight_started` (draw piles already shuffled), before turn 1's intents and Refresh, so before Hype is filled and the first hand drawn |
+| `first_turn` | Once per fight, right after every Dude's turn-1 Refresh (Hype filled, hand drawn), before the player phase takes requests |
+| `fight_end` | Once per fight that is **won**, at the end of the request that ended it, after `fight_ended`. Fight-only stat changes are taken back first (win or loss) |
+| `card_played` | After the owner's card has resolved and gone to its pile, unless the fight is over. Optional filters `card_type`, `min_cost` |
+| `ick_applied` | Each time an effect run by the owner (card, Brew, Gear) adds Ick to an enemy: once per enemy, with that enemy as `trigger_target` and the Ick added (Clout included, G5) as the stacks for `amount_per_stack`. Its own effects do not set off `ick_applied` again |
+
+Optional `hp_below_percent` (1..100): fires only while `hp × 100 < max_hp × percent`.
+
+### Trigger targets (`target`)
+
+`self` (the owner), `all_enemies`, `all_dudes` (not Passed Out, seat order), `trigger_target` (the
+Ick's enemy, or the played card's targets; only with `ick_applied` and `card_played`).
+
+### Modifiers (`modifiers`)
+
+| `kind` | `amount` | Read by |
+| --- | --- | --- |
+| `card_damage` | Added to the base damage of every hit of each `damage` effect on the owner's cards that match `card_type` / `min_cost` (before Swole, so the damage order applies to it) | `core/combat/play.gd` |
+| `shop_price_percent` | Baileys prices are this percent of normal, rounded down; all Baileys prices, card removal included (G26). `GearTriggers.shop_price()` | Run lane (task 025) |
+| `fight_dolla_bills_percent` | Dolla Bills from fights are this percent of normal, rounded down. `GearTriggers.fight_dolla_bills()` | Run lane (task 025) |
+
+Several modifiers of one `_percent` kind multiply, rounded down once at the end.
+
+## Brews (task 021)
+
+Format: `core/schema/brew_def.gd`. Rules: `core/combat/brews.gd`. The `use_brew` request:
+
+- Costs no Hype; any time in the player phase (also after pressing Ready). `cards_played_this_turn`
+  does not change.
+- Refused: `empty_slot` (no Brew at that index; `brews` is packed, so any index past the last Brew),
+  `unplayable` (unknown Brew, empty effects, or an op the core lacks), `bad_target`.
+- Applied: the Brew leaves its slot (later Brews move down), `brews_drunk` + 1, `brew_used`, then its
+  effects run like a card's (the drinker's Gear reacts to them). Not attack damage, not from a card.
+- `party_size` 1 and a `solo` variant: its target and effects are used instead.
+- Targets: `none`, `self`, `enemy`, `all_enemies`, `all_dudes` (`target_id` ""), `ally` (not built:
+  `bad_target`).
+
 ## Not built yet
 
-Gear and Brew effects (task 021). Until then, cards using them are `unplayable`.
+Ops for the other Dudes' mechanics and for Side Quests (task 025). A card or Brew with an op the
+core does not have is `unplayable`, and a Gear trigger with one is skipped.

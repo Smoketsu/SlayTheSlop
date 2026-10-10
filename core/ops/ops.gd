@@ -33,6 +33,12 @@ const Event := preload("res://core/schema/event.gd")
 # Task 015: Junk ops.
 const AddCardOp := preload("res://core/ops/add_card.gd")
 const LoseHypeOp := preload("res://core/ops/lose_hype.gd")
+# Task 021: ops for Gear and Brews.
+const HealOp := preload("res://core/ops/heal.gd")
+const GainStatOp := preload("res://core/ops/gain_stat.gd")
+const RemoveDebuffsOp := preload("res://core/ops/remove_debuffs.gd")
+const TapCardsOp := preload("res://core/ops/tap_cards.gd")
+const PreventPassOutOp := preload("res://core/ops/prevent_pass_out.gd")
 
 ## Op name (the effect's "op" value) -> the script implementing it. Only the core lane changes this.
 const OPS := {
@@ -40,9 +46,14 @@ const OPS := {
 	"damage": DamageOp,
 	"draw": DrawOp,
 	"gain_hype": GainHypeOp,
+	"gain_stat": GainStatOp,
 	"guard": GuardOp,
 	"guard_per_broken_arm": GuardPerBrokenArmOp,
+	"heal": HealOp,
+	"prevent_pass_out": PreventPassOutOp,
+	"remove_debuffs": RemoveDebuffsOp,
 	"self_damage": SelfDamageOp,
+	"tap_cards": TapCardsOp,
 	"thorns": ThornsOp,
 	# Task 015.
 	"add_card": AddCardOp,
@@ -121,8 +132,8 @@ static func needs_target(effects: Array) -> bool:
 ##           "attack": bool, true when damage effects here are attack damage (G3): a card of type
 ##                     "attack", a Bro Move, or an enemy move (task 009);
 ##           "from_card": bool, true when the effect comes from a card, for Hungover (task 009);
-##           "ruleset": the read-only content, for Power triggers (task 013); without it no
-##                      trigger fires;
+##           "ruleset": the whole read-only content, for Power triggers (task 013) and ops that
+##                      read definitions (tap_cards, task 021); without it no Power trigger fires;
 ##           "cards": ruleset.cards, read-only, card id -> definition, for add_card (task 015)}.
 ## make_context() builds one. events: the event list, appended to.
 static func run(state: Dictionary, effect: Dictionary, context: Dictionary, events: Array) -> void:

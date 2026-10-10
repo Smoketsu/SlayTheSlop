@@ -195,7 +195,7 @@ func test_dead_target_is_bad_target() -> void:
 	assert_eq(after["dudes"][0]["hype"], state["dudes"][0]["hype"] - 1, "only the first card's Hype is spent")
 
 
-## use_brew: empty_slot for an empty slot; a filled slot is unplayable until Brews exist.
+## use_brew: empty_slot for an empty slot; a Brew the ruleset does not have is unplayable (task 021).
 ## use_bro_move: not_ready below BRO_METER_MAX; at max it applies since task 013 (its tests are in
 ## tests/core/ops/test_bro_meter.gd), but a bad target is bad_target.
 func test_brew_and_bro_move_rejects() -> void:

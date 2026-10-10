@@ -27,6 +27,8 @@
 ## Statuses (task 009) are core/combat/statuses.gd; this file only calls it, at lines marked
 ## "Task 009": Foggy at Refresh, Dude wear-off at End of turn, and, per enemy in the enemy phase,
 ## the Grossed Out / Armless skip check before it acts and its wear-off right after its slot.
+## Gear (task 021) is core/combat/gear_triggers.gd; start_fight_in_place calls its fight_start and first_turn
+## trigger points at lines marked "Task 021". Its fight_end point runs from Core.apply().
 ##
 ## Task 013 calls, at lines marked "Task 013": the Bro Meter constants in check_start, thorns reset
 ## at Refresh, Powers' "turn_start" triggers after every Refresh (core/combat/powers.gd), and pocketed
@@ -56,6 +58,7 @@ const Powers := preload("res://core/combat/powers.gd")
 const BroMeter := preload("res://core/combat/bro_meter.gd")
 const ThornsOp := preload("res://core/ops/thorns.gd")
 const CardTriggers := preload("res://core/combat/card_triggers.gd")
+const GearTriggers := preload("res://core/combat/gear_triggers.gd")
 
 ## Enemy tier (core/schema/enemy_def.gd TIERS) -> name of the constant with its solo starting Ick
 ## threshold (GDD "Statuses"). Changes only with the GDD's tiers.
@@ -153,7 +156,11 @@ static func start_fight_in_place(ruleset: Dictionary, state: Dictionary, enemy_d
 	for i: int in state["dudes"].size():
 		Piles.prepare_for_fight_in_place(state, i)
 	events.append(Event.make("fight_started", {"enemy_uids": uids}))
+	# Task 021: Gear that fires at the start of the fight (Arm Wrestling Table), before turn 1.
+	GearTriggers.fight_start_in_place(ruleset, state, events)
 	start_turn_in_place(ruleset, state, events)
+	# Task 021: Gear that fires on the first turn, right after its Refresh (Backwards Cap).
+	GearTriggers.first_turn_in_place(ruleset, state, events)
 
 
 ## Turn flow steps 1-2, then stops in step 3: the turn number rises by 1 (turn_started), every
