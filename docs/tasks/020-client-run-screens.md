@@ -54,3 +54,20 @@ and screen state in `core/schema/`; task 027's `to_bytes` / `from_bytes`; task 0
   fight or run-over screen; `client/run/save_store.gd` writes `user://` saves (temp file, then
   rename). Map and offer screens share one small interface (`show_state`, `request_made`) so they
   can be built in parallel. Making the menu the main scene is a separate contract PR (`project.godot`).
+- 2026-10-10 B (run core, branch `b/020-run-core`): Done: `client/run/run_screen.gd` + `.tscn`
+  (`screen_for()` routes on run_phase, a running fight in `combat`, and otherwise the node's offers;
+  `send()` adds player_id and seq = local last_seq + 1; the run screen is the fight screen's gateway,
+  so every request goes through one `apply()` and is kept in `sent_requests`); `client/run/main_menu.gd`
+  (New Run from a typed seed, or a client-picked one that is shown; Continue; load errors offer New
+  Run); `client/run/save_store.gd` (`user://` only, `<path>.tmp` then rename). Saving: after every
+  applied request outside a running fight, and when a new run starts; a finished run deletes the save.
+  `fight_screen.gd` gained `state_applied(state)` and skips redrawing a state with no fight.
+  Verified: `tools/test.sh` -> 453 passed, 0 failed (new: `tests/client/test_run_screen.gd`, 7 tests;
+  `tests/client/test_save_store.gd`, 3 tests); `godot --headless --path . --quit-after 60` and the same
+  with `res://client/run/run_screen.tscn`: no errors. Not done: the map and offer screens (separate
+  work; the one-code-path test emits their `request_made` directly); making `run_screen.tscn` the main
+  scene (contract PR: `run/main_scene="res://client/run/run_screen.tscn"` in `project.godot`).
+  Notes for the map/offer screens: they are added to the tree before `show_state()` is first called,
+  and `show_state()` is called again on the same instance after every applied request; the offer
+  screen is also shown in run_phase "node" when this player has no open offers (co-op: waiting on the
+  others) and must draw an empty list as waiting.

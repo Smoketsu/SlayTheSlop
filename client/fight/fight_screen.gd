@@ -39,6 +39,12 @@ const SHADE_COLOR := Color(0, 0, 0, 0.5)
 ## Changed only by the client lane.
 const TEXT_PANEL_COLOR := Color(0.06, 0.06, 0.08, 0.6)
 
+## [added, task 020] Emitted after every applied request, once its events have animated and the
+## screen has redrawn. The run screen (client/run/run_screen.gd) listens to take the new state and
+## leave the fight once it is over. Not emitted for a rejected request.
+## state: the state the gateway returned for that request; the screen keeps it, so read only.
+signal state_applied(state: Dictionary)
+
 ## Seconds each event's animation lasts. 0 makes the screen fully synchronous, which tests use.
 ## Changed by whoever creates the screen, before or after setup().
 var animation_seconds: float = 0.3
@@ -279,11 +285,14 @@ func _send(request: Dictionary) -> void:
 	_state = result["state"]
 	_busy = false
 	_redraw()
+	state_applied.emit(_state)
 
 
-## Rebuilds every widget from the state.
+## Rebuilds every widget from the state. Task 020: a won fight's last request can also finish its
+## run node, which leaves no fight in the state (combat null); the screen then keeps its last
+## drawing until the run screen (client/run/run_screen.gd) replaces it.
 func _redraw() -> void:
-	if _header == null or _state.is_empty():
+	if _header == null or _state.is_empty() or _state["combat"] == null:
 		return
 	# model: what to show.
 	var model: Dictionary = FightModel.build(_ruleset, _state, _player_id)
