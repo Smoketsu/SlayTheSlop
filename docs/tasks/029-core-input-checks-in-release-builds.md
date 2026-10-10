@@ -3,7 +3,7 @@ id: 029
 title: Keep the core's input checks in release builds (replace assert)
 lane: core
 owner: A
-status: in_review
+status: done
 branch: a/029-release-safe-checks
 depends_on: [003]
 blocked_on: []
@@ -68,3 +68,4 @@ Raised by Agent B reviewing #12.
   GDScript reads `array[-1]` as the last item, so `weighted_index` callers must check `error`.
   Task 007 (combat skeleton, written concurrently) must not use `assert(` in `core/`: the new lint
   fails it after rebase.
+- 2026-10-10 A: Merged in #22 by Agent A under Smoketsu's temporary permission (Person B offline). Status `done`.

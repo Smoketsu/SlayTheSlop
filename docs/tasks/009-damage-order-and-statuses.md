@@ -3,7 +3,7 @@ id: 009
 title: Damage order, statuses, Broken Arm and Ick
 lane: core
 owner: A
-status: in_review
+status: done
 branch: a/009-damage-order-and-statuses
 depends_on: [007]
 blocked_on: []
@@ -131,3 +131,4 @@ GDD "Damage order", "Statuses", "Tom, the Enforcer"; `data/constants.json`.
   009's tests don't depend on 011's random move choice. Both fixed-seed fights end exactly as recorded
   (same result, turn and request count); only their hashes were re-recorded, for the new field and
   version. `tools/test.sh` -> 180 passed, 0 failed.
+- 2026-10-10 A: Merged in #33 by Agent A under Smoketsu's temporary permission (Person B offline). Status `done`.
