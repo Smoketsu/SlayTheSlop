@@ -36,6 +36,10 @@ const SPEC := {
 	"ick": TYPE_INT,
 	# Ick value at which the enemy is Grossed Out. Starts at ICK_BASE_NORMAL / _RIVAL / _BOSS by tier.
 	"ick_threshold": TYPE_INT,
+	# [added, task 009] Actions this enemy will skip because it was Grossed Out, 0 or more. Each
+	# Grossed Out adds 1 (G6); each action it skips in the enemy phase uses 1. While above 0 the
+	# client shows the enemy's intent as skipped. Changed only by the rules core.
+	"grossed_out_skips": TYPE_INT,
 	# What the enemy will do next (see INTENT_SPEC), or null before the first intent is chosen.
 	"intent": [TYPE_DICTIONARY, TYPE_NIL],
 	# [added, task 011] Move id of every intent this enemy has chosen in this fight, oldest first: one
@@ -71,6 +75,7 @@ static func blank(uid: String, def_id: String) -> Dictionary:
 		"armless_used": false,
 		"ick": 0,
 		"ick_threshold": 0,
+		"grossed_out_skips": 0,
 		"intent": null,
 		"move_history": [],
 	}
@@ -87,6 +92,8 @@ static func check(enemy: Variant, path: String = "enemy") -> Array[String]:
 		errors.append_array(Shape.check(enemy["intent"], INTENT_SPEC, path + ".intent"))
 	if enemy["broken_arms"] < 0 or enemy["broken_arms"] > enemy["arm_count"]:
 		errors.append("%s.broken_arms: %d is outside 0..arm_count (%d)" % [path, enemy["broken_arms"], enemy["arm_count"]])
+	if enemy["grossed_out_skips"] < 0:
+		errors.append("%s.grossed_out_skips: %d is below 0" % [path, enemy["grossed_out_skips"]])
 	for status: String in enemy["statuses"].keys():
 		if enemy["statuses"][status] <= 0:
 			errors.append("%s.statuses.%s: stacks must be 1 or more" % [path, status])
