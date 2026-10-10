@@ -1,0 +1,11 @@
+{
+  "id": "basement_goblin_pledges",
+  "floor": 1,
+  "node": "brawl",
+  "early": true,
+  "enemies": [
+    "goblin_pledge",
+    "goblin_pledge"
+  ],
+  "text": "G19 Brawl: Goblin Pledge x2. Early: only Pledges"
+}

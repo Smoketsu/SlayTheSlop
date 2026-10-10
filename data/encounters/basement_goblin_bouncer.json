@@ -1,0 +1,10 @@
+{
+  "id": "basement_goblin_bouncer",
+  "floor": 1,
+  "node": "brawl",
+  "early": true,
+  "enemies": [
+    "goblin_bouncer"
+  ],
+  "text": "G19 Brawl: Goblin Bouncer. Early: a Bouncer"
+}

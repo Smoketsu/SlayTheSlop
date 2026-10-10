@@ -1,0 +1,11 @@
+{
+  "id": "basement_pledge_and_intern",
+  "floor": 1,
+  "node": "brawl",
+  "early": true,
+  "enemies": [
+    "goblin_pledge",
+    "skeleton_intern"
+  ],
+  "text": "G19 Brawl: Goblin Pledge + Skeleton Intern. Early per gap G61 (only Pledges and an Intern)"
+}
