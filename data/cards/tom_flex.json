@@ -1,0 +1,19 @@
+{
+  "id": "tom_flex",
+  "name": "Flex",
+  "owner": "tom",
+  "type": "skill",
+  "rarity": "starter",
+  "cost": 1,
+  "target": "self",
+  "effects": [
+    {
+      "op": "guard",
+      "amount": 5
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Gain 5 Guard"
+}

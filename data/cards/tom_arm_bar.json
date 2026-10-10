@@ -1,0 +1,27 @@
+{
+  "id": "tom_arm_bar",
+  "name": "Arm Bar",
+  "owner": "tom",
+  "type": "attack",
+  "rarity": "starter",
+  "cost": 2,
+  "target": "enemy",
+  "effects": [
+    {
+      "op": "damage",
+      "amount": 8,
+      "hits": 1
+    },
+    {
+      "op": "apply_status",
+      "status": "broken_arm",
+      "stacks": 1
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {
+    "effects[0].amount": 11
+  },
+  "text": "Deal 8 damage. Break 1 arm"
+}

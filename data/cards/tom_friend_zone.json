@@ -1,0 +1,38 @@
+{
+  "id": "tom_friend_zone",
+  "name": "Friend Zone",
+  "owner": "tom",
+  "type": "power",
+  "rarity": "rare",
+  "cost": 2,
+  "target": "none",
+  "effects": [],
+  "power_triggers": [
+    {
+      "when": "turn_start",
+      "target": "all_enemies",
+      "effects": [
+        {
+          "op": "apply_status",
+          "status": "ick",
+          "stacks": 1
+        }
+      ]
+    },
+    {
+      "when": "enemy_grossed_out",
+      "target": "subject",
+      "effects": [
+        {
+          "op": "apply_status",
+          "status": "exposed",
+          "stacks": 2
+        }
+      ]
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "text": "At the start of each turn, apply 1 Ick to all enemies. Grossed Out enemies also become Exposed for 2 turns"
+}

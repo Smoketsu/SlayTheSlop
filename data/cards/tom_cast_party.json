@@ -1,0 +1,19 @@
+{
+  "id": "tom_cast_party",
+  "name": "Cast Party",
+  "owner": "tom",
+  "type": "skill",
+  "rarity": "uncommon",
+  "cost": 1,
+  "target": "self",
+  "effects": [
+    {
+      "op": "guard_per_broken_arm",
+      "amount": 4
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Gain 4 Guard for every Broken Arm on all enemies"
+}
