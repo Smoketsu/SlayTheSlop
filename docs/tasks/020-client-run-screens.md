@@ -3,8 +3,8 @@ id: 020
 title: Placeholder run screens - menu, map, rewards, Tailgate, Baileys, Side Quest, run over, saving
 lane: client
 owner: B
-status: open
-branch:
+status: in_progress
+branch: b/020-run-screens
 depends_on: [018, 025, 027]
 blocked_on: []
 files:
@@ -41,9 +41,16 @@ and screen state in `core/schema/`; task 027's `to_bytes` / `from_bytes`; task 0
 ## Notes
 
 - **Baileys sells weed, not drinks.** Anything said or sold there is weed or Shake. Whether the
-  player can see which Brew a Shake is before buying is not in the GDD; ask, do not choose.
+  player can see which Brew a Shake is before buying was answered by G29 (accepted by both people):
+  Baileys shows each Brew's name and effect, labelled Shake. The drink-named Brews were renamed (#78).
 - Solo still goes through `vote_node` and per-player rewards; do not shortcut them, co-op reuses this.
 - Real file access is allowed in `client/` only. Never pass a path into the core.
 - Screen art and sources go in `client/ASSETS.md`, as in task 018.
 
 ## Log
+
+- 2026-10-10 B: Claimed (steamjgrube: "work on task 20"). Plan: `client/run/run_screen.gd` routes on
+  the run state alone (`run_phase`, the player's `offers`, an active fight) to a menu, map, offer,
+  fight or run-over screen; `client/run/save_store.gd` writes `user://` saves (temp file, then
+  rename). Map and offer screens share one small interface (`show_state`, `request_made`) so they
+  can be built in parallel. Making the menu the main scene is a separate contract PR (`project.godot`).
