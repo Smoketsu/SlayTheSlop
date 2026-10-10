@@ -55,6 +55,7 @@ GDD "Turn flow" steps 1 and 5, "Enemies" intro, "Difficulty scaling" (targets pe
   - Constants (`docs/changes/2026-10-10-011-constants.md`): `MULTI_TARGET_COUNT` = 2.
 
 ## Log
+- 2026-10-10 A: Claimed. Every rule gap it waited on is answered "accept" (PR #20).
 
 - 2026-10-10 A: G11 answered "accept". G30 ("an enemy's Guard drops to 0 at the start of its own
   action, before it acts") was given as accepted by the lead. G30 is not yet written in

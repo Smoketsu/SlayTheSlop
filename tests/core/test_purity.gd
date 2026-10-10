@@ -27,7 +27,12 @@ const BANNED := {
 	"\\bextends\\s+(Node\\w*|Control|CanvasItem|Resource|SceneTree|Object)\\b": "core classes must be RefCounted (or plain scripts)",
 	"\\bawait\\b": "await depends on frame timing",
 	"\\b(Thread|Mutex|Semaphore|WorkerThreadPool)\\b": "threads make order nondeterministic",
+	"\\bassert\\s*\\(": "assert() is removed from release builds; report bad input through an error field (task 029, core/rng/rng.gd header)",
 }
+
+## The assert() ban from BANNED, kept as its own constant so its self-test names it directly.
+## Must equal the matching key of BANNED. Who may change it: Agent A, together with BANNED.
+const ASSERT_PATTERN := "\\bassert\\s*\\("
 
 ## Pattern allowed only inside RNG_DIR.
 const RNG_ONLY := "\\bRandomNumberGenerator\\b"
@@ -66,6 +71,30 @@ func test_checker_sees_code_not_comments() -> void:
 	assert_true(rand.search(lines[0]) == null, "comment must be ignored")
 	assert_true(rand.search(lines[1]) != null, "real call must be found")
 	assert_true(RegEx.create_from_string("\\bTime\\s*\\.").search(lines[2]) == null, "string must be ignored")
+
+
+## The assert() ban catches a real assert, including one with a space before the parenthesis,
+## ignores the word in a comment or string, and does not catch names that only start with
+## "assert" (the test framework's assert_eq, assert_true ...).
+func test_checker_bans_assert() -> void:
+	assert_true(BANNED.has(ASSERT_PATTERN), "the assert ban is one of the BANNED patterns")
+	# sample: real asserts on lines 2 and 3; line 1 is a comment, line 4 a string, line 5 a longer name.
+	var sample: String = "\n".join([
+		"# assert(x) in a comment",
+		"\tassert(hi >= lo, \"bad range\")",
+		"\tassert (ok)",
+		"var s: String = \"assert(false)\"",
+		"\tassert_eq(a, b)",
+	])
+	# lines: sample after stripping.
+	var lines: PackedStringArray = strip_comments_and_strings(sample).split("\n")
+	# ban: the compiled assert pattern.
+	var ban: RegEx = RegEx.create_from_string(ASSERT_PATTERN)
+	assert_true(ban.search(lines[0]) == null, "comment must be ignored")
+	assert_true(ban.search(lines[1]) != null, "real assert must be found")
+	assert_true(ban.search(lines[2]) != null, "assert with a space must be found")
+	assert_true(ban.search(lines[3]) == null, "string must be ignored")
+	assert_true(ban.search(lines[4]) == null, "assert_eq is not assert")
 
 
 ## Returns source with every comment removed and every string literal's contents replaced by

@@ -35,6 +35,7 @@ GDD "Damage order", "Statuses", "Tom, the Enforcer"; `data/constants.json`.
 - [x] Every tuning number comes from `ruleset.constants`. No value from `constants.json` (0.75, 1.5, 0.4, the Ick bases, the step) is written as a literal in `core/`; the PR description says how this was checked. (See the log.)
 
 ## Log
+- 2026-10-10 A: Claimed. Every rule gap it waited on is answered "accept" (PR #20).
 - 2026-10-10 A: Built on branch `a/009-damage-order-and-statuses`, on top of task 007's unmerged
   branch (PR #23). The lead assigned the task; G1–G7 and G27 were answered "accept", so the
   "Suggested" text in `docs/proposals/solo-slice-rule-gaps.md` is the rule. That file in this
