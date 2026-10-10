@@ -21,6 +21,8 @@ covers the rules that span files.
 | `card_def.gd` | A card definition file in `data/cards/` | "Card definition fields" |
 | `enemy_def.gd` | An enemy definition file in `data/enemies/` | "Enemy fields" (fixed values) |
 | `dude_def.gd` | A Dude definition file in `data/dudes/` | The Dude attribute tables (no field table; added) |
+| `gear_def.gd` | A Gear definition file in `data/gear/`: stats, triggers, modifiers | "Items" Gear tables (no field table; added, task 021) |
+| `brew_def.gd` | A Brew definition file in `data/brews/`, with an optional solo variant | "Items" Brews table (no field table; added, task 021) |
 | `shape.gd` | The type checker the files above use | — |
 | `json_values.gd` | JSON parsing that turns whole numbers back into ints | — |
 
@@ -28,7 +30,8 @@ Each state or definition file has a `SPEC` (field → type), a `blank()` or noth
 `check(value) -> Array[String]` that returns every problem found (empty means valid). Checks are
 strict: unknown fields are errors, and an `int` field holding `3.0` is an error.
 
-Gear, Brew and Side Quest definition formats are not here yet (tasks 021 and 025).
+The Side Quest definition format is not here yet (task 025). Which effect operations, Gear trigger
+points and targets exist is the core lane's catalogue, `core/ops/README.md`.
 
 ## The core's entry point
 
