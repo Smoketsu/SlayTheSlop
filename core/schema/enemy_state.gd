@@ -38,6 +38,11 @@ const SPEC := {
 	"ick_threshold": TYPE_INT,
 	# What the enemy will do next (see INTENT_SPEC), or null before the first intent is chosen.
 	"intent": [TYPE_DICTIONARY, TYPE_NIL],
+	# [added, task 011] Move id of every intent this enemy has chosen in this fight, oldest first: one
+	# entry per intent_set, appended when the intent is chosen (a move it later skips still counts).
+	# [] until its first intent. Used for the "never the same move three times in a row" rule and to
+	# find its place in a scripted pattern (enemy_def.gd "pattern"). Grows by 1 per turn.
+	"move_history": {"list_of": TYPE_STRING},
 }
 
 ## Shape of an intent (GDD "intent").
@@ -67,6 +72,7 @@ static func blank(uid: String, def_id: String) -> Dictionary:
 		"ick": 0,
 		"ick_threshold": 0,
 		"intent": null,
+		"move_history": [],
 	}
 
 
