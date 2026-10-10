@@ -69,6 +69,7 @@ The setting is a fantasy kingdom that works exactly like a college campus. The d
 | Event | Side Quest |
 | Rest site | The Tailgate |
 | Shop | Baileys |
+| Potion bought at the shop | Shake |
 | Exhaust | Tapped |
 | Ascension level | Keg Level |
 
@@ -129,7 +130,7 @@ A run is three floors of about 15 nodes each, then a final boss; the party picks
 | Rival | Elite fight. Reward: a Gear, 25–35 Beer Money, 1 of 3 cards | 10% |
 | Side Quest | A short choice with a safe option and a dumb option | 20% |
 | The Tailgate | Nap (heal 30% of max HP) or Lift (upgrade one card) | 12% |
-| Baileys | Buy cards, Gear and Brews; pay to remove a card | 8% |
+| Baileys | Buy cards, Gear and Shake; pay to remove a card | 8% |
 | Loot | Free Gear from an unattended cooler | 5% |
 | Boss | End of the floor. Reward: 1 of 3 Boss Gear, full heal | 1 per floor |
 
@@ -553,7 +554,7 @@ Any Dude can find these. In co-op, Gear belongs to the player who drafts it.
 | Wraparound Shades | Uncommon | Attacks | Exposed you apply lasts 1 turn longer |
 | Beer Goggles | Uncommon | Rewards | Card rewards offer 4 cards instead of 3. One of them has its text hidden |
 | Participation Trophy | Uncommon | Healing | If you end a fight below 50% HP, heal 8 |
-| Fake ID | Uncommon | Shop | Prices at Baileys are 20% lower |
+| Medical Card | Uncommon | Shop | Prices at Baileys are 20% lower |
 | Spotter's Gloves | Uncommon | Co-op | When you give Guard to a teammate, gain half that much. Solo: Assist cards give 2 more Guard |
 | Championship Ring | Rare | Attacks | Attacks that cost 2 or more Hype deal 4 more damage |
 | Protein Bucket | Rare | Stat | +2 Swole, −1 Chill |
@@ -604,11 +605,13 @@ Drinking a Brew costs no Hype and can be done at any point in the player phase.
 
 ### Prices at Baileys
 
+Baileys sells weed, not drinks. Its single-use stock is called Shake and is drawn only from the weed items in the Brews table (Special Brownie, Party Bowl). Once bought, Shake sits in a Brew slot and is used like any Brew.
+
 | Item | Beer Money |
 | --- | --- |
 | Card | 50–150 by rarity |
 | Gear | 150–300 by rarity |
-| Brew | 50–75 |
+| Shake | 50–75 |
 | Remove a card | 75, rising by 25 each time |
 
 ## Enemies
@@ -1053,6 +1056,7 @@ No dates are set yet. Each phase has a gate that must pass before the next one s
 
 | Version | Date | Change | Reason |
 | --- | --- | --- | --- |
+| 0.5 | 2026-10-10 | Baileys sells weed instead of drinks. Its single-use stock is now Shake, drawn only from weed items. Fake ID renamed to Medical Card. Rules otherwise unchanged | Requested re-theme |
 | 0.4 | 2026-10-10 | Final floor renamed from The Afterparty to The Drive Home. The Hangover's phases renamed to Packing the Car, The Quiet Stretch and The Drive-Thru. Rules unchanged | Requested re-theme |
 | 0.3 | 2026-10-10 | Fifth Dude added: Ethan, the Foreman, with Crash, Scaffolding and Rolls, 14 cards, 2 Gear, a Bro Move and an unlock condition. New fields: crash, roll, scaffolding, nap\_turns, skip\_next\_nap, dice stream, SCAFFOLDING\_MAX, NAP\_WAKE\_ON\_ASSIST. Card target raised from 260 to 320 | New character requested |
 | 0.2 | 2026-10-10 | Floor 2 is now Dylan's Keep and floor 3 is Firefly Music Festival, each with 11 new enemies and 2 new bosses. The Haunted Quad, The Dean's Keep and their enemies and bosses are removed | Requested re-theme |

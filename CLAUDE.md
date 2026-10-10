@@ -3,8 +3,9 @@
 Dungeon Dudes is a co-op roguelike deckbuilder (1–4 players online) about five fantasy frat bros.
 The full design is in `docs/GDD.md`. Read the sections your task touches before writing anything.
 
-Several agents work in this repository at the same time. Most of this file exists to stop you
-from colliding with them. Follow it even when a shortcut looks harmless.
+Two Claude Code agents work in this repository at the same time, each driven by a different person.
+Most of this file exists so the two of you never edit the same lines, never overwrite each other,
+and can always see what the other one is doing. Follow it even when a shortcut looks harmless.
 
 ## Status
 
@@ -16,61 +17,66 @@ from colliding with them. Follow it even when a shortcut looks harmless.
 - Out of scope does not mean ignore. See "Build for co-op from the first commit" below.
 
 Items marked **(proposed)** in this file are defaults nobody has confirmed. If your task depends on
-one, say so in your PR so the owner can confirm or change it. Do not treat them as settled.
+one, say so in your PR so both people can confirm or change it. Do not treat them as settled.
 
 ## Sources of truth
 
 | Question | Where the answer lives |
 | --- | --- |
 | What the game is, rules, numbers, names | `docs/GDD.md` |
-| How agents work in this repo | This file |
+| How the two agents work in this repo | This file |
 | What a field, variable or constant means | GDD "Technical design" tables, then the code comment on it |
 | Who is doing what right now | `docs/tasks/` |
 
 - If the GDD and this file disagree on design, the GDD wins. On process, this file wins.
-- `docs/GDD.md` is an exported snapshot (version 0.4) of a document the owner edits elsewhere.
-  **Do not edit it.** To change the design, add `docs/proposals/<short-name>.md` stating what
-  changes and why, and stop work that depends on it until the owner answers.
+- `docs/GDD.md` is an exported snapshot (version 0.5) of a document the owner edits elsewhere.
+  **Agents do not edit it.** To change the design, add `docs/proposals/<short-name>.md` stating
+  what changes and why, and stop work that depends on it until a person answers.
 - Every number in the GDD is an untested starting value. Implement it as written and keep it in
   data so it can be tuned. Do not "fix" balance on your own.
 - The GDD's "Open questions" list is undecided. Never pick an answer yourself.
 
-## Working alongside other agents
+## The two agents
 
-### One task, one owner, one branch
+### Who is who (proposed)
 
-1. Tasks are files: `docs/tasks/<id>-<slug>.md`, one per task, with `status`, `owner`, `lane`,
-   `files`, and acceptance checks. One file per task keeps agents out of each other's diffs.
-2. Claim a task before touching code: set `status: in_progress` and `owner` in a PR that
-   contains only that change, and get it merged first. If the task is already claimed, pick another.
-3. Work on a branch named `task/<id>-<slug>`. One task per branch, one branch per PR.
-4. If you share a checkout with another agent, use your own git worktree. Never switch branches
-   in a directory another agent is using.
-5. Never commit to `main` directly, never force-push a branch you did not create, and never
-   rewrite history that has been pushed.
-6. Rebase on `main` before opening the PR and again if `main` moves under you.
+| Agent | Works for | Lanes it owns | Branch prefix |
+| --- | --- | --- | --- |
+| Agent A | Person A (fill in) | `core`, `run` | `a/` |
+| Agent B | Person B (fill in) | `content`, `tools`, `client` | `b/` |
 
-### Stay in your lane
+- At the start of a session, find out which agent you are. Ask your person if you cannot tell from
+  the branch you were given or from a previous task file you own.
+- The split follows the dependency order of milestone 2: A builds the rules, B feeds them data,
+  tests and a screen. Either person can move a lane between agents by editing this table in its
+  own PR.
+- You may only claim tasks in the lanes your agent owns. If you have nothing left, write the task
+  you would like the other agent to do instead of crossing into their lane.
 
-Each task names a lane, and a lane owns directories. Edit files only inside your lane.
+### Lanes and directories
+
+Each lane owns directories. Edit files only inside the lanes your agent owns.
 
 | Lane | Owns | Does |
 | --- | --- | --- |
 | `core` | `core/` except `core/run/` and `core/schema/` | Rules: state, requests, events, damage order, statuses, enemy AI |
-| `content` | `data/` except `data/constants.json` | Card, enemy, Gear, Brew and Side Quest definitions |
-| `client` | `client/` | Screens, input, animation of events |
 | `run` | `core/run/` | Map generation, node flow, rewards, shop, save and load |
-| `tools` | `tools/`, `tests/` | Test harness, bot players, balance simulation |
+| `content` | `data/` except `data/constants.json` | Card, enemy, Gear, Brew and Side Quest definitions |
+| `tools` | `tools/`, `tests/` except `tests/core/` and `tests/run/` | Test harness, bot players, balance simulation, data validation |
+| `client` | `client/` | Screens, input, animation of events |
 
-- If your task needs a change in another lane, do not make it. Open a task for that lane and
-  describe the exact change you need.
+- Tests for a lane live with that lane's owner: Agent A writes `tests/core/` and `tests/run/`,
+  Agent B writes everything else under `tests/`. Neither agent edits the other's tests.
+- If your task needs a change in the other agent's lane, do not make it. Open a task for that lane
+  describing the exact change you need, and carry on with something else.
 - Do not reformat, rename, reorder or "tidy" anything your task does not require. Cosmetic diffs
-  in shared files cause conflicts for every other agent.
-- Do not delete or rewrite another agent's work because it looks wrong. Report it in a task.
+  in shared files cause conflicts for the other agent.
+- Do not delete or rewrite the other agent's work because it looks wrong. Report it in a task or
+  as a suggested change on their PR (see "Reviewing the other agent's work").
 
 ### Shared contracts
 
-These files are read by every lane. A change to one can break agents who are mid-task.
+These files are read by both agents. A change to one can break the other agent mid-task.
 
 - `core/schema/` (shapes of state, requests and events)
 - `data/constants.json` (all tuning constants)
@@ -80,13 +86,68 @@ These files are read by every lane. A change to one can break agents who are mid
 Rules for changing a contract:
 
 1. Change it in its own small PR that contains nothing else.
-2. Additive changes (a new optional field, a new constant) are fine.
-3. Renaming, removing or changing the meaning of a field needs a proposal and owner approval.
-4. Update the matching GDD-style table and code comments in the same PR.
+2. Additive changes (a new optional field, a new constant) are fine from either agent.
+3. Renaming, removing or changing the meaning of a field needs a proposal and a person's approval.
+4. A contract PR needs approval from the **other** agent's person before it merges. Never merge
+   your own contract change.
+5. Update the matching GDD-style table and code comments in the same PR.
+6. After a contract PR merges, the other agent rebases before its next push.
+
+## Working rules
+
+### One task, one owner, one branch
+
+1. Tasks are files: `docs/tasks/<id>-<slug>.md`, one per task, with `status`, `owner` (`A` or
+   `B`), `lane`, `files`, `depends_on` and acceptance checks. One file per task keeps the two
+   agents out of each other's diffs.
+2. Task ids are numbers. Agent A uses odd numbers, Agent B uses even numbers, so the two of you
+   never create the same id at the same time. **(proposed)**
+3. Claim a task before touching code: set `status: in_progress` and `owner` in a PR that contains
+   only that change, and get it merged first. If the task is already claimed, pick another.
+4. Work on a branch named `<prefix><id>-<slug>`, for example `a/007-damage-order`. One task per
+   branch, one branch per PR. If your session assigns you a branch name, use that one and record
+   it in the task file.
+5. If you share a checkout with the other agent, use your own git worktree. Never switch branches
+   in a directory the other agent is using.
+6. Never commit to `main` directly, never push to a branch the other agent created, and never
+   rewrite history that has been pushed.
+7. Rebase on `main` before opening the PR and again if `main` moves under you.
+
+### Suggest, do not overwrite
+
+The two people review each other's agent's work. Everything goes through a pull request.
+
+- Open a PR for every change, even a one-line fix. Never merge your own PR; the other person
+  merges it after review. **(proposed)**
+- When you review the other agent's PR, put fixes in GitHub suggested-change blocks so the author
+  can accept or reject them line by line:
+
+  ````
+  ```suggestion
+  the replacement line
+  ```
+  ````
+
+- Do not push commits to the other agent's branch to "help". A suggestion is the only way you
+  change their work.
+- Larger concerns (a different design, a missing case) go in a normal review comment that says
+  what you would change and why. The author decides.
+- When you receive a suggestion, accept it, or reply saying why not. Never leave one silent.
+
+### Dependencies between the two agents
+
+Most milestone 2 work flows one way: schema, then rules and data, then tests and the client.
+
+- List what your task waits on in `depends_on`. Do not start a task whose dependencies are not
+  merged; pick another or stub against the merged schema only.
+- If you are blocked on the other agent, say so in your task file (`status: blocked`, plus what
+  you need) and tell your person. Do not build the missing piece yourself.
+- If both agents need the same new file, the lane table decides who creates it. If the table does
+  not decide it, stop and ask.
 
 ### Handoffs
 
-Another agent will pick up where you stop, with none of your context. In every PR description and
+Either agent may pick up where you stop, with none of your context. In every PR description and
 in the task file, state:
 
 - What is done and how you verified it (the command you ran and its result).
@@ -124,7 +185,8 @@ The same seed and the same requests must always produce the same state.
 
 - Cards, enemies, Gear, Brews and Side Quests are data files, not code. Adding a card should not
   need a `core` change unless it needs a new effect operation.
-- A new effect operation (`op`) belongs to the `core` lane. Request it; do not add it from `content`.
+- A new effect operation (`op`) belongs to the `core` lane. Agent B requests it in a task;
+  Agent A builds it.
 - Every balance number lives in `data/constants.json` under the names in the GDD "Tuning
   constants" table. No magic numbers in code.
 
@@ -144,7 +206,8 @@ Networking is out of scope, but the solo slice must not need a rewrite to add it
 - Use the GDD's field names in code and data exactly: `hype`, `guard`, `beer_money`, `swole`,
   `chill`, `clout`, `broken_arms`, `ick_threshold`, `abs_ready`, and so on.
 - Use the GDD's themed terms in everything a player reads: Hype, Guard, Beer Money, Gear, Brew,
-  Rival, Side Quest, The Tailgate, Baileys, Tapped, Keg Level. The glossary is in "Tone and humor".
+  Shake, Rival, Side Quest, The Tailgate, Baileys, Tapped, Keg Level. The glossary is in
+  "Tone and humor".
 - Content ids are `snake_case` in the form `owner_card_name`, for example `tom_arm_bar`.
   An id never changes once merged, because saves refer to it. Changing a display name is fine.
 - Do not reuse the id of removed content.
@@ -157,8 +220,8 @@ This is a hard requirement from the owner, not a style preference.
   its unit or range, and who may change it. "Obvious" names still get one.
 - A field that appears in a GDD table carries the same meaning in its code comment.
 - Every PR adds one file, `docs/changes/<date>-<task-id>.md`, listing what changed, why, and each
-  variable, field or constant that was added, renamed or removed. One file per PR means agents
-  never edit the same change log.
+  variable, field or constant that was added, renamed or removed. One file per PR means the two
+  agents never edit the same change log.
 - A new field, constant or message is not finished until it is documented in the same PR.
 
 ## Writing and content rules
@@ -169,6 +232,9 @@ All player-facing text follows the GDD "Rules for writers". The short version:
 - No slurs, no sexual content, no jokes that need a victim to work.
 - Tom's Ick is repellence that works on every enemy alike. Do not write it as hostility toward
   women. He thinks it is charisma.
+- **Baileys sells weed, not drinks.** Anything sold at, said at or tied to Baileys is weed or
+  Shake. Do not write Brews, beer or other drinks into Baileys. Brews still exist elsewhere
+  (rewards, Loot, Mimic Cooler).
 - The Dudes, Dylan and Baileys may be named after real people or places. Do not add surnames,
   likenesses or personal details beyond what the GDD already contains.
 - Firefly, Dragon Quest, Warhammer and Dungeons & Dragons are real brands and their use is an
@@ -185,21 +251,24 @@ All player-facing text follows the GDD "Rules for writers". The short version:
 | Data format | JSON, shaped like the GDD's example card definition | Proposed |
 | Core classes | Plain data and `RefCounted` only, no `Node` | Follows from "the rules core is pure" |
 
-The first task in the `core` lane must get the engine and language confirmed by the owner before
-any engine code is committed.
+Agent A's first `core` task must get the engine and language confirmed by both people before any
+engine code is committed. Agent B may write JSON data and its validation before then, since
+neither depends on the engine.
 
 ### Layout (proposed)
 
 Directories are created by the first task that needs them.
 
 ```
-core/            rules core, pure and headless
-core/schema/     shared shapes of state, requests and events
-core/run/        map, node flow, rewards, shop, save and load
-data/            cards/, enemies/, gear/, brews/, side_quests/, constants.json
-client/          scenes, UI, animation
-tools/           bot players and balance simulation
-tests/           automated tests for core and data
+core/            rules core, pure and headless             (Agent A)
+core/schema/     shared shapes of state, requests, events  (contract)
+core/run/        map, node flow, rewards, shop, save/load  (Agent A)
+data/            cards/, enemies/, gear/, brews/, side_quests/  (Agent B)
+data/constants.json                                        (contract)
+client/          scenes, UI, animation                     (Agent B)
+tools/           bot players and balance simulation        (Agent B)
+tests/core/, tests/run/                                    (Agent A)
+tests/           everything else                           (Agent B)
 docs/            GDD.md, tasks/, changes/, proposals/
 ```
 
@@ -212,14 +281,16 @@ exact commands here, in its own contract PR.
 
 - [ ] Every acceptance check in the task file passes, and you ran it yourself.
 - [ ] Tests exist for the rule or content you added, including a fixed-seed case.
-- [ ] Nothing outside your lane changed.
+- [ ] Nothing outside your agent's lanes changed.
 - [ ] Every new variable, field and constant is commented and listed in your change file.
 - [ ] The task file says what is done, what is not, and how you verified it.
+- [ ] The PR is open for the other person to review; you did not merge it yourself.
 
-## Stop and ask the owner when
+## Stop and ask your person when
 
 - Your task needs an answer to one of the GDD's open questions.
 - The GDD is silent or contradicts itself on a rule you must implement. Do not invent the rule.
 - You need to rename or remove a shared contract field, or change a merged content id.
 - You would have to delete or overwrite work you did not create.
-- Two tasks claim the same files.
+- Both agents claim the same files, or the lane table does not say who owns a file.
+- You are blocked on the other agent for longer than one task.
