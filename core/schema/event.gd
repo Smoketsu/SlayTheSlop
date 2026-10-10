@@ -59,7 +59,7 @@ const TYPES := {
 	"armless": {"enemy_uid": TYPE_STRING},
 	# An enemy carried out a move. move_id: the move.
 	"enemy_acted": {"enemy_uid": TYPE_STRING, "move_id": TYPE_STRING},
-	# An enemy skipped its action. reason: "grossed_out" or "armless".
+	# An enemy skipped its action. reason: "grossed_out", "armless" or (task 019) "fallen".
 	"enemy_skipped": {"enemy_uid": TYPE_STRING, "reason": TYPE_STRING},
 	# An enemy joined the fight. index: its position in the left-to-right list.
 	"enemy_spawned": {"enemy_uid": TYPE_STRING, "def_id": TYPE_STRING, "index": TYPE_INT},
@@ -120,6 +120,12 @@ const TYPES := {
 	# RA's Noise Complaint. trigger_id: the trigger's id. target_id: the Dude it lands on. The
 	# trigger's effects follow as their own events.
 	"enemy_triggered": {"enemy_uid": TYPE_STRING, "trigger_id": TYPE_STRING, "target_id": TYPE_STRING},
+	# [added, task 019] An enemy started a charge (Goblin King Chad's Keg Stand). helper_uids: the
+	# enemies holding it up; killing all of them makes it fall.
+	"charge_started": {"enemy_uid": TYPE_STRING, "helper_uids": {"list_of": TYPE_STRING}},
+	# [added, task 019] Every helper of an enemy's charge died: the charge is over, it will skip its
+	# next action (enemy_skipped, reason "fallen") and its Exposed follows as status_changed.
+	"enemy_fell": {"enemy_uid": TYPE_STRING},
 }
 
 

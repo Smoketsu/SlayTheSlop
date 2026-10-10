@@ -114,7 +114,8 @@ Used as keys in `statuses`, as `effects[].status` in `apply_status`, and in `sta
 | `ick` | Ick | `enemy.ick` (not `statuses`) |
 | `faded` | Faded (Boo-zer, GDD "Floor 1") | `statuses` (enemies), always 1 stack. Set and cleared only by an enemy's `periodic_statuses` at the start of each turn (task 017), never by `apply_status`, and it does not wear off. A hit on a Faded enemy deals at most `FADED_MAX_DAMAGE` |
 
-Grossed Out is not a status: a pending skip is counted in `enemy.grossed_out_skips` (task 009), and
+A fall (task 019, Goblin King Chad's Keg Stand) is not a status either: its pending skip is counted
+in `enemy.fallen_skips`. Grossed Out is not a status: a pending skip is counted in `enemy.grossed_out_skips` (task 009), and
 Armless is worked out from `broken_arms == arm_count > 0` and `armless_used`.
 
 Bugs (Nate) and later statuses are added when they are built.
