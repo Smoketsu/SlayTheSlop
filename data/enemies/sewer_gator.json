@@ -1,0 +1,35 @@
+{
+  "id": "sewer_gator",
+  "name": "Sewer Gator in a Letterman Jacket",
+  "floor": 1,
+  "tier": "rival",
+  "max_hp": 68,
+  "arm_count": 2,
+  "triggers": [
+    {
+      "id": "letterman_swagger",
+      "on": "unblocked_damage",
+      "effects": [
+        {
+          "op": "gain_swole",
+          "amount": 2
+        }
+      ]
+    }
+  ],
+  "moves": [
+    {
+      "id": "death_roll",
+      "weight": 1,
+      "intent": "attack",
+      "effects": [
+        {
+          "op": "damage",
+          "amount": 5,
+          "hits": 3
+        }
+      ]
+    }
+  ],
+  "text": "Death Roll: 5 damage 3 times. Gains 2 Swole whenever it deals unblocked damage"
+}

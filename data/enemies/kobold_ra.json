@@ -1,0 +1,36 @@
+{
+  "id": "kobold_ra",
+  "name": "Kobold RA",
+  "floor": 1,
+  "tier": "normal",
+  "max_hp": 22,
+  "arm_count": 2,
+  "triggers": [
+    {
+      "id": "noise_complaint",
+      "on": "cards_played",
+      "cards": 5,
+      "repeat": false,
+      "effects": [
+        {
+          "op": "damage",
+          "amount": 5
+        }
+      ]
+    }
+  ],
+  "moves": [
+    {
+      "id": "write_up",
+      "weight": 1,
+      "intent": "attack",
+      "effects": [
+        {
+          "op": "damage",
+          "amount": 6
+        }
+      ]
+    }
+  ],
+  "text": "Noise Complaint: a player who plays 5 or more cards in a turn takes 5 damage. Hits for 6"
+}

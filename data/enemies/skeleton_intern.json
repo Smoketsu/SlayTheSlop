@@ -1,0 +1,44 @@
+{
+  "id": "skeleton_intern",
+  "name": "Skeleton Intern",
+  "floor": 1,
+  "tier": "normal",
+  "max_hp": 18,
+  "arm_count": 2,
+  "pattern": [
+    "hit",
+    "file_paperwork"
+  ],
+  "moves": [
+    {
+      "id": "hit",
+      "weight": 0,
+      "intent": "attack",
+      "effects": [
+        {
+          "op": "damage",
+          "amount": 6
+        }
+      ]
+    },
+    {
+      "id": "file_paperwork",
+      "weight": 0,
+      "intent": "attack",
+      "target": "dude",
+      "effects": [
+        {
+          "op": "damage",
+          "amount": 6
+        },
+        {
+          "op": "add_card",
+          "card_id": "junk_paperwork",
+          "to": "draw_pile",
+          "shuffle_in": true
+        }
+      ]
+    }
+  ],
+  "text": "Hits for 6. Every other turn, shuffles Paperwork into the target's deck"
+}

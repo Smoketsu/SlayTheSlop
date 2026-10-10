@@ -1,0 +1,111 @@
+{
+  "id": "goblin_king_chad",
+  "name": "Goblin King Chad",
+  "floor": 1,
+  "tier": "boss",
+  "max_hp": 140,
+  "arm_count": 2,
+  "tags": [
+    "goblin"
+  ],
+  "arrives_with": [
+    "goblin_pledge",
+    "goblin_pledge"
+  ],
+  "charge": {
+    "move_id": "keg_stand",
+    "turns": 2,
+    "release_move_id": "keg_stand_chug",
+    "helper_def_id": "goblin_pledge",
+    "helpers": 2,
+    "fall_exposed": 2
+  },
+  "move_rules": [
+    {
+      "move_id": "keg_stand",
+      "when": [
+        {
+          "if": "count_at_least",
+          "def_id": "goblin_pledge",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "move_id": "rage_cage",
+      "when": [
+        {
+          "if": "hp_below_percent",
+          "percent": 50
+        }
+      ]
+    },
+    {
+      "move_id": "rush",
+      "when": [
+        {
+          "if": "turn_cycle",
+          "every": 3,
+          "first_turn": 3
+        }
+      ]
+    }
+  ],
+  "moves": [
+    {
+      "id": "paddle_swat",
+      "weight": 1,
+      "intent": "attack",
+      "effects": [
+        {
+          "op": "damage",
+          "amount": 12
+        }
+      ]
+    },
+    {
+      "id": "rush",
+      "weight": 0,
+      "intent": "summon",
+      "effects": [
+        {
+          "op": "summon_enemy",
+          "enemy_id": "goblin_pledge",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "id": "keg_stand",
+      "weight": 0,
+      "intent": "charge",
+      "target": "none",
+      "effects": []
+    },
+    {
+      "id": "keg_stand_chug",
+      "weight": 0,
+      "intent": "attack",
+      "effects": [
+        {
+          "op": "charged_hit",
+          "amount": 30,
+          "cut_per_helper_lost": 10
+        }
+      ]
+    },
+    {
+      "id": "rage_cage",
+      "weight": 0,
+      "intent": "attack",
+      "effects": [
+        {
+          "op": "damage",
+          "amount": 6,
+          "hits": 3
+        }
+      ]
+    }
+  ],
+  "text": "Kill his Pledges to interrupt the Keg Stand. Rush: every third turn he summons 2 Goblin Pledges. Keg Stand: his Pledges lift him and he charges for 2 turns, then hits one Dude for 30. Each Pledge killed during the charge removes 10 damage. Kill both and he falls: he skips a turn and is Exposed for 2. Below 50% HP, Rage Cage: 6 damage 3 times, every turn he is not charging"
+}
