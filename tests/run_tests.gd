@@ -8,6 +8,7 @@
 ## test_* method runs on a fresh instance. A test fails when it records a failure, when its file
 ## does not parse, or when Godot reports an error while it runs. Godot does not stop a call on a
 ## script error, so errors are caught with a Logger (Godot 4.5+). Exit code 1 also when no test ran.
+## Tests run on the first frame, when the scene tree is live, so tests may add nodes to the root.
 extends SceneTree
 
 ## Where tests are searched for.
@@ -62,8 +63,23 @@ class ErrorCollector extends Logger:
 		return recent
 
 
-## Entry point when run with --script. Runs the tests and quits with the exit code.
-func _initialize() -> void:
+## True once the tests have started, so _process runs them only once.
+var _started: bool = false
+
+
+## Runs the tests on the first frame, not in _initialize(): until then the root window is not in
+## the tree, so a node a test adds to it would never get _ready(). Returns false to keep the loop
+## going; _run_all() ends it with quit().
+## delta: seconds since the last frame; unused.
+func _process(delta: float) -> bool:
+	if not _started:
+		_started = true
+		_run_all()
+	return false
+
+
+## Runs the tests and quits with the exit code.
+func _run_all() -> void:
 	# collector: catches Godot errors while tests run; removed before quitting.
 	var collector := ErrorCollector.new()
 	OS.add_logger(collector)
