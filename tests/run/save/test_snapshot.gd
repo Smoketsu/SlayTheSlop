@@ -20,6 +20,7 @@ const BIG_SEED: int = 1152921504606846977
 ## Re-recorded by task 021 (SCHEMA_VERSION 5, two new combat fields; old saves are refused by version).
 ## Re-recorded again by task 017 (SCHEMA_VERSION 6, enemy haul and Brew-drop fields; same fight).
 ## Re-recorded again by task 019 (SCHEMA_VERSION 7, enemy charge and fallen_skips; same fight).
+## Re-recorded again by task 025 (SCHEMA_VERSION 8, run_phase, votes, path, encounter_id and three Dude fields).
 const SAMPLE_HASH: String = "d1c0d10c7947961d11629702294088e415b3980cd67e142be121b9b19eb26a64"
 
 ## Seed for the RandomNumberGenerator that makes the garbage inputs. Fixed so every run tests the same bytes.

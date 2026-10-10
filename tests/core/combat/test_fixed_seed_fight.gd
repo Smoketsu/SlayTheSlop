@@ -50,6 +50,7 @@ const SCRIPT: Array = [
 ## fills on every 3rd card in a turn (bro_meter differs; with that gain switched off the hash was
 ## unchanged). The fight is still won in turn 4.
 ## Re-recorded again by task 021 (SCHEMA_VERSION 5, two new combat fields; same fight).
+## Re-recorded by task 025 (SCHEMA_VERSION 8, the run-flow fields; same fight, every other assertion passed).
 const FINAL_HASH: String = "dfbba3b69066df3bba54cae86bab7d6c75f3529f689f8213684b6e13781b413a"
 
 

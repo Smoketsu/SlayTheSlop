@@ -18,8 +18,8 @@
 ##     never half played. (apply_status exists since task 009, so Arm Bar and Well, Actually play.)
 ##   - Task 009 (G3): damage effects on a card of type "attack" are attack damage (Swole, Noodle
 ##     Arms, Exposed apply); on any other card type they are not.
-##   - crunch true is "unplayable" (Nate only, not built). An upgraded card whose definition has a
-##     non-empty "upgrade" is "unplayable" until upgrades are applied (Lift, run lane).
+##   - crunch true is "unplayable" (Nate only, not built). Task 025: an upgraded copy plays with its
+##     upgraded definition (core/combat/upgrades.gd); one whose upgrade cannot apply is "unplayable".
 ##   - Targets: "enemy" needs the uid of an enemy still in the fight; "all_enemies" and "none" need
 ##     target_id ""; "self" takes "" or the player's own id. "ally" and "puppet" are "bad_target"
 ##     until Assist cards and Puppets are built.
@@ -37,6 +37,7 @@ const Powers := preload("res://core/combat/powers.gd")
 const BroMeter := preload("res://core/combat/bro_meter.gd")
 const CardTriggers := preload("res://core/combat/card_triggers.gd")
 const GearTriggers := preload("res://core/combat/gear_triggers.gd")
+const Upgrades := preload("res://core/combat/upgrades.gd")
 
 ## Card type (core/schema/card_def.gd TYPES) whose damage effects are attack damage (G3, task 009).
 const ATTACK_TYPE: String = "attack"
@@ -60,8 +61,6 @@ static func check(ruleset: Dictionary, state: Dictionary, dude: Dictionary, requ
 	# Task 015: Detention's limit while it is in hand.
 	if CardTriggers.play_limit_reached(ruleset, dude):
 		return "unplayable"
-	if dude["cards"][request["card_uid"]]["upgraded"] and not card["upgrade"].is_empty():
-		return "unplayable"
 	if typeof(card["cost"]) != TYPE_INT or card["cost"] < 0:
 		return "unplayable"
 	if not Ops.check_all(card["effects"]).is_empty():
@@ -78,11 +77,10 @@ static func check(ruleset: Dictionary, state: Dictionary, dude: Dictionary, requ
 
 
 ## Returns the definition of a card copy the Dude owns, or {} when the ruleset does not have it.
+## Task 025: an upgraded copy's upgraded definition, or {} when its upgrade cannot apply.
 ## ruleset: the read-only content. dude: the owner's Dude state. card_uid: a key of dude.cards.
 static func card_def(ruleset: Dictionary, dude: Dictionary, card_uid: String) -> Dictionary:
-	if not dude["cards"].has(card_uid):
-		return {}
-	return ruleset["cards"].get(dude["cards"][card_uid]["def_id"], {})
+	return Upgrades.definition_of(ruleset, dude, card_uid)
 
 
 ## Works out who a card's effects land on. Returns {"ok": bool, "targets": Array of ids}; ok is

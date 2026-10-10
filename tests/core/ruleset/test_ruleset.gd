@@ -187,18 +187,18 @@ func test_duplicate_ids_are_reported() -> void:
 	_assert_error(errors, "data/cards/tom_punch_copy.json", "must equal the file name")
 
 
-## Files outside the known folders are errors: an unknown kind (Side Quests have no format yet), a
-## sub-folder, a file outside data/, and a file without the .json extension.
+## Files outside the known folders are errors: an unknown kind (data/events/ has no format; task 025 gave
+## Side Quests theirs), a sub-folder, a file outside data/, and a file without the .json extension.
 func test_unknown_folders_and_files_are_reported() -> void:
 	# files: the valid set plus four files the builder must refuse.
 	var files: Dictionary = _texts(_values())
-	files["data/side_quests/beer_pong_table.json"] = '{"id": "beer_pong_table"}'
+	files["data/events/beer_pong_table.json"] = '{"id": "beer_pong_table"}'
 	files["data/cards/old/tom_kick.json"] = "{}"
 	files["docs/tom.json"] = "{}"
 	files["data/cards/tom_punch.txt"] = "{}"
 	# errors: what build() found.
 	var errors: Array = Ruleset.build(files)["errors"]
-	_assert_error(errors, "data/side_quests/beer_pong_table.json", "not in a known data folder")
+	_assert_error(errors, "data/events/beer_pong_table.json", "not in a known data folder")
 	_assert_error(errors, "data/cards/old/tom_kick.json", "not in a known data folder")
 	_assert_error(errors, "docs/tom.json", "not in a known data folder")
 	_assert_error(errors, "data/cards/tom_punch.txt", "must end in .json")

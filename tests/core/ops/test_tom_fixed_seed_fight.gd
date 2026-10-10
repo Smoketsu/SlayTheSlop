@@ -30,6 +30,7 @@ const RECORDED: Array = ["won", 5, 18, 1, 2, 0, 74]
 
 ## Snapshot.state_hash of the final state, recorded on Godot 4.7.2-stable. Re-recorded by task 021
 ## (SCHEMA_VERSION 5, two new combat fields), task 017 (6) and task 019 (7); RECORDED still holds.
+## Re-recorded by task 025 (SCHEMA_VERSION 8, the run-flow fields); RECORDED still holds.
 const FINAL_HASH: String = "0d54fed1a70cb3cb75c57b6234b02fa974f783744d56071b5c6333993bf6665a"
 
 

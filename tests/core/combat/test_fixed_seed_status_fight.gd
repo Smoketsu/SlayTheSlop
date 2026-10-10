@@ -32,6 +32,7 @@ const RECORDED: Array = ["won", 8, 32]
 ## fills on every 3rd card in a turn (bro_meter differs; with that gain switched off the hash was
 ## unchanged). RECORDED still holds.
 ## Re-recorded again by task 021 (SCHEMA_VERSION 5, two new combat fields; same fight).
+## Re-recorded by task 025 (SCHEMA_VERSION 8, the run-flow fields; same fight, RECORDED still holds).
 const FINAL_HASH: String = "5bb160a65346f8402a2281b26ecf2a2cb22e7579c905a5e04c5eaa4506a3d2eb"
 
 

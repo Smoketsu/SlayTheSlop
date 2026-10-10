@@ -22,6 +22,7 @@ const SCRIPT_CHAD_MOVES: Array = ["keg_stand", "keg_stand", "keg_stand_chug", "p
 ## the outcome assertions passed. Re-record only for an intended rules change. Re-recorded by the
 ## lead when stacked on tasks 013, 015 and 021 (their state fields and the solo Bro Meter change the
 ## bytes); the result, move sequence and hits asserted above were unchanged.
+## Re-recorded by task 025 (SCHEMA_VERSION 8, the run-flow fields); everything asserted above unchanged.
 const SCRIPT_HASH: String = "49845798a92a24fe925a600ee0671d1755f047d2f7c4aa499d67ca52a997cfba"
 
 
