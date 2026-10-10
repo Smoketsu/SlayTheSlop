@@ -3,10 +3,10 @@ id: 017
 title: Floor 1 enemy behaviors that are not plain moves
 lane: core
 owner: A
-status: open
-branch:
+status: in_progress
+branch: a/017-floor1-enemy-behaviors
 depends_on: [011, 015]
-blocked_on: [G19]
+blocked_on: []
 files:
   - core/combat/
   - core/ops/
@@ -36,3 +36,4 @@ GDD "Floor 1: The Basement"; task 010's list of requested ops and fields.
 - [ ] One test per enemy, using task 010's data.
 
 ## Log
+- 2026-10-10 A: Claimed. All rule gaps answered (#20). Started in parallel with its in-progress dependencies at Person A's instruction; shared op names are pinned (`draw`, `gain_hype`, `self_damage` from 013; `add_card`, `lose_hype` from 015).

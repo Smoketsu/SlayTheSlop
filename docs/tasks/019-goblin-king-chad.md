@@ -3,10 +3,10 @@ id: 019
 title: Goblin King Chad, the slice boss
 lane: core
 owner: A
-status: blocked
-branch:
+status: in_progress
+branch: a/019-goblin-king-chad
 depends_on: [017]
-blocked_on: [G12, G13]
+blocked_on: []
 files:
   - core/combat/
   - core/ops/
@@ -33,3 +33,4 @@ GDD "Goblin King Chad"; G12 and G13 in `docs/proposals/solo-slice-rule-gaps.md`.
 ## Log
 
 - 2026-10-10 A: blocked on G12 (his ordinary turn is not specified) and G13.
+- 2026-10-10 A: Claimed. All rule gaps answered (#20). Started in parallel with its in-progress dependencies at Person A's instruction; shared op names are pinned (`draw`, `gain_hype`, `self_damage` from 013; `add_card`, `lose_hype` from 015).

@@ -3,10 +3,10 @@ id: 021
 title: Gear and Brew definition formats, triggers, and use_brew
 lane: core
 owner: A
-status: open
-branch:
+status: in_progress
+branch: a/021-gear-and-brew-format-and-effects
 depends_on: [013]
-blocked_on: [G16, G26, G27, G28]
+blocked_on: []
 files:
   - core/schema/gear_def.gd     # new contract file, in its own PR first
   - core/schema/brew_def.gd     # new contract file, in its own PR first
@@ -35,3 +35,4 @@ GDD "Items" (all tables), "Tom, the Enforcer" (Unused Gym Membership); task 014.
 - [ ] One test per slice Gear and Brew, using task 014's data once merged.
 
 ## Log
+- 2026-10-10 A: Claimed. All rule gaps answered (#20). Started in parallel with its in-progress dependencies at Person A's instruction; shared op names are pinned (`draw`, `gain_hype`, `self_damage` from 013; `add_card`, `lose_hype` from 015).
