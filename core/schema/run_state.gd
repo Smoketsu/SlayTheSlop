@@ -18,7 +18,7 @@ const CombatState := preload("res://core/schema/combat_state.gd")
 
 ## Version of this state shape. Raised by 1 by any contract PR that changes the shape, so a
 ## save from an older shape can be recognized. Saves are not migrated during the solo slice.
-const SCHEMA_VERSION: int = 1
+const SCHEMA_VERSION: int = 2
 
 ## Required fields and their types. Comments give meaning, unit and range.
 const SPEC := {
