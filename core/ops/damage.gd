@@ -91,11 +91,12 @@ static func run(state: Dictionary, effect: Dictionary, context: Dictionary, even
 				return
 			# thorns: task 013, damage an enemy attacker takes back from a Dude with thorns, read
 			# before the hit (core/ops/thorns.gd; G9 per hit). 0 when the attacker is not an enemy.
+			# A Faded attacker takes at most FADED_MAX_DAMAGE of it, like any hit (task 017).
 			var thorns: int = target.get("thorns", 0) if Statuses.is_enemy(attacker) else 0
 			deal_in_place(state, context["actor_id"], target_id,
 				hit_amount(context["constants"], attacker, target, effect["amount"], context.get("attack", false)), events)
 			if thorns > 0:
-				deal_in_place(state, target_id, context["actor_id"], thorns, events)
+				deal_in_place(state, target_id, context["actor_id"], Periodic.cap_hit(context["constants"], attacker, thorns), events)
 
 
 ## Damage order steps 1-4 and step 5's rounding: returns the damage of one hit before Guard.

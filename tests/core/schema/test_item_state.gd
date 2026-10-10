@@ -37,7 +37,7 @@ func test_bad_combat_fields_fail() -> void:
 		var errors: Array[String] = CombatState.check(combat)
 		assert_true(errors.any(func(e: String) -> bool: return e.contains(entry[2])),
 			"expected \"%s\" in %s" % [entry[2], str(errors)])
-	# old: a fight in the version 3 shape, without the new fields.
+	# old: a fight in the version 4 shape (before task 021), without the new fields.
 	var old: Dictionary = {"turn": 0, "phase": "intents", "enemies": [], "result": ""}
 	assert_false(CombatState.check(old).is_empty(), "a fight without the new fields is refused")
 

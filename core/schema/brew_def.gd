@@ -32,7 +32,8 @@ const RARITIES: Array[String] = ["common", "uncommon", "rare"]
 ##   enemy:       one enemy still in the fight (target_id = its uid).
 ##   all_enemies: every enemy in the fight (target_id "").
 ##   all_dudes:   every Dude who is not Passed Out, in seat order (target_id ""). Party Bowl.
-##   ally:        a teammate (Smelling Salts in co-op). Not built yet: refused as bad_target.
+##   ally:        a teammate (Smelling Salts in co-op). Not built yet: Smelling Salts' co-op use has
+##                no effects, so it is refused as unplayable (I8); any other ally Brew is bad_target.
 const TARGETS: Array[String] = ["none", "self", "enemy", "all_enemies", "all_dudes", "ally"]
 
 ## Required fields and their types.

@@ -5,7 +5,7 @@ lane: core
 owner: A
 status: in_review
 branch: a/021-gear-and-brew-format-and-effects
-depends_on: [013]
+depends_on: [013, 015]
 blocked_on: []
 files:
   - core/schema/gear_def.gd     # new contract file, in its own PR first
@@ -95,7 +95,7 @@ Brew is `empty_slot`.
     `tests/core/schema/test_item_defs.gd`, `docs/changes/2026-10-10-021-item-formats.md`.
   - Contract part 2 (own commit): `combat_state` `fight_stat_changes` and `pass_out_saves`; events
     `gear_gained`, `gear_triggered`, `brew_used`, `stat_changed`, `pass_out_prevented`;
-    `SCHEMA_VERSION` 3 → 6 (4 and 5 are 013's and 017's, lead's numbering); three state hashes
+    `SCHEMA_VERSION` 4 → 5 (4 is 013's; renumbered by the lead at the merge); three state hashes
     re-recorded (bytes only); `tests/core/schema/test_item_state.gd`;
     `docs/changes/2026-10-10-021-schema.md`.
   - Core: `core/combat/gear_triggers.gd` (Gear gain, stats, trigger points, modifiers),

@@ -10,7 +10,8 @@
 ##   unplayable  the ruleset has no such Brew; or its effects are empty or use an op the core does
 ##               not have (so a Brew is never half drunk; Energy Drink waits on task 013's draw).
 ##   bad_target  target_id is not legal for the Brew's target (brew_def.gd TARGETS). "ally" is
-##               always refused until Assist targeting exists.
+##               always refused until Assist targeting exists (Smelling Salts' co-op use has no
+##               effects, so it is unplayable before its target is checked).
 ## resolve_in_place() then, on the working copy:
 ##   1. removes the Brew from its slot (later Brews move down one slot) and adds 1 to brews_drunk;
 ##   2. emits brew_used;

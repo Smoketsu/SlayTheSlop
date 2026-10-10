@@ -204,6 +204,28 @@ func test_boo_zer_faded_every_other_turn() -> void:
 	assert_eq(result["state"]["combat"]["enemies"][0]["statuses"], {"faded": 1}, "turn 3: Faded again")
 
 
+## Thorns hitting a Faded enemy are capped too (FADED_MAX_DAMAGE applies to every hit; found in
+## Agent B's review of #50): a Faded Boo-zer that hits a Dude with 3 thorns loses exactly 1 HP.
+func test_faded_enemy_takes_capped_thorns() -> void:
+	# rules: the enemy test ruleset.
+	var rules: Dictionary = EnemyFixtures.ruleset()
+	# state: p1 against a Boo-zer, which is Faded on turn 1; p1 has 3 thorns (Chrome Dome).
+	var state: Dictionary = EnemyFixtures.solo_fight(rules, SEED, ["boo_zer"])
+	state["dudes"][0]["thorns"] = 3
+	# ghost: the Boo-zer's state before it acts.
+	var ghost: Dictionary = state["combat"]["enemies"][0]
+	assert_eq(ghost["statuses"], {"faded": 1}, "turn 1: Faded")
+	# hp: its HP before its turn 1 attack.
+	var hp: int = ghost["hp"]
+	# result: turn 1 ends; the Boo-zer hits p1 once and gets the thorns back.
+	var result: Dictionary = ready(rules, state, 0)
+	# glares: the thorns damage dealt to the Boo-zer.
+	var glares: Array = of_type(result["events"], "damage_dealt").filter(
+		func(e: Dictionary) -> bool: return e["target_id"] == ghost["uid"])
+	assert_eq(glares.map(func(e: Dictionary) -> int: return e["amount"]), [rules["constants"]["FADED_MAX_DAMAGE"]])
+	assert_eq(result["state"]["combat"]["enemies"][0]["hp"], hp - 1, "3 thorns capped at 1")
+
+
 ## Mimic Cooler: bites for 12; when it dies it drops a Brew, reported (brew_dropped and
 ## combat.brews_dropped) for the run lane, and no Brew is granted here.
 func test_mimic_cooler_reports_brew_drop() -> void:

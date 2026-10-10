@@ -142,7 +142,7 @@ const TEST_BREWS := {
 ## stand-in junk_hangover (no effects) for the add_card items, until task 008's real card merges.
 const CARDS := {
 	"junk_hangover": {"id": "junk_hangover", "name": "Hangover", "owner": "junk", "type": "junk",
-		"rarity": "starter", "cost": -1, "target": "none", "effects": [], "keywords": [], "crunch": null, "upgrade": {}},
+		"rarity": "special", "cost": -1, "target": "none", "effects": [], "keywords": [], "crunch": null, "upgrade": {}},
 	"neutral_test_heavy_skill": {"id": "neutral_test_heavy_skill", "name": "Heavy Skill", "owner": "neutral",
 		"type": "skill", "rarity": "common", "cost": 2, "target": "enemy", "effects": [{"op": "damage", "amount": 6}],
 		"keywords": [], "crunch": null, "upgrade": {}},
