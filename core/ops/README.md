@@ -591,5 +591,5 @@ Enemy files may also use these optional fields (`core/schema/enemy_def.gd` has t
 ## Not built yet
 
 Ops for the other Dudes' mechanics. Side Quest effects are not ops: they are the run lane's own
-list (`core/run/side_quests.gd`, task 025; format in `core/schema/side_quest_def.gd`). A card or
+list (`core/run/side_quest_ops.gd`, task 025; format in `core/schema/side_quest_def.gd`). A card or
 Brew with an op the core does not have is `unplayable`, and a Gear trigger with one is skipped.

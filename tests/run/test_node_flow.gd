@@ -116,6 +116,13 @@ func test_early_brawls() -> void:
 	assert_eq(Encounters.candidates(rules, state, "brawl"), all, "third Brawl")
 	assert_eq(Encounters.candidates(rules, state, "rival").size(), 3, "three floor 1 Rivals")
 	assert_eq(Encounters.candidates(rules, state, "boss"), ["basement_goblin_king_chad"])
+	# Before moving (a vote is checked before the party moves): path does not hold the voted node yet,
+	# so every entry is an earlier Brawl. After two Brawls the vote check sees the full list, as the
+	# draw on entering will (found by Agent B in the review of #66).
+	state["path"] = ["r1c0", "r1c1"]
+	assert_eq(Encounters.brawls_before(state, false), 2, "two Brawls behind, none entered yet")
+	assert_eq(Encounters.candidates(rules, state, "brawl", false), all, "vote check for the third Brawl")
+	assert_eq(Encounters.brawls_before(state), 1, "on the second Brawl: one before it")
 
 
 ## A won Brawl: Unused Gym Membership heals, then BRAWL_DOLLA Dolla Bills and a card offer of

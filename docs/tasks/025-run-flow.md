@@ -91,9 +91,8 @@ G14–G22.
 - A new run is `core/run/new_run.gd` `start()`, not a request; `pick_dude` stays `wrong_phase` until
   a lobby exists.
 - `combat` is set to `null` once a won fight's rewards are out; a lost fight is kept (`run_phase` `"lost"`).
-- `core/ops/README.md`'s "Not built yet" still says Side Quest ops are task 025's; Side Quest operations
-  are a run-lane catalogue (`core/run/side_quest_ops.gd`), so that line should be updated in a later
-  core PR (not touched here because task 031 is editing `core/ops/`).
+- `core/ops/README.md`'s "Not built yet" now says Side Quest effects are the run lane's own catalogue
+  (`core/run/side_quest_ops.gd`), not ops (updated by the lead once task 031 had merged).
 
 ## Log
 
