@@ -1,0 +1,9 @@
+{
+  "id": "basement_keg_slime",
+  "floor": 1,
+  "node": "brawl",
+  "enemies": [
+    "keg_slime"
+  ],
+  "text": "G19 Brawl: Keg Slime. Its Foam Slimes come from its split, not from this list"
+}

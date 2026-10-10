@@ -126,6 +126,45 @@ const TYPES := {
 	# [added, task 019] Every helper of an enemy's charge died: the charge is over, it will skip its
 	# next action (enemy_skipped, reason "fallen") and its Exposed follows as status_changed.
 	"enemy_fell": {"enemy_uid": TYPE_STRING},
+	# --- Task 025: the run flow (core/run/). card_created's "to" may also be "deck": a card added to
+	# the run deck outside a fight (a reward, Baileys, a Side Quest). card_removed's "from" is "deck"
+	# for a card removed at Baileys.
+	# [added, task 025] A floor's map was made and the party stands at its entrance. floor: 1 or more.
+	"floor_started": {"floor": TYPE_INT},
+	# [added, task 025] A player voted for the next node (vote_node). node_id: the node voted for.
+	"vote_cast": {"player_id": TYPE_STRING, "node_id": TYPE_STRING},
+	# [added, task 025] The party moved onto a map node. node_type: its map type ("brawl", "loot" ...).
+	# What the node does follows as its own events (fight_started, offer_opened ...).
+	"node_entered": {"node_id": TYPE_STRING, "node_type": TYPE_STRING},
+	# [added, task 025] A choice opened for a player (dude_state.offers). reward_id: the offer's id.
+	# kind: its kind, one of dude_state.gd OFFER_KINDS.
+	"offer_opened": {"player_id": TYPE_STRING, "reward_id": TYPE_STRING, "kind": TYPE_STRING},
+	# [added, task 025] A choice closed: answered, skipped or Baileys left. choice_index: as in the
+	# choose_reward that closed it (-1 for skip or leave).
+	"offer_closed": {"player_id": TYPE_STRING, "reward_id": TYPE_STRING, "choice_index": TYPE_INT},
+	# [added, task 025] A player paid at Baileys for one option of its offer (an item or a removal).
+	# price: Dolla Bills paid. What was bought follows as its own events.
+	"item_bought": {"player_id": TYPE_STRING, "reward_id": TYPE_STRING, "choice_index": TYPE_INT, "price": TYPE_INT},
+	# [added, task 025] A card copy was upgraded (Lifted at The Tailgate, or a Side Quest): its
+	# dude_state card instance now has upgraded true.
+	"card_upgraded": {"player_id": TYPE_STRING, "card_uid": TYPE_STRING},
+	# [added, task 025] A Brew went into a Brew slot outside a fight (a reward, a Shake from Baileys, a
+	# dropped Brew). slot: its slot, from 0.
+	"brew_gained": {"player_id": TYPE_STRING, "brew_id": TYPE_STRING, "slot": TYPE_INT},
+	# [added, task 025] A Brew reward could not be kept because every Brew slot was full.
+	"brew_not_kept": {"player_id": TYPE_STRING, "brew_id": TYPE_STRING},
+	# [added, task 025] A Side Quest's chance was rolled on the side_quest stream. percent: the chance
+	# of the "then" outcome, 1..99. won: true when the "then" outcome happens.
+	"side_quest_rolled": {"player_id": TYPE_STRING, "side_quest_id": TYPE_STRING, "percent": TYPE_INT, "won": TYPE_BOOL},
+	# [added, task 025, G25] A Dude will start the next fight with stacks more of a status
+	# (dude_state.pending_statuses). stacks: added now. The fight's start applies them as status_changed.
+	"pending_status_added": {"player_id": TYPE_STRING, "status": TYPE_STRING, "stacks": TYPE_INT},
+	# [added, task 025] A Passed Out Dude woke after a won fight (GDD "Passing out"). hp: the HP they woke with.
+	"dude_revived": {"player_id": TYPE_STRING, "hp": TYPE_INT},
+	# [added, task 025] The floor's boss is beaten and every Boss Gear pick is made. floor: the floor.
+	"floor_ended": {"floor": TYPE_INT},
+	# [added, task 025] The run is over. result: "lost" (every Dude Passed Out in a fight).
+	"run_ended": {"result": TYPE_STRING},
 }
 
 

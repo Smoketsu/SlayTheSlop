@@ -14,6 +14,7 @@ extends RefCounted
 
 const Rng := preload("res://core/rng/rng.gd")
 const Event := preload("res://core/schema/event.gd")
+const Upgrades := preload("res://core/combat/upgrades.gd")
 
 ## Task 013: the keyword (core/schema/card_def.gd KEYWORDS) of cards kept in hand at end of turn.
 const POCKETED: String = "pocketed"
@@ -99,8 +100,8 @@ static func pocketed_in_hand(ruleset: Dictionary, dude: Dictionary) -> Array:
 	# uids: the result.
 	var uids: Array = []
 	for uid: String in dude["hand"]:
-		# card: the card's definition, or {}.
-		var card: Dictionary = ruleset["cards"].get(dude["cards"][uid]["def_id"], {})
+		# card: the card's definition, or {}. Task 025: upgraded when Lifted.
+		var card: Dictionary = Upgrades.definition_of(ruleset, dude, uid)
 		if card.get("keywords", []).has(POCKETED):
 			uids.append(uid)
 	return uids

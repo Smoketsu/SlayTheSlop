@@ -87,6 +87,14 @@ option on the core's `add_card` op (Agent A's lane) and then a data change in `b
 | Decision | Default now in force | Source | Revisit? |
 | --- | --- | --- | --- |
 | G53: trigger depth | `MAX_TRIGGER_DEPTH` = 8: Power triggers may nest at most 8 deep, so a self-feeding Power can't loop forever (Reply Guy → Gross Out → Friend Zone needs 2) | #53, task 031 | |
+| G54: "Upgrade 2 random cards" with fewer than 2 upgradable | The Unlabeled Brownie upgrades as many as can be (0, 1 or 2), drawn on the `side_quest` stream; the 2 Foggy still applies | `solo-slice-rule-gaps.md`, #66, task 025 | |
+| G55: what may be skipped or repeat | A card reward may be skipped (`choose_reward` -1); the Boss Gear pick, The Tailgate and a Side Quest may not. A node's Side Quest is drawn on the `side_quest` stream; Side Quests and encounters may repeat on a floor | `solo-slice-rule-gaps.md`, #66, task 025 | |
+| G56: what offers draw from | Card offers come from the Dude's own pool only (no neutral, starter or special cards), never the same card twice in one offer, each slot drawing a rarity with G21's odds among rarities that still have a card; Baileys cards use the same odds; Gear and Brews are drawn equally likely, and Baileys never stocks the same item twice | `solo-slice-rule-gaps.md`, #66, task 025 | |
+| G57: rounding "30% of max HP" | Nap's heal (`TAILGATE_NAP_HEAL`) and the revive HP (`REVIVE_HP_FRACTION`) both round down; a revived Dude wakes with at least 1 HP | `solo-slice-rule-gaps.md`, #66, task 025 | |
+| G58: Brews from fights | A Mimic Cooler fight at a Loot node gives only its dropped Brew (no Loot Gear, no Brawl reward); dropped Brews go to every Dude, each from their own `rewards` stream; a Brew reward with every slot full is lost (`brew_not_kept`), no swap screen; at Baileys a Shake can't be bought with every slot full | `solo-slice-rule-gaps.md`, #66, task 025 | |
+| G59: co-op run rules not built yet | Each player gets their own random Gear from their own stream and `gear_first_pick` never changes; Spotting at Baileys, `EXTRA_ENEMY_PARTY_SIZE`'s extra enemy and the Designated Driver's rotation are not built | `solo-slice-rule-gaps.md`, #66, task 025 | |
+| G60: more than one removal per Baileys visit | Allowed, as the GDD is written: a Dude may remove again at the same visit at the risen price (75, +25 each time) | `solo-slice-rule-gaps.md`, #66, task 025 | |
+| G61: is "Goblin Pledge + Skeleton Intern" an early Brawl? | Yes: a group made only of Pledges, Bouncer or Intern is early; the content lane marks it `"early": true` in `data/encounters/` | `solo-slice-rule-gaps.md`, #66, task 025 | |
 | Data format | JSON, shaped like the GDD's example card, parsed with `core/schema/json_values.gd` (closes task 001's last open check) | `CLAUDE.md` Tech stack | |
 | Junk: cards created mid-fight | A card with no `lasts` lasts the run, even when `add_card` creates it during a fight | #42 decision 1 | |
 | Junk: Hangover from Beer Helmet | Superseded by I7's default: the Beer Helmet Hangover lasts one fight only | #42 decision 2 | |
@@ -94,6 +102,11 @@ option on the core's `add_card` op (Agent A's lane) and then a data change in `b
 | Junk: Detention | Counts cards played before it reached the hand; several don't stack (smallest limit wins); the Bro Move is not counted | #42 decision 4 | |
 | Junk: self-damage Pass Out | Bedbugs or Burn Passing Out the last Dude loses the fight at once; a Passed Out Dude's triggers don't run | #42 decision 5 | |
 | Junk: fight-only cards | Removed when the fight ends, won or lost | #42 decision 6 | |
+
+**G54–G61 are not on `main` yet.** They were found while building the run flow (task 025, #66),
+and the code built that way is on `a/025-run-flow` until #66 merges. steamjgrube (Person B) accepted
+each default on 2026-10-10 ("go with all defaults and log decisions for later"); Smoketsu (Person A)
+has not answered them yet, so their `Answer:` lines in `solo-slice-rule-gaps.md` are still empty.
 
 ## Decisions specific to Agent B's work
 

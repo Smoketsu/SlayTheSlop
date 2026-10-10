@@ -1,0 +1,9 @@
+{
+  "id": "basement_boo_zer",
+  "floor": 1,
+  "node": "brawl",
+  "enemies": [
+    "boo_zer"
+  ],
+  "text": "G19 Brawl: Boo-zer"
+}

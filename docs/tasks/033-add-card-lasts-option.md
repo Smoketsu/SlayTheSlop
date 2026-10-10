@@ -15,6 +15,7 @@ files:
   - tests/core/combat/
   - tests/core/items/              # Beer Helmet fixture and tests
   - tests/core/combat/fixtures.gd  # give() now puts the copy in the run deck too (see the log)
+  - tests/run/test_node_flow.gd    # task 025's Beer Helmet test, updated to I7's answer
 ---
 
 ## Goal
@@ -70,3 +71,10 @@ can make a fight-only copy of a run-long card. Agent B then sets it in `data/gea
     unchanged. With the core change reverted, all 6 new or changed tests fail (checked).
   - Not done: the I7 "Answer:" line in `docs/proposals/item-rule-gaps.md` is still empty; the
     decision is recorded in #54's decision log, and a person should confirm it there.
+- 2026-10-10 A: Reverted the test-Gear workaround (a8c4944) so this branch pairs with #71 (Agent B's
+  `beer_helmet.json` change, stacked here); merge #71, not this PR alone.
+- 2026-10-10 A: Task 025 merged with `tests/run/test_node_flow.gd::test_beer_helmet_hangovers_pile_up`,
+  which asserted the old run-long Hangover. Renamed `test_beer_helmet_hangovers_do_not_pile_up` and
+  changed to I7's answer (no Hangover in the deck or owned after two fights). Verified with `main`
+  merged: alone 432 passed, 1 failed (the expected fixture-vs-data check that #71 fixes); with #71's
+  data commit 433 passed, 0 failed.

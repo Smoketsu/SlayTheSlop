@@ -1,0 +1,25 @@
+{
+  "id": "unlabeled_brownie",
+  "name": "The Unlabeled Brownie",
+  "text": "A brownie alone on a paper plate. No label, no owner, no note. Every instinct you have says leave it. You have famously never listened to one.",
+  "safe": {
+    "label": "Politely decline",
+    "text": "Nothing happens.",
+    "effects": []
+  },
+  "dumb": {
+    "label": "Eat it",
+    "text": "Upgrade 2 random cards, and start the next fight with 2 Foggy.",
+    "effects": [
+      {
+        "op": "upgrade_random_cards",
+        "count": 2
+      },
+      {
+        "op": "next_fight_status",
+        "status": "foggy",
+        "stacks": 2
+      }
+    ]
+  }
+}

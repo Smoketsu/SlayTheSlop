@@ -1,0 +1,37 @@
+{
+  "id": "beer_pong_table",
+  "name": "The Beer Pong Table",
+  "text": "A folding table, ten cups and a stranger who says he almost went pro. You have never sunk a single cup in your life. You feel lucky anyway.",
+  "safe": {
+    "label": "Walk away",
+    "text": "Nothing happens.",
+    "effects": []
+  },
+  "dumb": {
+    "label": "Bet 50 Dolla Bills",
+    "min_dolla_bills": 50,
+    "text": "50% to double them, 50% to lose them and gain a Hangover card.",
+    "effects": [
+      {
+        "op": "chance",
+        "percent": 50,
+        "then": [
+          {
+            "op": "dolla_bills",
+            "amount": 50
+          }
+        ],
+        "else": [
+          {
+            "op": "dolla_bills",
+            "amount": -50
+          },
+          {
+            "op": "add_card",
+            "card_id": "junk_hangover"
+          }
+        ]
+      }
+    ]
+  }
+}

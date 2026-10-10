@@ -156,8 +156,8 @@ func test_play_card_rejects() -> void:
 	var crunch: Dictionary = Fixtures.play("p1", 0, jab, enemy)
 	crunch["crunch"] = true
 	_assert_rejected(rules, state, crunch, "unplayable")
-	# lifted: an upgraded copy of a card with an upgrade.
-	var lifted: String = Fixtures.give(state, 0, "neutral_test_lifted")
+	# lifted: an upgraded copy of a card whose upgrade cannot apply (task 025: one that can is played upgraded).
+	var lifted: String = Fixtures.give(state, 0, "neutral_test_bad_lift")
 	state["dudes"][0]["cards"][lifted]["upgraded"] = true
 	_assert_rejected(rules, state, Fixtures.play("p1", 0, lifted, enemy), "unplayable")
 	_assert_rejected(rules, state, Fixtures.play("p1", 0, Fixtures.give(state, 0, "neutral_test_big"), enemy), "no_hype")

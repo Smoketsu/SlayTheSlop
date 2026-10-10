@@ -45,6 +45,10 @@
 ## start of each turn, unblocked_damage triggers after each effect of an enemy's move, and splits
 ## after each enemy's slot.
 ##
+## Task 025 (the run flow) calls core/combat/pending_statuses.gd right after fight_started (G25), at
+## the line marked "Task 025". The run lane (core/run/node_flow.gd) starts fights with
+## start_fight_in_place() inside a vote_node request.
+##
 ## Pure: randomness only through core/rng/rng.gd (via piles.gd); no file, clock or network access.
 ## Functions ending in _in_place change the working copy they are given (see core/combat/bodies.gd).
 extends RefCounted
@@ -66,6 +70,7 @@ const CardTriggers := preload("res://core/combat/card_triggers.gd")
 const GearTriggers := preload("res://core/combat/gear_triggers.gd")
 const Lineup := preload("res://core/combat/lineup.gd")
 const EnemyBehaviors := preload("res://core/combat/enemy_behaviors.gd")
+const PendingStatuses := preload("res://core/combat/pending_statuses.gd")
 
 ## Enemy tier (core/schema/enemy_def.gd TIERS) -> name of the constant with its solo starting Ick
 ## threshold (GDD "Statuses"). Changes only with the GDD's tiers. Task 017 moved it to
@@ -163,6 +168,8 @@ static func start_fight_in_place(ruleset: Dictionary, state: Dictionary, enemy_d
 	for i: int in state["dudes"].size():
 		Piles.prepare_for_fight_in_place(state, i)
 	events.append(Event.make("fight_started", {"enemy_uids": uids}))
+	# Task 025 (G25): statuses a Side Quest said to start this fight with.
+	PendingStatuses.apply_in_place(state, events)
 	# Task 021: Gear that fires at the start of the fight (Arm Wrestling Table), before turn 1.
 	GearTriggers.fight_start_in_place(ruleset, state, events)
 	start_turn_in_place(ruleset, state, events)

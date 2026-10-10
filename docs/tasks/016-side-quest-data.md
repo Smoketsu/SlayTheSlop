@@ -3,10 +3,10 @@ id: 016
 title: The five GDD Side Quests as data
 lane: content
 owner: B
-status: open
-branch:
+status: in_review
+branch: b/016-side-quest-data
 depends_on: [025]
-blocked_on: [G23, G24, G25]
+blocked_on: []
 files:
   - data/side_quests/
   - tests/data/          # only to extend task 004's validation to the new folder
@@ -27,14 +27,14 @@ GDD "Example Side Quests", "Junk cards", "Statuses", "Rules that change in co-op
 
 ## Acceptance checks
 
-- [ ] `ls data/side_quests/*.json | wc -l` prints 5, one file per GDD Side Quest, ids in snake_case as task 025's format says. Ids never change once merged.
-- [ ] Each file passes the Side Quest schema's `check()` and its id equals its file name.
-- [ ] Each has exactly two options, the safe one and the dumb one, with the GDD's option names ("Walk away", "Skip it", "Go to bed", "Leave it", "Politely decline") and the GDD's numbers: bet 50 Dolla Bills, 50% to double; heal 25, 35% Hungover for 3 turns; random Gear and Regret; full heal, 30% Bedbugs; upgrade 2 random cards and 2 Foggy.
-- [ ] The dumb option is marked as dumb in the way task 025's format says, so the core raises `dumb_options_taken`.
-- [ ] Money is written with the `dolla_bills` field name and "Dolla Bills" in text; never `beer_money` or "gold".
-- [ ] Chances are numbers in the fields task 025's format defines (not only in the text), so the core rolls them on the `side_quest` stream; no file assumes an outcome.
-- [ ] Junk references are the ids from task 008 (`junk_hangover`, `junk_regret`, `junk_bedbugs`) and resolve once task 008 has merged.
-- [ ] Task 004's validation covers `data/side_quests/` and passes with the suite (task 002's command).
+- [x] `ls data/side_quests/*.json | wc -l` prints 5, one file per GDD Side Quest, ids in snake_case as task 025's format says. Ids never change once merged.
+- [x] Each file passes the Side Quest schema's `check()` and its id equals its file name.
+- [x] Each has exactly two options, the safe one and the dumb one, with the GDD's option names ("Walk away", "Skip it", "Go to bed", "Leave it", "Politely decline") and the GDD's numbers: bet 50 Dolla Bills, 50% to double; heal 25, 35% Hungover for 3 turns; random Gear and Regret; full heal, 30% Bedbugs; upgrade 2 random cards and 2 Foggy.
+- [x] The dumb option is marked as dumb in the way task 025's format says, so the core raises `dumb_options_taken`.
+- [x] Money is written with the `dolla_bills` field name and "Dolla Bills" in text; never `beer_money` or "gold".
+- [x] Chances are numbers in the fields task 025's format defines (not only in the text), so the core rolls them on the `side_quest` stream; no file assumes an outcome.
+- [x] Junk references are the ids from task 008 (`junk_hangover`, `junk_regret`, `junk_bedbugs`) and resolve once task 008 has merged.
+- [x] Task 004's validation covers `data/side_quests/` and passes with the suite (task 002's command).
 
 ## Notes
 
@@ -50,3 +50,25 @@ GDD "Example Side Quests", "Junk cards", "Statuses", "Rules that change in co-op
   bad decision.
 
 ## Log
+
+- 2026-10-10 B: Claimed. G23, G24 and G25 have defaults built by task 025 (#66) and accepted by
+  Person B under "go with all defaults" (decision log); unblocked on that basis.
+- 2026-10-10 B: Done, in review on `b/016-side-quest-data` (based on `a/025-run-flow`, which is not
+  merged yet, with `b/026-floor1-encounters` merged in, which carries `b/run-event-text`). Five files
+  in `data/side_quests/` with task 025's ids. Their rules (effects, chances, `min_dolla_bills`, Junk
+  ids, safe labels) equal task 025's `SIDE_QUESTS` fixture exactly. New writing: the five prompts and
+  the dumb labels "Eat the whole tray", "Tell him to surprise you" and "Take a nap on it"; the GDD's
+  own dumb labels "Bet 50 Dolla Bills" and "Eat it" are kept. Option `text` keeps the GDD's rules
+  wording, since the schema says it must describe the effects exactly; safe options say "Nothing
+  happens.". Every prompt says "you", so any Dude can take it in co-op.
+  `tests/data/test_side_quest_data.gd` checks the file list, the schema, id = file name, the GDD names
+  and safe labels, the rules against the fixture (text fields set aside), no "beer money" or "gold",
+  and plays every dumb option through `Core.apply()` on the real data at seeds 20261016 (every chance
+  roll lost) and 1 (every chance roll won), with a replay giving identical snapshot bytes; outcomes
+  are recorded in `RECORDED`. `tests/data/test_data_files.gd` gains
+  `test_bad_side_quest_is_reported_with_its_path`. `tools/data_files.gd` needed no change (it reads
+  every folder; the ruleset knows `data/side_quests/`). Verified: `ls data/side_quests/*.json | wc -l`
+  -> 5; `tools/test.sh` -> 427 passed, 0 failed. Not done: G54 (fewer than 2 upgradable cards) still
+  has no recorded answer; the files follow the built default (only Arm Bar can be upgraded today, so
+  the Brownie upgrades 1 card). "gold" is checked as a plain substring, so a future word like
+  "golden" would trip the test; change the check then, not the text.

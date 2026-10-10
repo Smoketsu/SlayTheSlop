@@ -1,0 +1,31 @@
+{
+  "id": "gas_station_sushi",
+  "name": "Gas-Station Sushi",
+  "text": "A tray of gas-station sushi with a sticker that says FRESH, written three times in three different pens. Your stomach says no. Your stomach has been wrong before. Never in your favor, but it has.",
+  "safe": {
+    "label": "Skip it",
+    "text": "Nothing happens.",
+    "effects": []
+  },
+  "dumb": {
+    "label": "Eat the whole tray",
+    "text": "Heal 25 HP; 35% chance to start the next fight with Hungover for 3 turns.",
+    "effects": [
+      {
+        "op": "heal",
+        "amount": 25
+      },
+      {
+        "op": "chance",
+        "percent": 35,
+        "then": [
+          {
+            "op": "next_fight_status",
+            "status": "hungover",
+            "stacks": 3
+          }
+        ]
+      }
+    ]
+  }
+}
