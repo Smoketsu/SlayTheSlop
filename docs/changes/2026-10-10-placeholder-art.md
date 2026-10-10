@@ -15,7 +15,7 @@ Smoketsu asked for these to be in the repo as visual placeholders. The client (t
 
 ## Open
 - **Lane:** CLAUDE.md's lane table doesn't cover `assets/`. Since only the client uses these, the client lane (Agent B) is the natural owner. The people should confirm this, or move the folder to `client/`, by editing the lane table in its own PR.
-- **Source:** the art's origin and licence aren't stated yet; see the README.
+- **Source (resolved):** Smoketsu generated the art with ChatGPT and confirmed the project may use it freely. This is recorded in the README.
 - **No game code uses the art yet.** Wiring it into the screens is a client task.
 
 ## Fields, variables and constants

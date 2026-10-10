@@ -5,7 +5,8 @@ Visual placeholders for the solo slice, until real art exists. **Nothing here is
 ## Source
 
 - **Who and when:** provided by Smoketsu (Person A) on 2026-10-10, to be used as placeholders.
-- **Origin:** the original image is kept unchanged at `source/character_sheet.webp`. CLAUDE.md asks that the origin of art we did not create be recorded. Smoketsu has not yet said how the sheet was made, or under what terms, so add that here when known.
+- **Origin:** Smoketsu generated the sheet with ChatGPT image generation. The original image is kept unchanged at `source/character_sheet.webp`.
+- **Terms:** Smoketsu confirmed on 2026-10-10 that the project may use it freely. It is placeholder art only.
 
 ## Characters (`characters/`)
 
