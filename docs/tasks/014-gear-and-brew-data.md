@@ -3,10 +3,10 @@ id: 014
 title: The slice's Gear and the eight Brews as data
 lane: content
 owner: B
-status: open
-branch:
+status: in_progress
+branch: b/014-gear-and-brew-data
 depends_on: [021]
-blocked_on: [G16, G28, G29]
+blocked_on: []
 files:
   - data/gear/
   - data/brews/
@@ -55,3 +55,4 @@ once task 021 has merged; task 004's validator.
   for it exists before writing its effects.
 
 ## Log
+- 2026-10-10 B: Claimed. Every gap in `blocked_on` is answered (steamjgrube accepted all defaults; see `docs/proposals/decision-log.md`).

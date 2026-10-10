@@ -3,10 +3,10 @@ id: 008
 title: The six Junk cards as data
 lane: content
 owner: B
-status: blocked
-branch:
+status: in_progress
+branch: b/008-junk-data
 depends_on: [006]
-blocked_on: [G17]
+blocked_on: []
 files:
   - data/cards/
 ---
@@ -29,3 +29,4 @@ GDD "Junk cards"; task 015.
 ## Log
 
 - 2026-10-10 A (for B): blocked on G17. Junk has no rarity in the GDD's list.
+- 2026-10-10 B: Claimed. Every gap in `blocked_on` is answered (steamjgrube accepted all defaults; see `docs/proposals/decision-log.md`). Starts once task 006 merges (depends_on).

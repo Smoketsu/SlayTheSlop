@@ -3,10 +3,10 @@ id: 006
 title: Tom's data - the 14 GDD cards, his Dude file, and Chest Bump
 lane: content
 owner: B
-status: open
-branch:
+status: in_progress
+branch: b/006-tom-data
 depends_on: [001]
-blocked_on: [G17]
+blocked_on: []
 files:
   - data/cards/
   - data/dudes/tom.json
@@ -38,3 +38,4 @@ GDD "Tom, the Enforcer", "Bro Meter", "Example card definition", "Card definitio
 - Punch and Flex appear in every Dude's starter deck with identical numbers. The GDD does not say whether they are one shared card or per-Dude copies; `tom_punch` follows the id rule. Raise it with both people if you think `neutral_punch` is better; do not pick silently.
 
 ## Log
+- 2026-10-10 B: Claimed. Every gap in `blocked_on` is answered (steamjgrube accepted all defaults; see `docs/proposals/decision-log.md`).

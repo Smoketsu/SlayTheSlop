@@ -3,10 +3,10 @@ id: 010
 title: Floor 1 enemies and Goblin King Chad as data
 lane: content
 owner: B
-status: open
-branch:
+status: in_progress
+branch: b/010-floor1-enemy-data
 depends_on: [001]
-blocked_on: [G12, G13]
+blocked_on: []
 files:
   - data/enemies/
   - docs/tasks/          # only to write tasks asking Agent A for ops or fields
@@ -31,3 +31,4 @@ GDD "Floor 1: The Basement", "Goblin King Chad"; `core/schema/enemy_def.gd`.
 - [ ] Each passes validation (task 004).
 
 ## Log
+- 2026-10-10 B: Claimed. Every gap in `blocked_on` is answered (steamjgrube accepted all defaults; see `docs/proposals/decision-log.md`).
