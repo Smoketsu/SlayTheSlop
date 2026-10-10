@@ -156,6 +156,11 @@
     "unit": "cards per Bro Meter point",
     "meaning": "In solo play, the Bro Meter gains 1 for every this-many cards played in a turn (GDD Bro Meter; G22)."
   },
+  "MAX_TRIGGER_DEPTH": {
+    "value": 8,
+    "unit": "nested Power triggers",
+    "meaning": "Most Power triggers that may fire inside one another in one chain (a Power whose effects set off another Power, and so on). The effects of a trigger fired by a card, move or turn start run at depth 1, a trigger they set off runs at depth 2, and no trigger fires from effects already at this depth. Stops a Power that feeds itself (an enemy_buffed Power that buffs an enemy) from looping forever. An int, 1 or more; a fight refuses to start otherwise. Added by task 031; the GDD is silent on this (gap G53), and the value is a suggestion, not the GDD's."
+  },
   "REWARD_ODDS_COMMON": {
     "value": 0.6,
     "unit": "probability, 0 to 1",
