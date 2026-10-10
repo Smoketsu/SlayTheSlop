@@ -63,8 +63,39 @@ Core.apply(ruleset: Dictionary, state: Dictionary, request: Dictionary) -> Dicti
 | Card copy (`card_uid`) | `c` + number, e.g. `c12` | Core, from `run_state.next_uid` |
 | Enemy in a fight (`uid`) | `e` + number, e.g. `e3` | Core, from `run_state.next_uid` |
 | Content (card, enemy, Dude, Gear, Brew) | `snake_case`, cards as `owner_card_name` | Content lane; never changes once merged |
+| Map node (`node_id`) | `r<row>c<column>`, e.g. `r3c1`; unique within one floor's map | Run lane, when a floor's map is generated |
 
 A `target_id` holds a player id or an enemy uid. The prefixes never collide.
+
+## The floor map
+
+`run_state.map` holds the current floor's map; `run_state.node_index` says where the party is on
+it. The run lane owns the shape (generator and full rules: `core/run/map/floor_map.gd`, task 023).
+The structure follows gap G18 in `docs/proposals/solo-slice-rule-gaps.md`.
+
+```
+map  = {"floor": int,                  # the floor this map belongs to, 1 or more
+        "nodes": [node, ...]}          # ordered by row, then column
+node = {"id": "r2c1",                  # "r<row>c<column>"; what vote_node.node_id names
+        "row": 2,                      # 0 entrance, 1..MAP_ROWS the floor's rows, MAP_ROWS + 1 the boss
+        "column": 1,                   # order within the row, 0 = leftmost
+        "type": "rival",               # start | brawl | rival | side_quest | tailgate | baileys | loot | boss
+        "links": ["r3c1", "r3c2"]}     # ids in the next row this node leads to, in column order
+```
+
+- `nodes[0]` is the entrance: row 0, type `start`, linked to every row-1 node. It is where the
+  party stands before the first vote, so `node_index` 0 (the `blank()` value) means "at the
+  start of the floor". It is not one of the floor's nodes in the GDD sense: no shares, no reward.
+- `node_index` is an index into `nodes`. Moving to a node means setting `node_index` to its index.
+- Rows 1..`MAP_ROWS` each hold `MAP_MIN_NODES_PER_ROW`..`MAP_MAX_NODES_PER_ROW` nodes. Each of
+  their nodes links to 1..`MAP_MAX_LINKS` nodes of the next row, and every node of the next row
+  has at least one link into it, so every node is reachable and every path reaches the boss.
+  Links never cross: if node a is left of node b, none of a's targets is right of any of b's.
+- Row 1 is all `brawl`; row `MAP_ROWS` (the row before the boss) is all `tailgate`; row
+  `MAP_ROWS + 1` is one `boss` node with `links` `[]`.
+- Node types over rows 1..`MAP_ROWS` follow the `NODE_SHARE_*` constants (GDD "Node types"),
+  rounded to whole nodes per floor: each type's count is its exact share rounded down or up.
+- Generated only from the `map` random stream, so the same seed gives the same map.
 
 ## Status ids
 

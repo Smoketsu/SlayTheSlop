@@ -32,9 +32,19 @@ const SPEC := {
 	"keg_level": TYPE_INT,
 	# Which floor the party is on: 1..3, or 4 for the final boss. 1 in the solo slice.
 	"floor": TYPE_INT,
-	# Where the party is on the floor map: the index of the current node. Meaning is set by the run lane's map format.
+	# Where the party is on the floor map: the index in map.nodes of the node the party is on.
+	# 0 is the floor's entrance (map.nodes[0], type "start"), before the first node is chosen;
+	# range 0..map.nodes.size() - 1. Meaning is set by the run lane's map format
+	# (core/run/map/floor_map.gd); 0 and meaningless while map is {}.
 	"node_index": TYPE_INT,
-	# The nodes of the current floor and the paths between them. Shape owned by the run lane; {} until a map exists.
+	# The nodes of the current floor and the paths between them. Shape owned by the run lane
+	# (core/run/map/floor_map.gd; summary in core/schema/README.md "The floor map"); {} until a map exists.
+	# Shape: {"floor": int 1 or more, "nodes": Array of nodes ordered by row, then column}. A node is
+	# {"id": String "r<row>c<column>", what vote_node.node_id names;
+	#  "row": int 0..MAP_ROWS + 1, 0 the entrance and MAP_ROWS + 1 the boss row;
+	#  "column": int 0 or more, its order within the row, left to right;
+	#  "type": String, one of "start", "brawl", "rival", "side_quest", "tailgate", "baileys", "loot", "boss";
+	#  "links": Array of the ids of the next row's nodes it leads to, in column order; [] for the boss}.
 	"map": TYPE_DICTIONARY,
 	# Shared Bro Meter, 0..BRO_METER_MAX.
 	"bro_meter": TYPE_INT,
