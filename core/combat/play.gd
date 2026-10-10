@@ -6,6 +6,8 @@
 ##   2. card_played, then hype_changed (when the cost is above 0);
 ##   3. each effect in order (core/ops/), stopping once the fight is decided;
 ##   4. the card goes to tapped_pile if it has the "tapped" keyword, otherwise to discard_pile (card_moved).
+##      Task 013: a card of type "power" goes to the Dude's powers list instead (active for the fight).
+##   5. Task 013: the solo Bro Meter may gain a point (core/combat/bro_meter.gd).
 ## Core.apply() then ends the fight if it is decided.
 ##
 ## Rules decided here (task 007's log lists them for the people to confirm):
@@ -27,9 +29,14 @@ extends RefCounted
 const Event := preload("res://core/schema/event.gd")
 const Ops := preload("res://core/ops/ops.gd")
 const Bodies := preload("res://core/combat/bodies.gd")
+const Powers := preload("res://core/combat/powers.gd")
+const BroMeter := preload("res://core/combat/bro_meter.gd")
 
 ## Card type (core/schema/card_def.gd TYPES) whose damage effects are attack damage (G3, task 009).
 const ATTACK_TYPE: String = "attack"
+
+## Task 013: the Dude state list a played Power goes to (core/schema/dude_state.gd "powers").
+const POWERS_LIST: String = "powers"
 
 
 ## Returns the reject reason for a play_card request, or "" when it is legal. Checks, in order:
@@ -50,6 +57,10 @@ static func check(ruleset: Dictionary, state: Dictionary, dude: Dictionary, requ
 		return "unplayable"
 	if not Ops.check_all(card["effects"]).is_empty():
 		return "unplayable"
+	# Task 013: a Power whose trigger effects the core cannot run is not played either.
+	for trigger: Dictionary in card.get("power_triggers", []):
+		if not Ops.check_all(trigger["effects"]).is_empty():
+			return "unplayable"
 	if card["cost"] > dude["hype"]:
 		return "no_hype"
 	if not targets(state, dude, card, request["target_id"])["ok"]:
@@ -113,7 +124,12 @@ static func resolve_in_place(ruleset: Dictionary, state: Dictionary, dude_index:
 		if Bodies.is_decided(state):
 			break
 		Ops.run(state, effect, context, events)
-	# pile: where the card goes once played.
+	# pile: where the card goes once played. Task 013: a Power goes to the Dude's powers list and
+	# stays active for the fight (core/combat/powers.gd).
 	var pile: String = "tapped_pile" if card["keywords"].has("tapped") else "discard_pile"
+	if Powers.is_power(card):
+		pile = POWERS_LIST
 	dude[pile].append(uid)
 	events.append(Event.make("card_moved", {"player_id": dude["player_id"], "card_uid": uid, "from": "hand", "to": pile}))
+	# Task 013: the solo Bro Meter counts cards played this turn (core/combat/bro_meter.gd).
+	BroMeter.after_card_played_in_place(ruleset, state, dude, events)

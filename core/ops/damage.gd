@@ -20,6 +20,10 @@
 ## not an attack (for example on a Skill card) deals exactly amount: Swole is "added to every hit of
 ## every attack" (GDD "Stats"), so it is left out too. Self-damage, Burn and the like are other ops.
 ##
+## Task 013, thorns (Chrome Dome, G9): after each hit an enemy lands on a Dude with thorns above 0,
+## the enemy takes that much damage back (deal_in_place, not attack damage). If that kills the
+## enemy, the rest of its hits do not happen. See core/ops/thorns.gd.
+##
 ## Changes the working copy it is given (see core/combat/bodies.gd). Pure.
 extends RefCounted
 
@@ -69,6 +73,9 @@ static func check(effect: Dictionary, path: String) -> Array[String]:
 static func run(state: Dictionary, effect: Dictionary, context: Dictionary, events: Array) -> void:
 	# hits: how many times to repeat the hit.
 	var hits: int = effect.get("hits", DEFAULT_HITS)
+	# actor_was_alive: task 013, true when the attacker was in the fight as the effect began; if it
+	# dies part way (to thorns), the rest of its hits do not happen.
+	var actor_was_alive: bool = not Bodies.find_alive(state, context["actor_id"]).is_empty()
 	for hit: int in hits:
 		for target_id: String in context["targets"]:
 			if Bodies.is_decided(state):
@@ -79,8 +86,15 @@ static func run(state: Dictionary, effect: Dictionary, context: Dictionary, even
 				continue
 			# attacker: the body dealing the hit, or {} if it is gone.
 			var attacker: Dictionary = Bodies.find_alive(state, context["actor_id"])
+			if actor_was_alive and attacker.is_empty():
+				return
+			# thorns: task 013, damage an enemy attacker takes back from a Dude with thorns, read
+			# before the hit (core/ops/thorns.gd; G9 per hit). 0 when the attacker is not an enemy.
+			var thorns: int = target.get("thorns", 0) if Statuses.is_enemy(attacker) else 0
 			deal_in_place(state, context["actor_id"], target_id,
 				hit_amount(context["constants"], attacker, target, effect["amount"], context.get("attack", false)), events)
+			if thorns > 0:
+				deal_in_place(state, target_id, context["actor_id"], thorns, events)
 
 
 ## Damage order steps 1-4 and step 5's rounding: returns the damage of one hit before Guard.

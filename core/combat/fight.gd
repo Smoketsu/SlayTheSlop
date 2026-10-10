@@ -28,6 +28,10 @@
 ## "Task 009": Foggy at Refresh, Dude wear-off at End of turn, and, per enemy in the enemy phase,
 ## the Grossed Out / Armless skip check before it acts and its wear-off right after its slot.
 ##
+## Task 013 calls, at lines marked "Task 013": the Bro Meter constants in check_start, thorns reset
+## at Refresh, Powers' "turn_start" triggers after every Refresh (core/combat/powers.gd), and pocketed
+## cards kept in hand at End of turn.
+##
 ## Pure: randomness only through core/rng/rng.gd (via piles.gd); no file, clock or network access.
 ## Functions ending in _in_place change the working copy they are given (see core/combat/bodies.gd).
 extends RefCounted
@@ -42,6 +46,9 @@ const Piles := preload("res://core/combat/piles.gd")
 const Scaling := preload("res://core/combat/party_scaling.gd")
 const Intents := preload("res://core/ai/intents.gd")
 const Statuses := preload("res://core/combat/statuses.gd")
+const Powers := preload("res://core/combat/powers.gd")
+const BroMeter := preload("res://core/combat/bro_meter.gd")
+const ThornsOp := preload("res://core/ops/thorns.gd")
 
 ## Enemy tier (core/schema/enemy_def.gd TIERS) -> name of the constant with its solo starting Ick
 ## threshold (GDD "Statuses"). Changes only with the GDD's tiers.
@@ -94,6 +101,9 @@ static func check_start(ruleset: Dictionary, state: Dictionary, enemy_def_ids: A
 	var status_error: String = Statuses.check_constants(constants)
 	if status_error != "":
 		return status_error
+	# Task 013: the Bro Meter's constants.
+	if BroMeter.check_constants(constants) != "":
+		return BroMeter.check_constants(constants)
 	for def_id: Variant in enemy_def_ids:
 		if typeof(def_id) != TYPE_STRING or not ruleset["enemies"].has(def_id):
 			return "unknown enemy %s" % var_to_str(def_id)
@@ -155,6 +165,10 @@ static func start_turn_in_place(ruleset: Dictionary, state: Dictionary, events: 
 	for i: int in state["dudes"].size():
 		if not state["dudes"][i]["passed_out"]:
 			_refresh_in_place(state, i, events)
+	# Task 013: active Powers' "turn_start" triggers (Friend Zone), after every Refresh.
+	Ops.fire_power_triggers_in_place(ruleset, state, Powers.matching(ruleset, state, Powers.WHEN_TURN_START, ""), events)
+	if finish_if_decided_in_place(state, events):
+		return
 	combat["phase"] = "player"
 
 
@@ -174,6 +188,8 @@ static func _refresh_in_place(state: Dictionary, dude_index: int, events: Array)
 			"delta": dude["hype_per_turn"] - dude["hype"], "hype": dude["hype_per_turn"]}))
 		dude["hype"] = dude["hype_per_turn"]
 	dude["cards_played_this_turn"] = 0
+	# Task 013: thorns (Chrome Dome) last until this Refresh.
+	ThornsOp.reset_in_place(dude, events)
 	if dude["ready"]:
 		dude["ready"] = false
 		events.append(Event.make("ready_changed", {"player_id": player_id, "ready": false}))
@@ -199,7 +215,8 @@ static func end_player_phase_in_place(ruleset: Dictionary, state: Dictionary, ev
 	var combat: Dictionary = state["combat"]
 	combat["phase"] = "end_of_turn"
 	for i: int in state["dudes"].size():
-		Piles.discard_hand_in_place(state, i, events)
+		# Task 013: pocketed cards stay in hand.
+		Piles.discard_hand_in_place(state, i, events, Piles.pocketed_in_hand(ruleset, state["dudes"][i]))
 	# Task 009: Dudes' statuses wear off at End of turn (G1).
 	Statuses.end_of_turn_in_place(state, events)
 	combat["phase"] = "enemy"

@@ -23,7 +23,8 @@
 ##   passed_out     the Dude is Passed Out.
 ##   then per type: play_card -> core/combat/play.gd check() (not_in_hand, unplayable, no_hype,
 ##                  bad_target); use_brew -> empty_slot, else unplayable (Brews are task 021);
-##                  use_bro_move -> not_ready below BRO_METER_MAX, else unplayable (task 013).
+##                  use_bro_move -> core/combat/bro_move.gd check() (not_ready below BRO_METER_MAX,
+##                  unplayable, bad_target; task 013).
 ##
 ## last_seq: updated to the request's seq ONLY when the request is applied. A rejected request
 ## changes nothing, last_seq included, so the state stays identical (and a rejected seq may be sent
@@ -42,6 +43,7 @@ const Event := preload("res://core/schema/event.gd")
 const Bodies := preload("res://core/combat/bodies.gd")
 const Fight := preload("res://core/combat/fight.gd")
 const Play := preload("res://core/combat/play.gd")
+const BroMove := preload("res://core/combat/bro_move.gd")
 
 ## Request types that act inside a fight's player phase. Every other type is wrong_phase for now.
 const FIGHT_REQUESTS: Array[String] = ["play_card", "set_ready", "use_brew", "use_bro_move"]
@@ -69,6 +71,10 @@ static func apply(ruleset: Dictionary, state: Dictionary, request: Variant) -> D
 			Fight.finish_if_decided_in_place(next, events)
 		"set_ready":
 			_set_ready_in_place(ruleset, next, index, request["ready"], events)
+		"use_bro_move":
+			# Task 013: empty the Bro Meter and play the Dude's Bro Move.
+			BroMove.resolve_in_place(ruleset, next, index, request, events)
+			Fight.finish_if_decided_in_place(next, events)
 	next["dudes"][index]["last_seq"] = request["seq"]
 	next["state_version"] = state["state_version"] + 1
 	return {"state": next, "events": events, "reject": ""}
@@ -100,9 +106,8 @@ static func validate(ruleset: Dictionary, state: Dictionary, request: Variant) -
 				return "empty_slot"
 			return "unplayable"
 		"use_bro_move":
-			if typeof(ruleset["constants"].get("BRO_METER_MAX")) != TYPE_INT or state["bro_meter"] < ruleset["constants"]["BRO_METER_MAX"]:
-				return "not_ready"
-			return "unplayable"
+			# Task 013.
+			return BroMove.check(ruleset, state, dude, request)
 	return ""
 
 

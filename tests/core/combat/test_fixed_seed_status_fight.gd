@@ -27,8 +27,11 @@ const MAX_REQUESTS: int = 400
 ## Recorded outcome on Godot 4.7.2-stable: [result, final turn, applied requests].
 const RECORDED: Array = ["won", 8, 32]
 
-## Snapshot.state_hash of the final state, recorded on Godot 4.7.2-stable.
-const FINAL_HASH: String = "9e2ad775bd3b719d8a5c2042dfed6300ae05638b5530a3a4a9ab71f4a7dbd56b"
+## Snapshot.state_hash of the final state, recorded on Godot 4.7.2-stable. Task 013 re-recorded it
+## twice: for dude_state.powers / thorns and SCHEMA_VERSION 4, then because the solo Bro Meter now
+## fills on every 3rd card in a turn (bro_meter differs; with that gain switched off the hash was
+## unchanged). RECORDED still holds.
+const FINAL_HASH: String = "c16865d8e9080193c048d97cd5f4c9231c145c613c0027e294fea7239af0a293"
 
 
 ## Returns the bot's next request for p1 in this state (see the file header).
