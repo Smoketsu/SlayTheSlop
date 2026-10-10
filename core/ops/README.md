@@ -473,6 +473,19 @@ fail `Ops.check()` is `unplayable`. File: `core/combat/powers.gd`.
 - **Events:** `power_triggered` (`player_id`, `card_uid`, `when`, `subject_id`), then the
   effects' own events. Trigger effects can set off further triggers (Reply Guy's Ick can Gross Out
   an enemy, which fires Friend Zone).
+- **Depth cap (task 031, gap G53):** at most `MAX_TRIGGER_DEPTH` (`data/constants.json`, suggested 8)
+  triggers nest in one chain. The effects of a card, enemy move, Brew, Gear trigger or turn start
+  run at depth 0; a trigger they set off runs its effects at depth 1; a trigger those set off, at
+  depth 2; and so on. Effects already at depth `MAX_TRIGGER_DEPTH` set off no trigger, silently
+  (no event). So a Power that feeds itself (an `enemy_buffed` Power whose effects buff the enemy)
+  fires `MAX_TRIGGER_DEPTH` times and stops instead of hanging the fight. Card triggers run from
+  inside an op (a `draw` inside a Power trigger runs `on_draw`) keep the depth of that op. The depth
+  is the op context's `trigger_depth` (`Ops.DEPTH_KEY`). A fight refuses to start unless the
+  constant is an int, 1 or more.
+- **Each event is reacted to once (task 031):** `draw` runs its drawn cards' `on_draw` effects
+  through `Ops.run()`, which fires the triggers for their events right away. `Ops.run()` then does
+  not react to the `draw` op's events again (`Ops.NESTING_OPS`). Before task 031 those nested
+  events fired every matching trigger twice.
 
 ## Card triggers (task 015)
 
