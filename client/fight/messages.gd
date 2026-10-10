@@ -30,6 +30,35 @@ const STATUSES := {
 	"faded": "Faded",
 }
 
+## Map node types (core/schema/run_state.gd map node "type") -> how a line names that node, in the
+## GDD "Node types" terms. Used for node_entered and, through event_text.gd names_for(), vote_cast.
+const NODE_TYPES := {
+	"start": "the entrance",
+	"brawl": "a Brawl",
+	"rival": "a Rival fight",
+	"side_quest": "a Side Quest",
+	"tailgate": "The Tailgate",
+	"baileys": "Baileys",
+	"loot": "the Loot",
+	"boss": "the Boss fight",
+}
+
+## Offer kinds (core/schema/dude_state.gd OFFER_KINDS) -> what the choice is, for offer_opened.
+const OFFER_KINDS := {
+	"card": "pick a card",
+	"boss_gear": "pick a Boss Gear",
+	"tailgate": "Nap or Lift",
+	"baileys": "shop at Baileys",
+	"side_quest": "safe or dumb",
+}
+
+## side_quest_rolled "won" as text (true when the Side Quest's "then" outcome happens, good or bad)
+## -> the end of its line. Neutral on purpose: the "then" outcome is sometimes the bad one.
+const SIDE_QUEST_ROLLS := {
+	"true": "it happens.",
+	"false": "it doesn't.",
+}
+
 
 ## Returns the message for a reject code, or a generic one for a code this build does not know.
 ## code: a reject reason from the core.
@@ -41,3 +70,19 @@ static func reject(code: String) -> String:
 ## status: a status id such as "noodle_arms".
 static func status_name(status: String) -> String:
 	return STATUSES.get(status, status.capitalize())
+
+
+## Returns the player-facing word for an event field whose value is a code rather than an id: a
+## status, a node type, an offer kind or a Side Quest roll. Any other field's value comes back as is.
+## key: the event field's name, such as "status". value: the field's value as text.
+static func field_word(key: String, value: String) -> String:
+	match key:
+		"status":
+			return status_name(value)
+		"node_type":
+			return NODE_TYPES.get(value, value)
+		"kind":
+			return OFFER_KINDS.get(value, value)
+		"won":
+			return SIDE_QUEST_ROLLS.get(value, value)
+	return value
