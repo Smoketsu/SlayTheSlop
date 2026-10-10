@@ -9,7 +9,8 @@ and can always see what the other one is doing. Follow it even when a shortcut l
 
 ## Status
 
-- The repository holds design only. No engine project, no code, no build or test commands exist yet.
+- Bootstrap (task 001): a Godot project, the shared contracts (`core/schema/`, `data/constants.json`)
+  and the task board exist. No rules code yet, and no test command until task 002 lands.
 - Current target: **GDD milestone 2, the solo slice.** Tom only, floor 1 (The Basement) only,
   about 30 cards, 10 Gear, one boss, placeholder art.
 - Out of scope until that gate passes: networking, the other four Dudes, floors 2 and 3,
@@ -82,6 +83,9 @@ These files are read by both agents. A change to one can break the other agent m
 - `data/constants.json` (all tuning constants)
 - The data file formats under `data/`
 - `CLAUDE.md`
+- `project.godot`, `.gitignore`, `.gitattributes` and `.github/workflows/` (build and CI config)
+- The pinned Godot version (see "Tech stack")
+- `docs/tasks/README.md` (the task file format). Each task file is edited by its owner.
 
 Rules for changing a contract:
 
@@ -242,18 +246,19 @@ All player-facing text follows the GDD "Rules for writers". The short version:
 - Use placeholder art and sound you create or that is clearly free to use. Record the source of
   anything you did not create.
 
-## Tech stack (proposed)
+## Tech stack
 
 | Choice | Value | Status |
 | --- | --- | --- |
-| Engine | Godot 4 | Proposed in the GDD, listed there as an open question |
-| Language | GDScript | Proposed here, unconfirmed |
-| Data format | JSON, shaped like the GDD's example card definition | Proposed |
+| Engine | Godot **4.7.2-stable**, official build (pinned; checksums in task 002) | Confirmed by Person A 2026-10-10; Person B confirms by approving task 001's PR |
+| Language | GDScript | Confirmed by Person A 2026-10-10; Person B as above |
+| Data format | JSON, shaped like the GDD's example card definition, parsed with `core/schema/json_values.gd` | Confirmed by Person A 2026-10-10; Person B as above |
 | Core classes | Plain data and `RefCounted` only, no `Node` | Follows from "the rules core is pure" |
 
-Agent A's first `core` task must get the engine and language confirmed by both people before any
-engine code is committed. Agent B may write JSON data and its validation before then, since
-neither depends on the engine.
+The GDD's open question on the engine is answered for this repository; the owner's GDD still
+lists it. Upgrading the pinned Godot version is a contract change. Godot's JSON parser returns
+every number as a float, and JSON cannot hold 64-bit ints: read `core/schema/README.md` before
+parsing data or serializing state.
 
 ### Layout (proposed)
 
@@ -263,7 +268,7 @@ Directories are created by the first task that needs them.
 core/            rules core, pure and headless             (Agent A)
 core/schema/     shared shapes of state, requests, events  (contract)
 core/run/        map, node flow, rewards, shop, save/load  (Agent A)
-data/            cards/, enemies/, gear/, brews/, side_quests/  (Agent B)
+data/            cards/, dudes/, enemies/, gear/, brews/, side_quests/  (Agent B)
 data/constants.json                                        (contract)
 client/          scenes, UI, animation                     (Agent B)
 tools/           bot players and balance simulation        (Agent B)

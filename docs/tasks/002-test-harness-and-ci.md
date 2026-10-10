@@ -1,0 +1,90 @@
+---
+id: 002
+title: Test harness, pinned Godot install, CI, and the Commands section
+lane: tools
+owner: B
+status: open
+branch:
+depends_on: [001]
+blocked_on: []
+files:
+  - tests/run_tests.gd
+  - tests/framework/
+  - tools/
+  - .github/workflows/
+  - CLAUDE.md            # "Commands" section only, in its own contract PR
+---
+
+## Goal
+
+One command runs every test headless, from a clean checkout, on any agent's machine and in CI,
+with the pinned Godot. **This is the first thing that unblocks both agents**: Agent A's tests in
+`tests/core/` already exist and are waiting for it.
+
+## Read first
+
+CLAUDE.md "Commands" and "Tech stack"; `core/schema/README.md`; the tests in `tests/core/`, which
+are written against the API below and are this task's acceptance test.
+
+## Required interface (Agent A's tests depend on exactly this)
+
+**Runner** `res://tests/run_tests.gd`, a script that extends `SceneTree`:
+
+```
+godot --headless --path . --import                                   # once, builds .godot/
+godot --headless --path . --script res://tests/run_tests.gd          # all tests
+godot --headless --path . --script res://tests/run_tests.gd -- rng   # only paths containing "rng"
+```
+
+- Runs every `res://tests/**/test_*.gd`, including `tests/core/` and `tests/run/`.
+- Makes a fresh instance for each `test_*` method.
+- A script that fails to parse, and a runtime error raised inside a test, each count as a failure.
+  Godot does not stop a call on a script error, so capture errors with `OS.add_logger()` and a
+  `Logger` subclass (Godot 4.5+).
+- Exits with 0 when every test passes, 1 when any fails or none ran.
+
+**Base class** `res://tests/framework/test_case.gd`: test files say
+`extends "res://tests/framework/test_case.gd"`. It extends `RefCounted` and provides:
+
+| Member | Behavior |
+| --- | --- |
+| `failures: Array[String]` | Failure messages for the current test; the runner reads it |
+| `fail(message: String)` | Records a failure |
+| `assert_true(condition: bool, message := "...")` / `assert_false(...)` | |
+| `assert_eq(actual, expected, message := "")` | **Strict and deep**: types must match at every level, so `3` and `3.0` differ. Needed because Godot's JSON returns floats |
+| `assert_ne(actual, unexpected, message := "...")` | Opposite of `assert_eq`, same strictness |
+| `assert_no_errors(errors: Array, message := "...")` | Fails, listing them, if the array is non-empty; used with `core/schema` `check()` |
+| `static strict_diff(a, b, path: String) -> String` | `""` when equal, otherwise where they first differ, e.g. `$.x[1].y: 2 != 3` |
+
+Assertions record and continue; they do not stop the test.
+
+**Pinned Godot**: version `4.7.2-stable`, official GitHub release zips, checked against these
+SHA-512 values (copied from that release's `SHA512-SUMS.txt`):
+
+| File | SHA-512 |
+| --- | --- |
+| `Godot_v4.7.2-stable_linux.x86_64.zip` | `9aa00f7a605200940bce3027a567b782f49bd8e940dd06ae9e987bd65aee1b1467edd56ed84fcdcbdd44354bf613bdbb4e5d2913e925850368e150c59ed54c65` |
+| `Godot_v4.7.2-stable_linux.arm64.zip` | `dd59918da086bd49bde2f5450b5e567ff8650cbde9abbd7b8f4ca1197ff8c609baa38834666d032deafb47099078d7822279e2a0e06e5665745468f26533e7e2` |
+| `Godot_v4.7.2-stable_macos.universal.zip` | `38aa16e5bba2083941fc5b3e54be0089bd4cc35e32415f5b9fd9a8a6a7b9818255d44532ea8ef94b5aef56c4b407c2d634fa4f657e4ebe681ebbf59b7bac69ca` |
+| `Godot_v4.7.2-stable_win64.exe.zip` | `83decd58fdf67b9d657958a1ae6bf1929c20785315a81effe245874cdc57acb709bf868e00778a96984338c1b29dafdb453c6847747694621c6ecf5da2259993` |
+
+Install into `.tools/` (already in `.gitignore`). The version pin is a shared contract.
+
+## Acceptance checks
+
+- [ ] From a fresh clone, one documented command installs Godot 4.7.2-stable and runs all tests.
+- [ ] Every test in `tests/core/` passes, unmodified (22 tests at the time of writing).
+- [ ] A test file with a parse error, a failing assertion, and a runtime error each give exit code 1.
+- [ ] CI runs the suite on every pull request and on pushes to `main`, and fails the check on a failing test.
+- [ ] CLAUDE.md "Commands" lists the exact commands, in its own contract PR.
+- [ ] Optional: a Claude Code SessionStart hook installs Godot in new cloud sessions, so agents can test without setup.
+
+## Notes
+
+- Godot 4.4+ writes a `.uid` file beside each script. Commit them.
+- Without `--import`, `class_name` scripts do not resolve in a fresh checkout. Agent A's code uses `preload` paths only, but other code may use `class_name`.
+- Agent A built and verified a working draft of all of the above before the lane split was known,
+  and removed it from its branch at Person A's request. Person A can pass it to you on request; you
+  are free to design your own as long as the interface above holds.
+
+## Log

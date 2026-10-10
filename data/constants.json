@@ -1,0 +1,99 @@
+{
+  "_doc": "Every tuning constant in the game (GDD 'Tuning constants'). Shared contract: read by every lane. Each entry is {value, unit, meaning}. 'value' is the number the rules use; 'unit' and 'meaning' are documentation and are never read by the rules. Values are the GDD's untested starting numbers: change one only with the owner's approval, in a PR that contains nothing else. Adding a new constant is fine (additive); renaming or removing one needs a proposal in docs/proposals/. Keys starting with '_' are comments and are ignored by loaders.",
+
+  "BASE_HYPE": {
+    "value": 3,
+    "unit": "Hype per turn",
+    "meaning": "Hype per turn before Gear. Each Dude's hype_per_turn starts here."
+  },
+  "BASE_DRAW": {
+    "value": 5,
+    "unit": "cards per turn",
+    "meaning": "Cards drawn per turn before Gear. Each Dude's draw_per_turn starts here."
+  },
+  "EXPOSED_MULT": {
+    "value": 1.5,
+    "unit": "multiplier",
+    "meaning": "Damage multiplier against an Exposed target. Applied at step 4 of the GDD damage order."
+  },
+  "NOODLE_MULT": {
+    "value": 0.75,
+    "unit": "multiplier",
+    "meaning": "Damage multiplier for an attacker with Noodle Arms. Applied at step 2 of the GDD damage order."
+  },
+  "HUNGOVER_MULT": {
+    "value": 0.75,
+    "unit": "multiplier",
+    "meaning": "Guard multiplier for a Hungover Dude, applied to Guard gained from cards."
+  },
+  "BROKEN_ARM_MAX_REDUCTION": {
+    "value": 0.4,
+    "unit": "fraction of attack damage",
+    "meaning": "Attack reduction when every arm is broken. With k of n arms broken an enemy's attack damage is multiplied by 1 - BROKEN_ARM_MAX_REDUCTION * k / n (step 3 of the damage order)."
+  },
+  "ICK_BASE_NORMAL": {
+    "value": 5,
+    "unit": "Ick",
+    "meaning": "Starting Ick threshold for normal enemies (solo; co-op scales it by the HP multiplier, rounded up)."
+  },
+  "ICK_BASE_RIVAL": {
+    "value": 8,
+    "unit": "Ick",
+    "meaning": "Starting Ick threshold for Rivals (solo; co-op scales it by the HP multiplier, rounded up)."
+  },
+  "ICK_BASE_BOSS": {
+    "value": 12,
+    "unit": "Ick",
+    "meaning": "Starting Ick threshold for bosses (solo; co-op scales it by the HP multiplier, rounded up). The Hangover uses 15, which is not a constant yet because the final boss is out of scope."
+  },
+  "ICK_THRESHOLD_STEP": {
+    "value": 3,
+    "unit": "Ick",
+    "meaning": "Added to an enemy's Ick threshold each time it is Grossed Out."
+  },
+  "BRO_METER_MAX": {
+    "value": 10,
+    "unit": "Bro Meter points",
+    "meaning": "Bro Meter value needed for a Bro Move. The meter runs from 0 to this value."
+  },
+  "HP_SCALE_PER_EXTRA_PLAYER": {
+    "value": 0.8,
+    "unit": "fraction of solo HP",
+    "meaning": "Enemy HP added per player beyond the first, as a fraction of solo HP. Gives the GDD multipliers 1.0 / 1.8 / 2.6 / 3.4."
+  },
+  "EXTRA_ENEMY_PARTY_SIZE": {
+    "value": 3,
+    "unit": "players",
+    "meaning": "Party size at which Brawls gain one enemy."
+  },
+  "MULTI_TARGET_PARTY_SIZE": {
+    "value": 3,
+    "unit": "players",
+    "meaning": "Party size at which single-target enemy attacks hit 2 Dudes."
+  },
+  "REVIVE_HP_FRACTION": {
+    "value": 0.3,
+    "unit": "fraction of max HP",
+    "meaning": "HP a Passed Out Dude wakes with after a won fight."
+  },
+  "TURN_TIMER_SECONDS": {
+    "value": 90,
+    "unit": "seconds",
+    "meaning": "Default co-op turn timer. Not used by the rules core, which never reads the clock; the host's session layer enforces it."
+  },
+  "REJOIN_GRACE_SECONDS": {
+    "value": 300,
+    "unit": "seconds",
+    "meaning": "How long a disconnected player's seat is held. Used by the session layer, not the rules core."
+  },
+  "SCAFFOLDING_MAX": {
+    "value": 25,
+    "unit": "Scaffolding",
+    "meaning": "Most Scaffolding Ethan can hold. Out of scope for the solo slice; listed because the GDD defines it."
+  },
+  "NAP_WAKE_ON_ASSIST": {
+    "value": true,
+    "unit": "true or false",
+    "meaning": "Whether an Assist card played on a Napping Ethan wakes him. Out of scope for the solo slice; listed because the GDD defines it."
+  }
+}

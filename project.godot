@@ -1,0 +1,16 @@
+; Godot project file for Dungeon Dudes.
+; Shared by every lane. Change it only in a small PR that contains nothing else,
+; and say why in docs/changes/. The client lane will add the main scene.
+
+config_version=5
+
+[application]
+
+config/name="Dungeon Dudes"
+config/description="Co-op roguelike deckbuilder. Rules core in res://core, content in res://data."
+config/features=PackedStringArray("4.7")
+
+[debug]
+
+gdscript/warnings/untyped_declaration=1
+gdscript/warnings/inferred_declaration=0
