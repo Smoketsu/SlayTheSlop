@@ -71,11 +71,6 @@
     "unit": "players",
     "meaning": "Party size at which single-target enemy attacks hit 2 Dudes."
   },
-  "MULTI_TARGET_COUNT": {
-    "value": 2,
-    "unit": "Dudes",
-    "meaning": "How many different Dudes a single-target enemy attack hits once the party has MULTI_TARGET_PARTY_SIZE players (GDD 'Difficulty scaling': 2 at 3 and 4 players). Below that party size it hits 1. Added by task 011; not in the GDD's constants table."
-  },
   "REVIVE_HP_FRACTION": {
     "value": 0.3,
     "unit": "fraction of max HP",
