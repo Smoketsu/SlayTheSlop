@@ -60,12 +60,12 @@ const GEAR := {
 	"medical_card": {"id": "medical_card", "name": "Medical Card", "owner": "general", "rarity": "uncommon",
 		"text": "Prices at Baileys are 20% lower.", "stats": {}, "triggers": [],
 		"modifiers": [{"kind": "shop_price_percent", "amount": 80}]},
-	# Its downside is pending task 015's add_card op; until then that trigger is skipped.
+	# Its Hangover lasts this fight only (I7, accepted; task 033's add_card "lasts").
 	"beer_helmet": {"id": "beer_helmet", "name": "Beer Helmet", "owner": "boss", "rarity": "boss",
 		"text": "+1 Hype per turn. Start each fight with a Hangover card in your draw pile.",
 		"stats": {"hype_per_turn": 1},
 		"triggers": [{"when": "fight_start", "target": "self",
-			"effects": [{"op": "add_card", "card_id": "junk_hangover", "to": "draw_pile", "shuffle_in": true}]}],
+			"effects": [{"op": "add_card", "card_id": "junk_hangover", "to": "draw_pile", "shuffle_in": true, "lasts": "fight"}]}],
 		"modifiers": []},
 	"dads_platinum_card": {"id": "dads_platinum_card", "name": "Dad's Platinum Card", "owner": "boss",
 		"rarity": "boss", "text": "+1 Hype per turn. You no longer earn Dolla Bills from fights.",

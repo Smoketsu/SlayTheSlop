@@ -452,8 +452,9 @@ func test_dads_platinum_card_stops_fight_money() -> void:
 	assert_eq(Helpers.of_type(events, "dolla_bills_changed"), [])
 
 
-## I7 (accepted): Beer Helmet's Hangover is run-long, so every fight adds one more to the run deck.
-func test_beer_helmet_hangovers_pile_up() -> void:
+## I7 (accepted; task 033): Beer Helmet's Hangover lasts one fight (add_card "lasts": "fight"), so
+## after two fights the run deck holds no Hangover and the Dude owns none.
+func test_beer_helmet_hangovers_do_not_pile_up() -> void:
 	# rules: the slice fixtures, Tom sturdy.
 	var rules: Dictionary = RunFixtures.ruleset({}, {"max_hp": STURDY_HP})
 	# state: a run on a map of two Brawls in a row (test setup), with Beer Helmet.
@@ -468,4 +469,6 @@ func test_beer_helmet_hangovers_pile_up() -> void:
 		state = _apply(rules, state, Helpers.vote("p1", Helpers.next_seq(state), node_id))["state"]
 		state = Helpers.bot_fight(rules, state)["state"]
 		state = _apply(rules, state, Helpers.choose("p1", Helpers.next_seq(state), state["dudes"][0]["offers"][0]["id"], -1))["state"]
-	assert_eq(Helpers.deck_ids(state).count("junk_hangover"), 2, "one Hangover per fight, kept for the run")
+	assert_eq(Helpers.deck_ids(state).count("junk_hangover"), 0, "each fight's Hangover left when the fight ended")
+	assert_eq(state["dudes"][0]["cards"].values().filter(
+		func(card: Dictionary) -> bool: return card["def_id"] == "junk_hangover").size(), 0, "none owned between fights")

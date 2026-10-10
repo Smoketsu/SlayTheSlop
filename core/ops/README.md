@@ -271,13 +271,16 @@ enemies (Skeleton Intern, Hall Monitor Golem, Boag Imp), Brews (Special Brownie)
 | `to` | text | `draw_pile`, `discard_pile` or `hand`: where each copy goes |
 | `shuffle_in` | bool, optional (default `false`) | Only with `to: "draw_pile"`. `true` puts each copy at a random position of the draw pile instead of on top |
 | `count` | int, 1 or more, optional (default 1) | Copies made for each Dude it lands on |
+| `lasts` | text, optional (task 033) | Only `"fight"`: every copy lasts this fight only, even when its definition lasts the run (Beer Helmet's Hangover, I7). Left out, the definition's `lasts` decides. A copy can be made to last less than its definition, never more |
 
 - **Lands on:** the actor when the actor is a Dude (a card, a Brew, a card trigger), whatever the
   card's `target` is, so "Deal 1 damage. Add 2 Paperwork to your hand" on a `target: "enemy"` card
   works. In an enemy move: every Dude among the intent's targets. Passed Out Dudes get nothing.
 - **Each copy** gets a new `card_uid` (from `next_uid`) and joins the Dude's `cards`, not upgraded.
-  A card whose definition `lasts` `"run"` (the default) also joins the end of the run `deck`; a
-  `"fight"` card does not and is removed when the fight ends (see "Card triggers" below).
+  A copy that lasts the run (its definition `lasts` `"run"`, the default, and no `lasts: "fight"`
+  on the effect) also joins the end of the run `deck`. A fight-only copy does not, and is removed
+  when the fight ends (see "Card triggers" below): any copy a Dude has that is not in the run deck
+  lasts one fight, so no state field marks it.
 - **Where it goes:** `draw_pile`: on top (the next card drawn), or with `shuffle_in` at a position
   from top to bottom, each equally likely, drawn from the **receiving** Dude's `shuffle` stream (one
   draw per copy, in order). `discard_pile`: on top of the discard pile. `hand`: the end of the hand;
@@ -288,7 +291,8 @@ enemies (Skeleton Intern, Hall Monitor Golem, Boag Imp), Brews (Special Brownie)
 Examples: Skeleton Intern's `{ "op": "add_card", "card_id": "junk_paperwork", "to": "draw_pile",
 "shuffle_in": true }`; Hall Monitor Golem's `{ "op": "add_card", "card_id": "junk_detention", "to":
 "discard_pile" }`; Special Brownie's `{ "op": "add_card", "card_id": "junk_hangover", "to":
-"discard_pile" }`.
+"discard_pile" }`; Beer Helmet's `{ "op": "add_card", "card_id": "junk_hangover", "to": "draw_pile",
+"shuffle_in": true, "lasts": "fight" }`.
 
 ### `lose_hype`
 
@@ -497,7 +501,7 @@ played. Rules: `core/combat/card_triggers.gd`.
 | `on_draw` | list of effects | Run right after the copy is drawn into its owner's hand (Refresh, or any rules draw) |
 | `on_end_of_turn_in_hand` | list of effects | Run at End of turn if the copy is in its owner's hand, before the hand is discarded |
 | `play_limit_in_hand` | int, 0 or more | While the copy is in hand, its owner may play at most this many cards this turn (`cards_played_this_turn`); further plays are rejected `unplayable` |
-| `lasts` | `"run"` (default) or `"fight"` | `"fight"`: when the fight ends (won or lost) the copy leaves the Dude's `cards`, `deck` and piles, with `card_removed` |
+| `lasts` | `"run"` (default) or `"fight"` | `"fight"`: when the fight ends (won or lost) the copy leaves the Dude's `cards`, `deck` and piles, with `card_removed`. Task 033: so does any copy that is not in the run `deck` (an `add_card` with `lasts: "fight"`), and a fight-only Power in play leaves `powers` too (`from: "deck"`, as it is in no pile) |
 | `removable` | bool (default `true`) | `false`: cannot be removed at Baileys (read by task 025) |
 
 - Trigger effects use the same ops as `effects`. The owner is the actor and the only target, damage

@@ -189,7 +189,8 @@ static func fight(rules: Dictionary, run_seed: int, dude_ids: Array, enemy_ids: 
 
 
 ## Puts a new copy of a card into a Dude's hand (test setup only; the core never does this) and
-## returns its card_uid. Uses and raises next_uid.
+## returns its card_uid. Uses and raises next_uid. The copy also joins the end of the Dude's run deck,
+## like a card the Dude owns for the run (task 033: a copy outside the deck lasts one fight only).
 ## state: a run state, changed here. player_index: the Dude's seat, 0-based. def_id: a card id.
 static func give(state: Dictionary, player_index: int, def_id: String) -> String:
 	# uid: the new copy's card_uid.
@@ -197,6 +198,7 @@ static func give(state: Dictionary, player_index: int, def_id: String) -> String
 	state["next_uid"] += 1
 	state["dudes"][player_index]["cards"][uid] = {"def_id": def_id, "upgraded": false}
 	state["dudes"][player_index]["hand"].append(uid)
+	state["dudes"][player_index]["deck"].append(uid)
 	return uid
 
 

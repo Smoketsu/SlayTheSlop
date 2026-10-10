@@ -6,16 +6,22 @@
 ##
 ## Fields: card_id (text: a card definition id), to ("draw_pile", "discard_pile" or "hand"),
 ## shuffle_in (bool, optional, default false, only with to "draw_pile": put each copy at a random
-## position of the draw pile instead of on top), count (int, 1 or more, optional, default 1).
+## position of the draw pile instead of on top), count (int, 1 or more, optional, default 1),
+## lasts (text, optional, task 033: "fight" makes every copy last this fight only, even when its
+## definition lasts the run; Beer Helmet's Hangover, I7). Without lasts a copy lasts as its
+## definition says. A copy can be made to last less than its definition, never more, so "fight" is
+## the only value (LASTS_VALUES).
 ##
 ## Recipient: when the actor is a Dude (a card, a Brew, a card trigger), that Dude, whatever the
 ## card's target is. When the actor is an enemy, every Dude among the effect's targets (the intent's
 ## target_ids that are not Passed Out). Passed Out Dudes get nothing.
 ##
 ## Each copy gets a fresh card_uid ("c" + run_state.next_uid, next_uid rises by 1) and goes into the
-## Dude's cards map (not upgraded). If its definition lasts "run" (card_def.gd DEFAULT_LASTS when
-## left out) it also joins the end of the Dude's run deck; a "fight" copy does not, and is removed
-## when the fight ends (core/combat/card_triggers.gd). Then it goes to the pile:
+## Dude's cards map (not upgraded). If it lasts the run (its definition lasts "run", card_def.gd
+## DEFAULT_LASTS when left out, and the effect has no lasts "fight") it also joins the end of the
+## Dude's run deck; a fight-only copy does not, and is removed when the fight ends because it is not
+## in the run deck (core/combat/card_triggers.gd). No state field marks it: dude_state.deck is
+## "every card_uid this Dude owns for the run". Then it goes to the pile:
 ##   draw_pile: on top (index 0), or with shuffle_in at a position from 0 (top) to the pile's size
 ##              (bottom), each equally likely, drawn from the RECEIVING Dude's "shuffle" stream;
 ##   discard_pile: on top of the discard pile (the end of the list);
@@ -52,6 +58,10 @@ const FIGHT_ONLY: String = "fight"
 ## Piles a copy may be put in (the "to" field). Changed only by the core lane, with README.md.
 const DESTINATIONS: Array[String] = ["draw_pile", "discard_pile", "hand"]
 
+## Task 033: values the optional "lasts" field may have. Only FIGHT_ONLY: a copy may be made to last
+## less than its definition says, never more. Changed only by the core lane, with README.md.
+const LASTS_VALUES: Array[String] = [FIGHT_ONLY]
+
 ## The one destination shuffle_in may be used with.
 const SHUFFLE_DESTINATION: String = "draw_pile"
 
@@ -65,6 +75,9 @@ const FIELDS := {
 	"shuffle_in": TYPE_BOOL,
 	# Optional, default DEFAULT_COUNT. Copies made per recipient, 1 or more.
 	"count": TYPE_INT,
+	# Task 033. Optional, one of LASTS_VALUES ("fight"): every copy lasts this fight only, whatever
+	# its definition's lasts. Left out: the definition decides.
+	"lasts": TYPE_STRING,
 }
 
 
@@ -87,6 +100,8 @@ static func check(effect: Dictionary, path: String) -> Array[String]:
 			errors.append("%s.shuffle_in: only works with to \"%s\"" % [path, SHUFFLE_DESTINATION])
 	if effect.has("count") and (typeof(effect["count"]) != TYPE_INT or effect["count"] < 1):
 		errors.append("%s.count: must be an int, 1 or more" % path)
+	if effect.has("lasts") and (typeof(effect["lasts"]) != TYPE_STRING or not LASTS_VALUES.has(effect["lasts"])):
+		errors.append("%s.lasts: must be one of %s" % [path, str(LASTS_VALUES)])
 	return errors
 
 
@@ -100,10 +115,12 @@ static func run(state: Dictionary, effect: Dictionary, context: Dictionary, even
 	var definition: Dictionary = context.get("cards", {}).get(effect["card_id"], {})
 	if definition.is_empty():
 		return
+	# fight_only: task 033, true when the effect makes every copy last this fight only.
+	var fight_only: bool = effect.get("lasts", "") == FIGHT_ONLY
 	for player_id: String in recipients(state, context):
 		for copy: int in effect.get("count", DEFAULT_COUNT):
 			create_in_place(state, Bodies.dude_index(state, player_id), definition,
-				effect["to"], effect.get("shuffle_in", false), events)
+				effect["to"], effect.get("shuffle_in", false), events, fight_only)
 
 
 ## True when copies of this card last one fight only (definition lasts "fight"); false for
@@ -134,16 +151,18 @@ static func recipients(state: Dictionary, context: Dictionary) -> Array:
 ## state: the working copy; next_uid and rng change. dude_index: the receiving Dude's seat, 0-based.
 ## definition: the card definition being copied (from ruleset.cards).
 ## to: one of DESTINATIONS. shuffle_in: true for a random draw-pile position (to "draw_pile" only).
-## events: the event list, appended to.
+## events: the event list, appended to. fight_only: task 033, true to make this copy last this
+## fight only even when its definition lasts the run (it then stays out of the run deck); false
+## (the default) lets the definition decide.
 static func create_in_place(state: Dictionary, dude_index: int, definition: Dictionary, to: String,
-		shuffle_in: bool, events: Array) -> String:
+		shuffle_in: bool, events: Array, fight_only: bool = false) -> String:
 	# dude: the receiving Dude, inside state.
 	var dude: Dictionary = state["dudes"][dude_index]
 	# uid: the new copy's card_uid.
 	var uid: String = CARD_UID_PREFIX + str(state["next_uid"])
 	state["next_uid"] += 1
 	dude["cards"][uid] = {"def_id": definition["id"], "upgraded": false}
-	if not is_fight_only(definition):
+	if not fight_only and not is_fight_only(definition):
 		dude["deck"].append(uid)
 	match to:
 		"draw_pile":
