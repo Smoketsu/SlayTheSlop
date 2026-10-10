@@ -121,6 +121,21 @@ func test_duplicate_enemy_uids_are_reported() -> void:
 	assert_eq(RunState.check(state).size(), 1)
 
 
+## grossed_out_skips (task 009) starts at 0 in blank(), must be an int and may not be negative.
+func test_grossed_out_skips_is_checked() -> void:
+	# enemy: a blank enemy, changed below.
+	var enemy: Dictionary = EnemyState.blank("e1", "goblin_pledge")
+	assert_eq(enemy["grossed_out_skips"], 0, "blank value")
+	enemy["grossed_out_skips"] = 2
+	assert_no_errors(EnemyState.check(enemy), "two pending skips")
+	enemy["grossed_out_skips"] = -1
+	assert_eq(EnemyState.check(enemy).size(), 1, "negative")
+	enemy["grossed_out_skips"] = 1.0
+	assert_eq(EnemyState.check(enemy).size(), 1, "float")
+	enemy.erase("grossed_out_skips")
+	assert_eq(EnemyState.check(enemy).size(), 1, "missing")
+
+
 ## Requests: a valid play_card passes; unknown types, missing fields and float seqs fail.
 func test_request_shapes() -> void:
 	# good: a well-formed play_card.

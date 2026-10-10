@@ -46,7 +46,9 @@ const SCRIPT: Array = [
 ]
 
 ## Snapshot.state_hash of the final state, recorded on Godot 4.7.2-stable.
-const FINAL_HASH: String = "c13e3ba9539d82bdefebcc36b6fc986e3ebf42dd13f6ae1061e4b23d1497da2e"
+## Re-recorded by task 009 only because run_state.SCHEMA_VERSION went from 1 to 2 (the hash covers
+## schema_version); the fight itself, its events and every other field are unchanged.
+const FINAL_HASH: String = "a72c42f167c04c94938e5936e8ccd81ec0ae03ee4bc192fa5c838a6c1b9ee8a6"
 
 
 ## Plays the whole fight: start_fight on SEED, then every SCRIPT request, checking each step.

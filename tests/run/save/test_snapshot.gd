@@ -17,7 +17,9 @@ const BIG_SEED: int = 1152921504606846977
 ## state_hash(_sample_state()) recorded on Godot 4.7.2-stable. If an engine upgrade changes
 ## var_to_bytes, this test fails: saves and co-op hashes from the old version would no longer
 ## match. Re-record it only after deciding, with both people, what to do about old saves.
-const SAMPLE_HASH: String = "a2531a5e38db13094d974fac4604b85e6b6ffb0c2ddee60ac1a999c1eb022010"
+## Re-recorded by task 009: SCHEMA_VERSION 1 -> 2 and the new enemy field grossed_out_skips change
+## the sample's bytes (no save exists yet, and the solo slice does not migrate saves).
+const SAMPLE_HASH: String = "a4a13b12a703e5007facf1f65b7314501d275f9231e2602acaf31d20ccdbdfc6"
 
 ## Seed for the RandomNumberGenerator that makes the garbage inputs. Fixed so every run tests the same bytes.
 const GARBAGE_SEED: int = 27
