@@ -1,0 +1,23 @@
+{
+  "id": "tom_chrome_dome",
+  "name": "Chrome Dome",
+  "owner": "tom",
+  "type": "skill",
+  "rarity": "common",
+  "cost": 1,
+  "target": "self",
+  "effects": [
+    {
+      "op": "guard",
+      "amount": 7
+    },
+    {
+      "op": "thorns",
+      "amount": 3
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Gain 7 Guard. This turn, enemies that hit Tom take 3 damage from the glare"
+}

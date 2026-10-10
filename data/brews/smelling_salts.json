@@ -1,0 +1,17 @@
+{
+  "id": "smelling_salts",
+  "name": "Smelling Salts",
+  "rarity": "rare",
+  "text": "Wake a Passed Out teammate at 25% HP. Solo: the next time you would pass out this fight, stay at 1 HP instead.",
+  "target": "ally",
+  "effects": [],
+  "solo": {
+    "target": "self",
+    "effects": [
+      {
+        "op": "prevent_pass_out",
+        "hp": 1
+      }
+    ]
+  }
+}

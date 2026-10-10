@@ -1,0 +1,21 @@
+{
+  "id": "junk_hangover",
+  "name": "Hangover",
+  "owner": "junk",
+  "type": "junk",
+  "rarity": "special",
+  "cost": -1,
+  "target": "none",
+  "effects": [],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "on_draw": [
+    {
+      "op": "lose_hype",
+      "amount": 1
+    }
+  ],
+  "lasts": "run",
+  "text": "Unplayable. When drawn, lose 1 Hype"
+}

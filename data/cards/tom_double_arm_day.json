@@ -1,0 +1,33 @@
+{
+  "id": "tom_double_arm_day",
+  "name": "Double Arm Day",
+  "owner": "tom",
+  "type": "attack",
+  "rarity": "rare",
+  "cost": 3,
+  "target": "enemy",
+  "effects": [
+    {
+      "op": "damage",
+      "amount": 9
+    },
+    {
+      "op": "apply_status",
+      "status": "broken_arm",
+      "stacks": 1
+    },
+    {
+      "op": "damage",
+      "amount": 9
+    },
+    {
+      "op": "apply_status",
+      "status": "broken_arm",
+      "stacks": 1
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Deal 9 damage twice. Each hit breaks 1 arm"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "medical_card",
+  "name": "Medical Card",
+  "owner": "general",
+  "rarity": "uncommon",
+  "text": "Prices at Baileys are 20% lower.",
+  "stats": {},
+  "triggers": [],
+  "modifiers": [
+    {
+      "kind": "shop_price_percent",
+      "amount": 80
+    }
+  ]
+}

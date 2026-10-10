@@ -1,0 +1,24 @@
+{
+  "id": "tom_pickup_line",
+  "name": "Pickup Line",
+  "owner": "tom",
+  "type": "skill",
+  "rarity": "uncommon",
+  "cost": 1,
+  "target": "all_enemies",
+  "effects": [
+    {
+      "op": "apply_status",
+      "status": "ick",
+      "stacks": 4
+    },
+    {
+      "op": "self_damage",
+      "amount": 3
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Apply 4 Ick to all enemies. Tom takes 3 damage from the response"
+}

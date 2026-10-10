@@ -1,0 +1,18 @@
+{
+  "id": "special_brownie",
+  "name": "Special Brownie",
+  "rarity": "uncommon",
+  "text": "Gain 2 Hype. Add a Hangover card to your discard pile.",
+  "target": "self",
+  "effects": [
+    {
+      "op": "gain_hype",
+      "amount": 2
+    },
+    {
+      "op": "add_card",
+      "card_id": "junk_hangover",
+      "to": "discard_pile"
+    }
+  ]
+}

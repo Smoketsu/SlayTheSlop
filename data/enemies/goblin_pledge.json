@@ -1,0 +1,48 @@
+{
+  "id": "goblin_pledge",
+  "name": "Goblin Pledge",
+  "floor": 1,
+  "tier": "normal",
+  "max_hp": 12,
+  "arm_count": 2,
+  "tags": [
+    "goblin"
+  ],
+  "move_rules": [
+    {
+      "move_id": "call_for_help",
+      "when": [
+        {
+          "if": "last_of_tag",
+          "tag": "goblin"
+        }
+      ]
+    }
+  ],
+  "moves": [
+    {
+      "id": "hit",
+      "weight": 1,
+      "intent": "attack",
+      "effects": [
+        {
+          "op": "damage",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "id": "call_for_help",
+      "weight": 0,
+      "intent": "summon",
+      "effects": [
+        {
+          "op": "summon_enemy",
+          "enemy_id": "goblin_pledge",
+          "count": 1
+        }
+      ]
+    }
+  ],
+  "text": "Hits for 5. If it is the last goblin standing, calls one more Goblin Pledge"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "junk_burn",
+  "name": "Burn",
+  "owner": "junk",
+  "type": "junk",
+  "rarity": "special",
+  "cost": -1,
+  "target": "none",
+  "effects": [],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "on_end_of_turn_in_hand": [
+    {
+      "op": "self_damage",
+      "amount": 2
+    }
+  ],
+  "lasts": "fight",
+  "text": "Unplayable. If it is in your hand at end of turn, take 2 damage"
+}

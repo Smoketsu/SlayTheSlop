@@ -1,0 +1,19 @@
+{
+  "id": "tom_punch",
+  "name": "Punch",
+  "owner": "tom",
+  "type": "attack",
+  "rarity": "starter",
+  "cost": 1,
+  "target": "enemy",
+  "effects": [
+    {
+      "op": "damage",
+      "amount": 6
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Deal 6 damage"
+}
