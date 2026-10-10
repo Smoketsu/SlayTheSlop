@@ -169,3 +169,11 @@ Answer:
 only the shop's label. Also note that the Brew "Protein Shake" will sit under a "Shake" label;
 the people may want to rename one of them.
 Answer:
+
+## Found while building the combat skeleton (task 007)
+
+**G30. When does an enemy's Guard reset?** The GDD's Refresh drops each player's Guard to 0, but
+nothing resets enemy Guard, so as written it piles up for the whole fight (the Goblin Bouncer gains 8
+every other turn). Suggested: an enemy's Guard drops to 0 at the start of its own action in the
+enemy phase, before it acts.
+Answer:
