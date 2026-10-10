@@ -75,8 +75,8 @@ Install into `.tools/` (already in `.gitignore`). The version pin is a shared co
 - [x] From a fresh clone, one documented command installs Godot 4.7.2-stable and runs all tests.
 - [x] Every test in `tests/core/` passes, unmodified (22 tests at the time of writing).
 - [x] A test file with a parse error, a failing assertion, and a runtime error each give exit code 1.
-- [ ] CI runs the suite on every pull request and on pushes to `main`, and fails the check on a failing test.
-      (Workflow written; not yet seen running on GitHub. Tick when the first PR shows the check.)
+- [x] CI runs the suite on every pull request and on pushes to `main`, and fails the check on a failing test.
+      (Seen green on PR 6. Failing on a failing test follows from `tools/test.sh`'s exit code, shown locally.)
 - [ ] CLAUDE.md "Commands" lists the exact commands, in its own contract PR.
 - [ ] Optional: a Claude Code SessionStart hook installs Godot in new cloud sessions, so agents can test without setup.
 
@@ -114,7 +114,6 @@ Install into `.tools/` (already in `.gitignore`). The version pin is a shared co
   - `tools/test.sh constants`: `3 passed, 0 failed`. `tools/test.sh zzz`: exit 1 (nothing ran).
   - Mutation check: making the runner ignore logged errors turns `test_exit_codes` red.
 - 2026-10-10 B: Not done:
-  - CI not yet observed on GitHub (no PR has run it).
   - CLAUDE.md "Commands": goes in its own contract PR (`b/002-commands`), after this one merges.
   - Optional SessionStart hook: skipped. It would live in `.claude/settings.json`, which no lane owns.
   - Windows installer script.
@@ -123,3 +122,4 @@ Install into `.tools/` (already in `.gitignore`). The version pin is a shared co
     and `[]` are equal.
   - `test_schema.gd`'s `test_json_corrupts_big_ints` passes only because `assert_ne` is strict: under
     Godot's `==`, float 2^60 equals int 2^60+1.
+- 2026-10-10 B: CI `tests` check ran on PR 6: success in 14 s (GitHub Actions run 38064532187).
