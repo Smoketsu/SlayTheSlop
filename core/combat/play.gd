@@ -22,6 +22,8 @@
 ##     target_id ""; "self" takes "" or the player's own id. "ally" and "puppet" are "bad_target"
 ##     until Assist cards and Puppets are built.
 ##   - A Dude who is already ready may still play cards (the GDD does not forbid it).
+##   - Task 015: while a card with play_limit_in_hand (Detention) is in the Dude's hand and they have
+##     played that many cards this turn, every play is "unplayable" (core/combat/card_triggers.gd).
 ##
 ## Pure: no file, clock, network or random access.
 extends RefCounted
@@ -31,6 +33,7 @@ const Ops := preload("res://core/ops/ops.gd")
 const Bodies := preload("res://core/combat/bodies.gd")
 const Powers := preload("res://core/combat/powers.gd")
 const BroMeter := preload("res://core/combat/bro_meter.gd")
+const CardTriggers := preload("res://core/combat/card_triggers.gd")
 
 ## Card type (core/schema/card_def.gd TYPES) whose damage effects are attack damage (G3, task 009).
 const ATTACK_TYPE: String = "attack"
@@ -50,6 +53,9 @@ static func check(ruleset: Dictionary, state: Dictionary, dude: Dictionary, requ
 	# card: the card's definition, or {} when the ruleset lacks it.
 	var card: Dictionary = card_def(ruleset, dude, request["card_uid"])
 	if card.is_empty() or request["crunch"]:
+		return "unplayable"
+	# Task 015: Detention's limit while it is in hand.
+	if CardTriggers.play_limit_reached(ruleset, dude):
 		return "unplayable"
 	if dude["cards"][request["card_uid"]]["upgraded"] and not card["upgrade"].is_empty():
 		return "unplayable"

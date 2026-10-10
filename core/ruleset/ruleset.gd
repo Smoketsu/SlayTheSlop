@@ -13,6 +13,9 @@
 ## Definitions are the parsed JSON (through json_values.parse, so whole numbers are ints),
 ## unchanged. Keys are inserted in sorted file-path order, so the result is the same on every run.
 ##
+## Cross-checks: a Dude's starter_deck and bro_move, and (task 015) the card_id of every add_card
+## effect in cards (effects and trigger lists) and enemy moves, must name cards in the ruleset.
+##
 ## Not checked yet: a Dude's starting_gear. No Gear definition format exists until task 021, so
 ## data/gear/ is an unknown folder here and Gear ids cannot be resolved. Task 021 adds both.
 ##
@@ -95,6 +98,8 @@ static func build(files: Dictionary) -> Dictionary:
 			continue
 		_add_definition(files[path], path, KINDS[folder], ruleset, id_paths, errors)
 	_check_references(ruleset, id_paths, errors)
+	# Task 015: add_card effects must name a card.
+	_check_added_cards(ruleset, id_paths, errors)
 	if not errors.is_empty():
 		ruleset = {}
 	freeze(ruleset)
@@ -220,3 +225,38 @@ static func _check_references(ruleset: Dictionary, id_paths: Dictionary, errors:
 					path, i, dude["starter_deck"][i]])
 		if not cards.has(dude["bro_move"]):
 			errors.append("%s: dude.bro_move: card \"%s\" is not a valid card in data/cards/" % [path, dude["bro_move"]])
+
+
+## Task 015: checks that every add_card effect names a card in the ruleset. Looks at each card's
+## effects and trigger lists (card_def.gd TRIGGER_FIELDS) and each enemy move's effects. Effects that
+## are not Dictionaries or have no String card_id are left to Ops.check(), which reports them.
+## ruleset: the ruleset built so far (only valid definitions are in it).
+## id_paths: ruleset key -> {id -> path}, used to name the file in messages.
+## errors: the list problems are appended to.
+static func _check_added_cards(ruleset: Dictionary, id_paths: Dictionary, errors: Array[String]) -> void:
+	# lists: [path, label, effects list] for every effects list to scan, in sorted id order.
+	var lists: Array = []
+	# card_ids: card ids, sorted for stable messages.
+	var card_ids: Array = ruleset["cards"].keys()
+	card_ids.sort()
+	for card_id: String in card_ids:
+		# card: the card definition.
+		var card: Dictionary = ruleset["cards"][card_id]
+		lists.append([id_paths["cards"][card_id], "card.effects", card["effects"]])
+		for field: String in CardDef.TRIGGER_FIELDS:
+			if card.has(field):
+				lists.append([id_paths["cards"][card_id], "card." + field, card[field]])
+	# enemy_ids: enemy ids, sorted for stable messages.
+	var enemy_ids: Array = ruleset["enemies"].keys()
+	enemy_ids.sort()
+	for enemy_id: String in enemy_ids:
+		for move: Dictionary in ruleset["enemies"][enemy_id]["moves"]:
+			lists.append([id_paths["enemies"][enemy_id], "enemy.moves.%s.effects" % move["id"], move["effects"]])
+	for entry: Array in lists:
+		for i: int in entry[2].size():
+			# effect: one effect of the list.
+			var effect: Variant = entry[2][i]
+			if typeof(effect) == TYPE_DICTIONARY and effect.get("op") == "add_card" \
+					and typeof(effect.get("card_id")) == TYPE_STRING and not ruleset["cards"].has(effect["card_id"]):
+				errors.append("%s: %s[%d].card_id: card \"%s\" is not a valid card in data/cards/" % [
+					entry[0], entry[1], i, effect["card_id"]])

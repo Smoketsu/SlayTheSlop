@@ -5,13 +5,17 @@
 ## pile with the G8 reshuffle (core/combat/piles.gd): shuffle the discard pile into the draw pile
 ## when it runs out, stop when both are empty. No hand size limit (G8).
 ##
-## Events: deck_shuffled and card_moved (draw_pile -> hand), as at Refresh.
+## Task 015: each drawn copy's on_draw trigger runs right after it is drawn (Hangover, Bedbugs), via
+## core/combat/card_triggers.gd draw_in_place, the same draw Refresh uses; drawing stops early if a
+## trigger Passes Out the Dude or decides the fight.
+##
+## Events: deck_shuffled and card_moved (draw_pile -> hand), as at Refresh, plus any on_draw events.
 ## Changes the working copy it is given (see core/combat/bodies.gd). Pure: randomness only through
 ## the player's shuffle stream, via piles.gd.
 extends RefCounted
 
 const Bodies := preload("res://core/combat/bodies.gd")
-const Piles := preload("res://core/combat/piles.gd")
+const CardTriggers := preload("res://core/combat/card_triggers.gd")
 
 ## False: a draw lands on the actor, so an enemy move with only draw shows no targets.
 const NEEDS_TARGET: bool = false
@@ -44,4 +48,5 @@ static func run(state: Dictionary, effect: Dictionary, context: Dictionary, even
 	var index: int = Bodies.dude_index(state, context["actor_id"])
 	if index == -1 or state["dudes"][index]["passed_out"]:
 		return
-	Piles.draw_in_place(state, index, effect["amount"], events)
+	# Task 015: the context stands in for the ruleset (card_triggers.gd accepts either).
+	CardTriggers.draw_in_place(context, state, index, effect["amount"], events)

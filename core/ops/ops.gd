@@ -30,6 +30,9 @@ const Conditions := preload("res://core/ops/conditions.gd")
 const Powers := preload("res://core/combat/powers.gd")
 const Bodies := preload("res://core/combat/bodies.gd")
 const Event := preload("res://core/schema/event.gd")
+# Task 015: Junk ops.
+const AddCardOp := preload("res://core/ops/add_card.gd")
+const LoseHypeOp := preload("res://core/ops/lose_hype.gd")
 
 ## Op name (the effect's "op" value) -> the script implementing it. Only the core lane changes this.
 const OPS := {
@@ -41,6 +44,9 @@ const OPS := {
 	"guard_per_broken_arm": GuardPerBrokenArmOp,
 	"self_damage": SelfDamageOp,
 	"thorns": ThornsOp,
+	# Task 015.
+	"add_card": AddCardOp,
+	"lose_hype": LoseHypeOp,
 }
 
 ## Task 013: fields any effect may carry, whatever its op, and their types. Both are optional.
@@ -116,7 +122,8 @@ static func needs_target(effects: Array) -> bool:
 ##                     "attack", a Bro Move, or an enemy move (task 009);
 ##           "from_card": bool, true when the effect comes from a card, for Hungover (task 009);
 ##           "ruleset": the read-only content, for Power triggers (task 013); without it no
-##                      trigger fires}.
+##                      trigger fires;
+##           "cards": ruleset.cards, read-only, card id -> definition, for add_card (task 015)}.
 ## make_context() builds one. events: the event list, appended to.
 static func run(state: Dictionary, effect: Dictionary, context: Dictionary, events: Array) -> void:
 	# here: the context for this effect, with the effect's own target when it has one.
@@ -163,9 +170,12 @@ static func fire_power_triggers_in_place(ruleset: Dictionary, state: Dictionary,
 
 
 ## Returns the context run() needs (see run()).
-## ruleset: the read-only content; its constants go in the context, and itself for Power triggers.
-## actor_id: who uses the card or move. targets: ids the effects land on. attack: true for attack
-## damage (G3). from_card: true when the effects come from a card.
+## ruleset: the read-only content; its constants and (task 015) cards go in the context, and itself
+## for Power triggers (task 013). An op context also works here (task 015 passes one where a ruleset
+## is expected): its "ruleset" entry is used. actor_id: who uses the card or move. targets: ids the
+## effects land on. attack: true for attack damage (G3). from_card: true when the effects come from a card.
 static func make_context(ruleset: Dictionary, actor_id: String, targets: Array, attack: bool, from_card: bool) -> Dictionary:
-	return {"actor_id": actor_id, "targets": targets, "constants": ruleset["constants"],
-		"attack": attack, "from_card": from_card, "ruleset": ruleset}
+	# content: the real ruleset, unwrapped when an op context was passed in its place.
+	var content: Dictionary = ruleset.get("ruleset", ruleset)
+	return {"actor_id": actor_id, "targets": targets, "constants": content["constants"],
+		"attack": attack, "from_card": from_card, "ruleset": content, "cards": content.get("cards", {})}

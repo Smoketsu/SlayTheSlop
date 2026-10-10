@@ -32,6 +32,12 @@
 ## at Refresh, Powers' "turn_start" triggers after every Refresh (core/combat/powers.gd), and pocketed
 ## cards kept in hand at End of turn.
 ##
+## Junk card rules (task 015) are core/combat/card_triggers.gd; this file calls it at lines marked
+## "Task 015": the Refresh draw runs on_draw triggers (a Bedbugs draw can decide the fight, which
+## then ends before the player phase), End of turn runs on_end_of_turn_in_hand before each hand is
+## discarded (a Burn can decide the fight, which then ends before the enemy phase), and the fight's
+## end removes fight-only cards.
+##
 ## Pure: randomness only through core/rng/rng.gd (via piles.gd); no file, clock or network access.
 ## Functions ending in _in_place change the working copy they are given (see core/combat/bodies.gd).
 extends RefCounted
@@ -49,6 +55,7 @@ const Statuses := preload("res://core/combat/statuses.gd")
 const Powers := preload("res://core/combat/powers.gd")
 const BroMeter := preload("res://core/combat/bro_meter.gd")
 const ThornsOp := preload("res://core/ops/thorns.gd")
+const CardTriggers := preload("res://core/combat/card_triggers.gd")
 
 ## Enemy tier (core/schema/enemy_def.gd TIERS) -> name of the constant with its solo starting Ick
 ## threshold (GDD "Statuses"). Changes only with the GDD's tiers.
@@ -164,18 +171,20 @@ static func start_turn_in_place(ruleset: Dictionary, state: Dictionary, events: 
 	combat["phase"] = "refresh"
 	for i: int in state["dudes"].size():
 		if not state["dudes"][i]["passed_out"]:
-			_refresh_in_place(state, i, events)
+			_refresh_in_place(ruleset, state, i, events)
 	# Task 013: active Powers' "turn_start" triggers (Friend Zone), after every Refresh.
 	Ops.fire_power_triggers_in_place(ruleset, state, Powers.matching(ruleset, state, Powers.WHEN_TURN_START, ""), events)
-	if finish_if_decided_in_place(state, events):
+	# Task 015: an on_draw trigger (Bedbugs) can Pass Out the last Dude during Refresh.
+	if finish_if_decided_in_place(ruleset, state, events):
 		return
 	combat["phase"] = "player"
 
 
 ## Turn flow step 2 for one Dude. Emits guard_changed, hype_changed and ready_changed only for values
 ## that actually change, then the draw's deck_shuffled and card_moved events.
-## state: the working copy. dude_index: the Dude's seat, 0-based. events: the event list, appended to.
-static func _refresh_in_place(state: Dictionary, dude_index: int, events: Array) -> void:
+## ruleset: the read-only content, for on_draw triggers (task 015). state: the working copy.
+## dude_index: the Dude's seat, 0-based. events: the event list, appended to.
+static func _refresh_in_place(ruleset: Dictionary, state: Dictionary, dude_index: int, events: Array) -> void:
 	# dude: the Dude being refreshed, inside state.
 	var dude: Dictionary = state["dudes"][dude_index]
 	# player_id: the Dude's id, for events.
@@ -193,8 +202,8 @@ static func _refresh_in_place(state: Dictionary, dude_index: int, events: Array)
 	if dude["ready"]:
 		dude["ready"] = false
 		events.append(Event.make("ready_changed", {"player_id": player_id, "ready": false}))
-	# Task 009: Foggy draws fewer cards, then loses a stack (G1).
-	Piles.draw_in_place(state, dude_index, Statuses.refresh_draw_count(dude), events)
+	# Task 009: Foggy draws fewer cards, then loses a stack (G1). Task 015: on_draw triggers run per card.
+	CardTriggers.draw_in_place(ruleset, state, dude_index, Statuses.refresh_draw_count(dude), events)
 	Statuses.after_refresh_in_place(state, dude_index, events)
 
 
@@ -215,10 +224,15 @@ static func end_player_phase_in_place(ruleset: Dictionary, state: Dictionary, ev
 	var combat: Dictionary = state["combat"]
 	combat["phase"] = "end_of_turn"
 	for i: int in state["dudes"].size():
+		# Task 015: Burn and other on_end_of_turn_in_hand triggers, before the hand is discarded.
+		CardTriggers.end_of_turn_in_hand_in_place(ruleset, state, i, events)
 		# Task 013: pocketed cards stay in hand.
 		Piles.discard_hand_in_place(state, i, events, Piles.pocketed_in_hand(ruleset, state["dudes"][i]))
 	# Task 009: Dudes' statuses wear off at End of turn (G1).
 	Statuses.end_of_turn_in_place(state, events)
+	# Task 015: an end-of-turn trigger can Pass Out the last Dude; the enemies then do not act.
+	if finish_if_decided_in_place(ruleset, state, events):
+		return
 	combat["phase"] = "enemy"
 	for uid: String in Bodies.enemy_uids(state):
 		# enemy: the acting enemy, or {} if it died earlier this phase.
@@ -232,7 +246,7 @@ static func end_player_phase_in_place(ruleset: Dictionary, state: Dictionary, ev
 			_enemy_act_in_place(ruleset, state, enemy, events)
 		# Task 009: the enemy's statuses wear off right after its slot (G1).
 		Statuses.after_enemy_slot_in_place(state, uid, events)
-		if finish_if_decided_in_place(state, events):
+		if finish_if_decided_in_place(ruleset, state, events):
 			return
 	start_turn_in_place(ruleset, state, events)
 
@@ -272,9 +286,11 @@ static func _enemy_act_in_place(ruleset: Dictionary, state: Dictionary, enemy: D
 
 ## Ends the fight if it is decided: "lost" when every Dude is Passed Out (checked first, because
 ## then "the run ends", GDD), otherwise "won" when every enemy is dead. Sets combat.result and
-## phase "over" and emits fight_ended. Returns true when the fight is over (now or already).
+## phase "over" and emits fight_ended. Task 015: then removes every fight-only card (definition
+## lasts "fight") from each Dude, with card_removed. Returns true when the fight is over (now or already).
+## ruleset: the read-only content, for the cards' lasts (task 015).
 ## state: the working copy, in a fight. events: the event list, appended to.
-static func finish_if_decided_in_place(state: Dictionary, events: Array) -> bool:
+static func finish_if_decided_in_place(ruleset: Dictionary, state: Dictionary, events: Array) -> bool:
 	# combat: the fight, inside state.
 	var combat: Dictionary = state["combat"]
 	if combat["phase"] == "over":
@@ -290,4 +306,6 @@ static func finish_if_decided_in_place(state: Dictionary, events: Array) -> bool
 	combat["result"] = result
 	combat["phase"] = "over"
 	events.append(Event.make("fight_ended", {"result": result}))
+	# Task 015: fight-only Junk (Paperwork, Detention, Burn) leaves when the fight ends.
+	CardTriggers.remove_fight_only_in_place(ruleset, state, events)
 	return true

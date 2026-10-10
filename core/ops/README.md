@@ -26,6 +26,7 @@ The registry is `core/ops/ops.gd` (`OPS`); each op lives in its own file here.
 | A Bro Move (`use_bro_move`, task 013) | as for a card with the Bro Move card's `target`, from the request's optional `target_id` | the Dude using it |
 | A Power trigger (task 013) | the trigger's `target`: `subject`, `all_enemies` or `self` (see "Powers") | the Dude who played the Power |
 | An effect with `"target": "all_enemies"` (task 013) | every enemy in the fight when that effect runs, overriding the above | unchanged |
+| A card trigger (`on_draw`, `on_end_of_turn_in_hand`; task 015) | the card's owner | the card's owner |
 
 Each op says whether it uses `targets` or the actor.
 
@@ -94,8 +95,8 @@ Deal damage to each target. File: `core/ops/damage.gd`.
   both mean × `EXPOSED_MULT`.
 - **Only attack damage** (G3) gets steps 1–4: `damage` effects on cards of type `attack`, on Bro
   Moves and in enemy moves. A `damage` effect on any other card type deals exactly `amount` (no
-  Swole, no multipliers). Self-damage is its own op (`self_damage`, task 013); Burn and the like
-  will be too.
+  Swole, no multipliers). Self-damage (Skull Bash), Burn and Bedbugs use the `self_damage` op
+  (tasks 013 and 015).
 - **Thorns** (task 013): after each hit an enemy lands on a Dude whose `thorns` is above 0, the
   enemy takes that much damage back (see `thorns`). If it dies, the rest of its hits do not happen.
 - **Events per hit:** `damage_dealt` (`amount` = damage after step 5's rounding, before Guard,
@@ -182,7 +183,8 @@ The actor draws cards. File: `core/ops/draw.gd`. Task 013.
 - **Lands on:** the actor, if it is a Dude who is not Passed Out; otherwise nothing happens.
 - Draws from the top with the G8 reshuffle (discard pile shuffled in when the draw pile is empty;
   nothing when both are). No hand size limit.
-- **Events:** `deck_shuffled`, `card_moved` (`draw_pile` -> `hand`) per card.
+- Each drawn copy's `on_draw` runs right after it is drawn (task 015; see "Card triggers").
+- **Events:** `deck_shuffled`, `card_moved` (`draw_pile` -> `hand`) per card, then any `on_draw` events.
 - **Enemy intents:** no targets.
 
 Example: `{ "op": "draw", "amount": 1, "if": "target_has_broken_arm" }` (Wrist Lock).
@@ -203,7 +205,8 @@ Example: `{ "op": "gain_hype", "amount": 1, "if": "target_now_armless" }` (Snap 
 
 ### `self_damage`
 
-The actor takes damage. File: `core/ops/self_damage.gd`. Task 013.
+The actor takes damage that is not an attack. File: `core/ops/self_damage.gd`. Tasks 013 and 015
+(Skull Bash, Pickup Line; Bedbugs' `on_draw`, Burn's `on_end_of_turn_in_hand`).
 
 | Field | Type | Meaning |
 | --- | --- | --- |
@@ -213,8 +216,8 @@ The actor takes damage. File: `core/ops/self_damage.gd`. Task 013.
 - **Not attack damage** (G3): no Swole, Noodle Arms, Broken Arm or Exposed. Exactly `amount`,
   through the actor's Guard first (G2), then HP, which stops at 0. A Dude at 0 HP is Passed Out.
   `amount` 0 does nothing.
-- **Events:** `damage_dealt` with `source_id` = `target_id` = the actor, then `dude_passed_out` or
-  `enemy_died` at 0 HP.
+- **Events:** `damage_dealt` with `source_id` `""` (no attacker, so no thorns), then
+  `dude_passed_out` or `enemy_died` at 0 HP.
 - **Enemy intents:** no targets.
 
 Example: `{ "op": "self_damage", "amount": 2 }` (Skull Bash).
@@ -257,6 +260,50 @@ Damage back to every enemy that hits the actor this turn. File: `core/ops/thorns
 
 Example: `{ "op": "thorns", "amount": 3 }` (Chrome Dome).
 
+### `add_card`
+
+Create new copies of a card for a Dude (task 015). File: `core/ops/add_card.gd`. Used for Junk from
+enemies (Skeleton Intern, Hall Monitor Golem, Boag Imp), Brews (Special Brownie) and cards.
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `card_id` | text | The card definition to copy, for example `junk_paperwork`. Must be a card in `data/cards/`; the ruleset build reports one that is not |
+| `to` | text | `draw_pile`, `discard_pile` or `hand`: where each copy goes |
+| `shuffle_in` | bool, optional (default `false`) | Only with `to: "draw_pile"`. `true` puts each copy at a random position of the draw pile instead of on top |
+| `count` | int, 1 or more, optional (default 1) | Copies made for each Dude it lands on |
+
+- **Lands on:** the actor when the actor is a Dude (a card, a Brew, a card trigger), whatever the
+  card's `target` is, so "Deal 1 damage. Add 2 Paperwork to your hand" on a `target: "enemy"` card
+  works. In an enemy move: every Dude among the intent's targets. Passed Out Dudes get nothing.
+- **Each copy** gets a new `card_uid` (from `next_uid`) and joins the Dude's `cards`, not upgraded.
+  A card whose definition `lasts` `"run"` (the default) also joins the end of the run `deck`; a
+  `"fight"` card does not and is removed when the fight ends (see "Card triggers" below).
+- **Where it goes:** `draw_pile`: on top (the next card drawn), or with `shuffle_in` at a position
+  from top to bottom, each equally likely, drawn from the **receiving** Dude's `shuffle` stream (one
+  draw per copy, in order). `discard_pile`: on top of the discard pile. `hand`: the end of the hand;
+  this is not a draw, so `on_draw` does not run.
+- **Events:** `card_created` per copy (`to` = the pile).
+- **Enemy intents:** a move with `add_card` needs a target, so its intent is aimed at a Dude.
+
+Examples: Skeleton Intern's `{ "op": "add_card", "card_id": "junk_paperwork", "to": "draw_pile",
+"shuffle_in": true }`; Hall Monitor Golem's `{ "op": "add_card", "card_id": "junk_detention", "to":
+"discard_pile" }`; Special Brownie's `{ "op": "add_card", "card_id": "junk_hangover", "to":
+"discard_pile" }`.
+
+### `lose_hype`
+
+The actor loses Hype (task 015, Hangover). File: `core/ops/lose_hype.gd`.
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `amount` | int, 0 or more | Hype lost |
+
+- **Lands on:** the actor, when it is a Dude. Enemies have no Hype: nothing happens.
+- Hype stops at 0: a Dude with less Hype than `amount` loses what they have.
+- **Events:** `hype_changed` (`delta` = minus the Hype actually lost), only when Hype changes.
+
+Example: `{ "op": "lose_hype", "amount": 1 }` (Hangover's `on_draw`).
+
 ## Powers (task 013)
 
 A card of `type: "power"` is played like any card (cost, `card_played`, its `effects` if any),
@@ -286,7 +333,38 @@ fail `Ops.check()` is `unplayable`. File: `core/combat/powers.gd`.
   effects' own events. Trigger effects can set off further triggers (Reply Guy's Ick can Gross Out
   an enemy, which fires Friend Zone).
 
+## Card triggers (task 015)
+
+Optional card definition fields (`core/schema/card_def.gd`) for cards that act without being
+played. Rules: `core/combat/card_triggers.gd`.
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `on_draw` | list of effects | Run right after the copy is drawn into its owner's hand (Refresh, or any rules draw) |
+| `on_end_of_turn_in_hand` | list of effects | Run at End of turn if the copy is in its owner's hand, before the hand is discarded |
+| `play_limit_in_hand` | int, 0 or more | While the copy is in hand, its owner may play at most this many cards this turn (`cards_played_this_turn`); further plays are rejected `unplayable` |
+| `lasts` | `"run"` (default) or `"fight"` | `"fight"`: when the fight ends (won or lost) the copy leaves the Dude's `cards`, `deck` and piles, with `card_removed` |
+| `removable` | bool (default `true`) | `false`: cannot be removed at Baileys (read by task 025) |
+
+- Trigger effects use the same ops as `effects`. The owner is the actor and the only target, damage
+  is not attack damage, and they count as from a card (Hungover). They stop once the fight is
+  decided; an effect with a bad op or fields is skipped.
+- A Bedbugs draw at Refresh or a Burn at End of turn can Pass Out the last Dude. The fight then
+  ends at once: no player phase or no enemy phase.
+- Every rules draw (Refresh and the `draw` op) goes through `CardTriggers.draw_in_place`, not
+  `Piles.draw_in_place`, so `on_draw` runs.
+
+The six Junk cards (GDD "Junk cards") as data, rarity `special` (G17):
+
+| Card | Cost | Fields |
+| --- | --- | --- |
+| Hangover | -1 | `"on_draw": [{"op": "lose_hype", "amount": 1}]`, `"lasts": "run"` |
+| Regret | -1 | `"removable": false`, `"lasts": "run"` |
+| Bedbugs | -1 | `"on_draw": [{"op": "self_damage", "amount": 1}]`, `"lasts": "run"` |
+| Paperwork | 1 | `"effects": []`, `"keywords": ["tapped"]`, `"lasts": "fight"` |
+| Detention | -1 | `"play_limit_in_hand": 4`, `"lasts": "fight"` |
+| Burn | -1 | `"on_end_of_turn_in_hand": [{"op": "self_damage", "amount": 2}]`, `"lasts": "fight"` |
+
 ## Not built yet
 
-Gear and Brew effects (task 021), Junk card ops (task 015). Until then, cards using them are
-`unplayable`.
+Gear and Brew effects (task 021). Until then, cards using them are `unplayable`.

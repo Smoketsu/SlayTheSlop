@@ -68,13 +68,13 @@ static func apply(ruleset: Dictionary, state: Dictionary, request: Variant) -> D
 	match request["type"]:
 		"play_card":
 			Play.resolve_in_place(ruleset, next, index, request, events)
-			Fight.finish_if_decided_in_place(next, events)
+			Fight.finish_if_decided_in_place(ruleset, next, events)
 		"set_ready":
 			_set_ready_in_place(ruleset, next, index, request["ready"], events)
 		"use_bro_move":
 			# Task 013: empty the Bro Meter and play the Dude's Bro Move.
 			BroMove.resolve_in_place(ruleset, next, index, request, events)
-			Fight.finish_if_decided_in_place(next, events)
+			Fight.finish_if_decided_in_place(ruleset, next, events)
 	next["dudes"][index]["last_seq"] = request["seq"]
 	next["state_version"] = state["state_version"] + 1
 	return {"state": next, "events": events, "reject": ""}

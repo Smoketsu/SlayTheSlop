@@ -201,7 +201,7 @@ func test_skull_bash() -> void:
 	assert_eq(_enemy(result["state"], "e11")["hp"], 60 - 10, "10 damage")
 	assert_eq(result["state"]["dudes"][0]["hp"], TOM_HP - 2, "Tom takes 2")
 	assert_true(result["events"].has(Event.make("damage_dealt",
-		{"source_id": "p1", "target_id": "p1", "amount": 2, "blocked": 0, "hp_lost": 2})))
+		{"source_id": "", "target_id": "p1", "amount": 2, "blocked": 0, "hp_lost": 2})))
 	# messy: Tom is Exposed, has Noodle Arms and 1 Guard.
 	var messy: Dictionary = _fight(rules, ["test_hitter"])
 	messy["dudes"][0]["statuses"] = {"exposed": 1, "noodle_arms": 1}
@@ -209,7 +209,7 @@ func test_skull_bash() -> void:
 	result = _play(rules, messy, "tom_test_skull_bash", "e11")
 	assert_eq(_enemy(result["state"], "e11")["hp"], 60 - 7, "the attack is Noodled: 10 x 0.75 = 7")
 	assert_true(result["events"].has(Event.make("damage_dealt",
-		{"source_id": "p1", "target_id": "p1", "amount": 2, "blocked": 1, "hp_lost": 1})), "self-damage stays 2, Guard first")
+		{"source_id": "", "target_id": "p1", "amount": 2, "blocked": 1, "hp_lost": 1})), "self-damage stays 2, Guard first")
 
 
 ## Unsolicited Advice: "Apply 3 Ick and 1 Noodle Arms".

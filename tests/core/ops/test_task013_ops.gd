@@ -44,7 +44,7 @@ func test_actor_kinds() -> void:
 		Ops.run(state, effect, context, events)
 	assert_eq(events, [])
 	Ops.run(state, {"op": "self_damage", "amount": 4}, context, events)
-	assert_eq(events, [Event.make("damage_dealt", {"source_id": "e11", "target_id": "e11", "amount": 4, "blocked": 0, "hp_lost": 4})])
+	assert_eq(events, [Event.make("damage_dealt", {"source_id": "", "target_id": "e11", "amount": 4, "blocked": 0, "hp_lost": 4})])
 
 
 ## A Passed Out Dude's Powers do not fire; the other Dude's still do.
