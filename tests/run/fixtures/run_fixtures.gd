@@ -1,8 +1,9 @@
 ## The slice's content as fixtures, for the run flow tests (task 025). Lane: run (Agent A).
 ##
-## Not a test file (no test_ prefix). Agent B's data (tasks 006, 008, 010, 014, 016) has not merged, so
-## this builds a ruleset from in-memory copies written exactly in the merged formats, with the ids the
-## data tasks are asked to use:
+## Not a test file (no test_ prefix). Written before Agent B's data merged: tasks 006, 008, 010 and 014
+## are on main now (#60), but Side Quests (task 016) and encounters are not, so this still builds a
+## ruleset from in-memory copies written exactly in the merged formats, with the ids the data uses.
+## Switching the run tests to data/ once 016 and the encounter data merge is a follow-up:
 ##   - Tom's 14 GDD cards and Chest Bump (TOM_CARDS, ids "tom_<name>"), "tom" (DUDES), from the GDD's
 ##     "Tom, the Enforcer" table. Only Arm Bar has an upgrade (G15).
 ##   - The six Junk cards from tests/core/combat/junk_fixtures.gd (task 015's reading of the GDD).

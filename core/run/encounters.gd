@@ -21,10 +21,12 @@ const STREAM: String = "encounters"
 
 ## Returns the candidate encounter ids for a node kind on the run's current floor (see the file
 ## header), sorted. [] when the ruleset has none.
-## ruleset: the read-only content. state: the run state (floor, path and map are read; for a Brawl,
-## path's last entry is taken to be the node being entered when it is a Brawl itself).
+## ruleset: the read-only content. state: the run state (floor, path and map are read).
 ## node_type: "brawl", "rival", "boss" or "loot".
-static func candidates(ruleset: Dictionary, state: Dictionary, node_type: String) -> Array:
+## entered: true (the default) when the party is already on the node the encounter is for, so
+##          path's last entry is that node and is not an earlier Brawl; false when checking a node
+##          before moving onto it (a vote), so every path entry is earlier.
+static func candidates(ruleset: Dictionary, state: Dictionary, node_type: String, entered: bool = true) -> Array:
 	# all: the matching encounter ids.
 	var all: Array = []
 	# ids: every encounter id, sorted.
@@ -35,7 +37,7 @@ static func candidates(ruleset: Dictionary, state: Dictionary, node_type: String
 		var encounter: Dictionary = ruleset["encounters"][id]
 		if encounter["floor"] == state["floor"] and encounter["node"] == node_type:
 			all.append(id)
-	if node_type != EncounterDef.EARLY_NODE or brawls_before(state) >= ruleset["constants"]["EARLY_BRAWL_COUNT"]:
+	if node_type != EncounterDef.EARLY_NODE or brawls_before(state, entered) >= ruleset["constants"]["EARLY_BRAWL_COUNT"]:
 		return all
 	# early: the candidates marked early.
 	var early: Array = []
@@ -45,13 +47,17 @@ static func candidates(ruleset: Dictionary, state: Dictionary, node_type: String
 	return early if not early.is_empty() else all
 
 
-## Returns how many Brawl nodes the party moved onto on this floor before the node it is on now:
-## the Brawls in run_state.path, not counting its last entry.
+## Returns how many Brawl nodes the party moved onto on this floor before the node in question:
+## the Brawls in run_state.path, leaving out its last entry when the party is already on that node.
 ## state: the run state (path and map are read).
-static func brawls_before(state: Dictionary) -> int:
+## entered: true when path's last entry is the node in question (the party has moved onto it), so it
+##          is not counted; false when the node is not in path yet (checking a vote), so every entry counts.
+static func brawls_before(state: Dictionary, entered: bool = true) -> int:
 	# count: the result.
 	var count: int = 0
-	for i: int in maxi(0, state["path"].size() - 1):
+	# earlier: how many path entries come before the node in question.
+	var earlier: int = maxi(0, state["path"].size() - 1) if entered else state["path"].size()
+	for i: int in earlier:
 		# index: the visited node's position in the map.
 		var index: int = FloorMap.index_of(state["map"], state["path"][i])
 		if index != -1 and state["map"]["nodes"][index]["type"] == FloorMap.NODE_BRAWL:

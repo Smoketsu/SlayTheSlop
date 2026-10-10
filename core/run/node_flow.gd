@@ -191,12 +191,13 @@ static func finish_node_in_place(state: Dictionary, events: Array) -> void:
 static func content_error(ruleset: Dictionary, state: Dictionary, node_type: String) -> String:
 	if FIGHT_NODES.has(node_type):
 		# ids: the encounters the node could hold.
-		var ids: Array = Encounters.candidates(ruleset, state, node_type)
+		# Not entered yet: content_error checks a node before the party moves onto it (a vote).
+		var ids: Array = Encounters.candidates(ruleset, state, node_type, false)
 		if ids.is_empty():
 			return "no %s encounter for floor %d" % [node_type, state["floor"]]
 		return _fights_error(ruleset, state, ids)
 	if node_type == FloorMap.NODE_LOOT:
-		return _fights_error(ruleset, state, Encounters.candidates(ruleset, state, node_type))
+		return _fights_error(ruleset, state, Encounters.candidates(ruleset, state, node_type, false))
 	if node_type == FloorMap.NODE_SIDE_QUEST and SideQuests.ids(ruleset).is_empty():
 		return "no Side Quest in the ruleset"
 	return ""
