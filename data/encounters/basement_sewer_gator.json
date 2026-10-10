@@ -1,0 +1,9 @@
+{
+  "id": "basement_sewer_gator",
+  "floor": 1,
+  "node": "rival",
+  "enemies": [
+    "sewer_gator"
+  ],
+  "text": "G19 Rival: Sewer Gator in a Letterman Jacket"
+}

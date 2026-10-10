@@ -1,0 +1,9 @@
+{
+  "id": "basement_hall_monitor_golem",
+  "floor": 1,
+  "node": "rival",
+  "enemies": [
+    "hall_monitor_golem"
+  ],
+  "text": "G19 Rival: Hall Monitor Golem"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "basement_goblin_king_chad",
+  "floor": 1,
+  "node": "boss",
+  "enemies": [
+    "goblin_king_chad"
+  ],
+  "text": "Floor 1 boss: Goblin King Chad, the only floor 1 boss built for the solo slice"
+}

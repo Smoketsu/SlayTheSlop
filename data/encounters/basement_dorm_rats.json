@@ -1,0 +1,11 @@
+{
+  "id": "basement_dorm_rats",
+  "floor": 1,
+  "node": "brawl",
+  "enemies": [
+    "dorm_rat",
+    "dorm_rat",
+    "dorm_rat"
+  ],
+  "text": "G19 Brawl: Dorm Rats, a pack of 3"
+}

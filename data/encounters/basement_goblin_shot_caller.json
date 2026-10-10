@@ -1,0 +1,9 @@
+{
+  "id": "basement_goblin_shot_caller",
+  "floor": 1,
+  "node": "rival",
+  "enemies": [
+    "goblin_shot_caller"
+  ],
+  "text": "G19 Rival: Goblin Shot-Caller. Its 2 Goblin Pledges come from its arrives_with, not from this list"
+}
