@@ -40,6 +40,11 @@
 ## discarded (a Burn can decide the fight, which then ends before the enemy phase), and the fight's
 ## end removes fight-only cards.
 ##
+## Floor 1 enemy behaviors (task 017) are core/combat/enemy_behaviors.gd and lineup.gd; this file calls
+## them at lines marked "Task 017": escorts and enemy setup at fight start, periodic statuses at the
+## start of each turn, unblocked_damage triggers after each effect of an enemy's move, and splits
+## after each enemy's slot.
+##
 ## Pure: randomness only through core/rng/rng.gd (via piles.gd); no file, clock or network access.
 ## Functions ending in _in_place change the working copy they are given (see core/combat/bodies.gd).
 extends RefCounted
@@ -59,13 +64,17 @@ const BroMeter := preload("res://core/combat/bro_meter.gd")
 const ThornsOp := preload("res://core/ops/thorns.gd")
 const CardTriggers := preload("res://core/combat/card_triggers.gd")
 const GearTriggers := preload("res://core/combat/gear_triggers.gd")
+const Lineup := preload("res://core/combat/lineup.gd")
+const EnemyBehaviors := preload("res://core/combat/enemy_behaviors.gd")
 
 ## Enemy tier (core/schema/enemy_def.gd TIERS) -> name of the constant with its solo starting Ick
-## threshold (GDD "Statuses"). Changes only with the GDD's tiers.
-const ICK_BASE_BY_TIER := {"normal": "ICK_BASE_NORMAL", "rival": "ICK_BASE_RIVAL", "boss": "ICK_BASE_BOSS"}
+## threshold (GDD "Statuses"). Changes only with the GDD's tiers. Task 017 moved it to
+## core/combat/lineup.gd, which builds every enemy; this name stays for existing readers.
+const ICK_BASE_BY_TIER := Lineup.ICK_BASE_BY_TIER
 
-## Prefix of an enemy uid; the number after it comes from run_state.next_uid (core/schema/README.md "Ids").
-const ENEMY_UID_PREFIX: String = "e"
+## Prefix of an enemy uid; the number after it comes from run_state.next_uid (core/schema/README.md
+## "Ids"). Task 017 moved it to core/combat/lineup.gd; this name stays for existing readers.
+const ENEMY_UID_PREFIX: String = Lineup.ENEMY_UID_PREFIX
 
 
 ## Starts a fight against the given enemies and runs turn 1 up to the player phase. Not a request:
@@ -121,6 +130,10 @@ static func check_start(ruleset: Dictionary, state: Dictionary, enemy_def_ids: A
 		var constant: String = ICK_BASE_BY_TIER.get(ruleset["enemies"][def_id]["tier"], "")
 		if constant == "" or typeof(constants.get(constant)) != TYPE_INT:
 			return "constant %s for enemy %s is missing or not an int" % [constant, def_id]
+	# behavior_error: task 017, why an escort, split or summon target or a behavior constant is unusable, or "".
+	var behavior_error: String = EnemyBehaviors.check_start(ruleset, enemy_def_ids)
+	if behavior_error != "":
+		return behavior_error
 	for dude: Dictionary in state["dudes"]:
 		if not state["rng"].has(Rng.key_for("shuffle", dude["player_id"])):
 			return "random stream shuffle:%s is missing (build the run with Rng.with_new_streams)" % dude["player_id"]
@@ -137,21 +150,12 @@ static func start_fight_in_place(ruleset: Dictionary, state: Dictionary, enemy_d
 	var combat: Dictionary = CombatState.blank()
 	# uids: the new enemies' uids, left to right, for fight_started.
 	var uids: Array = []
-	for def_id: String in enemy_def_ids:
-		# definition: the enemy's fixed values.
-		var definition: Dictionary = ruleset["enemies"][def_id]
-		# uid: this enemy's id in the fight.
-		var uid: String = ENEMY_UID_PREFIX + str(state["next_uid"])
-		state["next_uid"] += 1
+	# Task 017: escorts (arrives_with) join the lineup, and core/combat/lineup.gd builds every enemy.
+	for def_id: String in Lineup.expand(ruleset, enemy_def_ids):
 		# enemy: the new enemy state.
-		var enemy: Dictionary = EnemyState.blank(uid, def_id)
-		enemy["max_hp"] = Scaling.scale_down(definition["max_hp"], ruleset["constants"], state["party_size"])
-		enemy["hp"] = enemy["max_hp"]
-		enemy["arm_count"] = definition["arm_count"]
-		enemy["ick_threshold"] = Scaling.scale_up(ruleset["constants"][ICK_BASE_BY_TIER[definition["tier"]]],
-			ruleset["constants"], state["party_size"])
+		var enemy: Dictionary = Lineup.new_enemy(ruleset, state, def_id)
 		combat["enemies"].append(enemy)
-		uids.append(uid)
+		uids.append(enemy["uid"])
 	state["combat"] = combat
 	for i: int in state["dudes"].size():
 		Piles.prepare_for_fight_in_place(state, i)
@@ -172,6 +176,8 @@ static func start_turn_in_place(ruleset: Dictionary, state: Dictionary, events: 
 	combat["turn"] += 1
 	events.append(Event.make("turn_started", {"turn": combat["turn"]}))
 	combat["phase"] = "intents"
+	# Task 017: periodic statuses (Boo-zer's Faded) for the new turn, before intents.
+	EnemyBehaviors.start_of_turn_in_place(ruleset, state, events)
 	for enemy: Dictionary in combat["enemies"]:
 		# Task 011: move, targets, move_history and intent_set (core/ai/intents.gd).
 		Intents.set_intent_in_place(ruleset, state, enemy, events)
@@ -251,6 +257,8 @@ static func end_player_phase_in_place(ruleset: Dictionary, state: Dictionary, ev
 		# Task 009: a Grossed Out or Armless enemy skips instead of acting (G6, G7).
 		if not Statuses.skip_action_in_place(ruleset, enemy, events):
 			_enemy_act_in_place(ruleset, state, enemy, events)
+		# Task 017: enemies at their split point split (Keg Slime).
+		EnemyBehaviors.settle_in_place(ruleset, state, events)
 		# Task 009: the enemy's statuses wear off right after its slot (G1).
 		Statuses.after_enemy_slot_in_place(state, uid, events)
 		if finish_if_decided_in_place(ruleset, state, events):
@@ -288,7 +296,10 @@ static func _enemy_act_in_place(ruleset: Dictionary, state: Dictionary, enemy: D
 		if Bodies.is_decided(state):
 			return
 		if Ops.check(effect).is_empty():
+			# first_event: where this effect's events start, for task 017's unblocked_damage triggers.
+			var first_event: int = events.size()
 			Ops.run(state, effect, context, events)
+			EnemyBehaviors.after_enemy_effect_in_place(ruleset, state, enemy["uid"], events, first_event)
 
 
 ## Ends the fight if it is decided: "lost" when every Dude is Passed Out (checked first, because

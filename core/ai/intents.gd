@@ -23,6 +23,7 @@ const Event := preload("res://core/schema/event.gd")
 const Rng := preload("res://core/rng/rng.gd")
 const MoveChoice := preload("res://core/ai/move_choice.gd")
 const Targeting := preload("res://core/ai/targeting.gd")
+const MoveRules := preload("res://core/ai/move_rules.gd")
 
 ## Constants the AI reads, all ints (data/constants.json). check_start() requires each of them.
 const NEEDED_CONSTANTS: Array[String] = ["MULTI_TARGET_PARTY_SIZE", "MULTI_TARGET_COUNT"]
@@ -42,7 +43,8 @@ static func check_start(ruleset: Dictionary, state: Dictionary) -> String:
 	return ""
 
 
-## Turn flow step 1 for one enemy: chooses its next move and targets, sets enemy.intent, appends
+## Turn flow step 1 for one enemy: chooses its next move (a move rule's, else the pattern's or a
+## random one) and targets, sets enemy.intent, appends
 ## the move id to enemy.move_history and emits intent_set. If the enemy has no move it can choose
 ## (see move_choice.gd), intent becomes null, nothing is appended and nothing is emitted.
 ## ruleset: the read-only content. state: the working copy; its rng may advance.
@@ -50,8 +52,11 @@ static func check_start(ruleset: Dictionary, state: Dictionary) -> String:
 static func set_intent_in_place(ruleset: Dictionary, state: Dictionary, enemy: Dictionary, events: Array) -> void:
 	# definition: the enemy's fixed values.
 	var definition: Dictionary = ruleset["enemies"][enemy["def_id"]]
-	# move_id: the chosen move, or "".
-	var move_id: String = MoveChoice.choose_in_place(state, definition, enemy)
+	# move_id: the chosen move, or "": task 017's move rules first (core/ai/move_rules.gd), then the
+	# pattern or the random choice.
+	var move_id: String = MoveRules.ruled_move(ruleset, state, enemy)
+	if move_id == "":
+		move_id = MoveChoice.choose_in_place(state, definition, enemy)
 	# move: the chosen move's definition, or {}.
 	var move: Dictionary = find_move(definition, move_id)
 	if move.is_empty():

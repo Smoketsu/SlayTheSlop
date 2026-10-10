@@ -369,6 +369,66 @@ Hold a Dude up once (task 021). File: `core/ops/prevent_pass_out.gd`.
 
 Example: `{ "op": "prevent_pass_out", "hp": 1 }` (Smelling Salts, solo).
 
+### `summon_enemy`
+
+Adds enemies to the fight. File: `core/ops/summon_enemy.gd`. Task 017.
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `enemy_id` | text | Id of the enemy definition to add, for example `goblin_pledge` |
+| `count` | int, 1 or more, optional (default 1) | How many to add |
+
+- **Lands on:** nobody. The new enemies go one after another at the right end of the fight, each
+  built like any enemy (HP and Ick threshold scaled by party size), with `enemy_spawned`.
+- A new enemy has no intent until the next turn's intents, so one called in during the enemy phase
+  does not act in that phase.
+- Not called `summon`: the GDD keeps that name for Grube's Puppets.
+- An unknown `enemy_id` does nothing; a fight whose enemies could summon an unknown id does not start.
+
+Example (Goblin Pledge's call for help): `{ "op": "summon_enemy", "enemy_id": "goblin_pledge", "count": 1 }`.
+
+### `steal_dolla_bills`
+
+The acting enemy steals Dolla Bills. File: `core/ops/steal_dolla_bills.gd`. Task 017.
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `amount` | int, 1 or more | Dolla Bills taken from each target |
+
+- **Lands on:** `targets` that are Dudes still standing. Each loses `min(amount, dolla_bills)`;
+  the enemy's `haul` for that player rises by the same amount. Guard does not stop it.
+- The haul goes back to each player when the enemy dies, and leaves with it if it flees.
+- **Events:** `dolla_bills_changed`, then `dolla_bills_stolen`. Nothing when the Dude has none.
+- **Enemy intents:** needs a target, so the move is aimed at a Dude.
+
+Example (Dorm Rat's bite): `[{ "op": "damage", "amount": 3 }, { "op": "steal_dolla_bills", "amount": 5 }]`.
+
+### `flee`
+
+The acting enemy leaves the fight alive. File: `core/ops/flee.gd`. Task 017. No fields.
+
+- It is removed from the fight with `enemy_fled`: no `enemy_died`, its haul leaves with it, it drops
+  nothing. If no enemies are left, the fight ends as won.
+
+Example: `{ "op": "flee" }`.
+
+### `gain_swole`
+
+Swole gain. File: `core/ops/gain_swole.gd`. Task 017.
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `amount` | int, 1 or more | Swole gained |
+| `tag` | text, optional | An enemy group (`tags` in the enemy file). When present, every enemy in the fight with the tag gains instead of the actor |
+
+- **Lands on:** the actor, or every tagged enemy left to right (the actor too if it has the tag).
+  Never on the intent's targets, so a move with only this op has no targets.
+- **Events:** `stat_changed` (`stat` `"swole"`, `delta`, `value` = new Swole) per body. An enemy's
+  Swole gain is a buff (G10), so Reply Guy reacts to it.
+
+Examples: `{ "op": "gain_swole", "amount": 2 }` (Sewer Gator's trigger),
+`{ "op": "gain_swole", "amount": 2, "tag": "goblin" }` (Goblin Shot-Caller).
+
 ## Powers (task 013)
 
 A card of `type: "power"` is played like any card (cost, `card_played`, its `effects` if any),
@@ -380,7 +440,7 @@ fail `Ops.check()` is `unplayable`. File: `core/combat/powers.gd`.
 | `when` | Fires | May use `target: "subject"` |
 | --- | --- | --- |
 | `turn_start` | Once per turn, after every Dude's Refresh, before the player phase. Not on the turn the Power is played | No |
-| `enemy_buffed` | Each time an enemy gains a buff (G10): Guard (a `guard_changed` with a positive delta on an enemy) or Swole (no op raises an enemy's Swole yet) | Yes: that enemy |
+| `enemy_buffed` | Each time an enemy gains a buff (G10): Guard (a `guard_changed` with a positive delta on an enemy) or Swole (a `stat_changed` with `stat` `"swole"` and a positive delta on an enemy: `gain_swole`, task 017; `gain_stat`, task 021) | Yes: that enemy |
 | `enemy_grossed_out` | Each time an enemy is Grossed Out (a `grossed_out` event), whatever caused it | Yes: that enemy |
 
 | `target` | Lands on |
@@ -483,6 +543,20 @@ Format: `core/schema/brew_def.gd`. Rules: `core/combat/brews.gd`. The `use_brew`
 - `party_size` 1 and a `solo` variant: its target and effects are used instead.
 - Targets: `none`, `self`, `enemy`, `all_enemies`, `all_dudes` (`target_id` ""), `ally` (not built:
   `bad_target`).
+## Enemy behaviors that are not ops (task 017)
+
+Enemy files may also use these optional fields (`core/schema/enemy_def.gd` has the exact shapes;
+`core/combat/enemy_behaviors.gd` has the rules):
+
+| Field | What it does | Floor 1 user |
+| --- | --- | --- |
+| `tags` | Groups for rules that name a group (`"goblin"`) | every goblin |
+| `arrives_with` | Enemy ids that start the fight with it, right after it | Goblin Shot-Caller |
+| `move_rules` | `[{move_id, when: [conditions]}]`: at each intent the first rule whose conditions all hold picks the move; otherwise the pattern or random choice. Conditions: `last_of_tag`, `turn_at_least`, `turn_cycle`, `count_below`, `count_at_least`, `hp_below_percent` | Goblin Pledge, Dorm Rats, Goblin Shot-Caller |
+| `triggers` | `[{id, on, effects, ...}]` run outside its turn. `on: "cards_played"` with `cards` and `repeat`: when a player finishes their `cards`-th card of a turn (or each multiple). `on: "unblocked_damage"`: once per hit of its move that took HP off a Dude. The effects' actor is the enemy, their only target that Dude, and their damage is not attack damage (G3) | Kobold RA, Hall Monitor Golem, Sewer Gator |
+| `split` | `{into, count, at_hp_percent}`: once its HP is above 0 and at or below the percentage, it is replaced at its position by `count` fresh enemies of `into` | Keg Slime |
+| `periodic_statuses` | `[{status, every, first_turn}]`: has the status (only `faded`) on turns `first_turn`, `first_turn + every` ... A Faded enemy takes at most `FADED_MAX_DAMAGE` per hit | Boo-zer |
+| `drops_brews` | Brews dropped on death; reported in `combat.brews_dropped` and `brew_dropped`, granted by the run lane | Mimic Cooler |
 
 ## Not built yet
 

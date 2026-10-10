@@ -11,6 +11,7 @@
 extends RefCounted
 
 const Event := preload("res://core/schema/event.gd")
+const EnemyDeath := preload("res://core/combat/enemy_death.gd")
 
 
 ## Returns the position of the Dude with this player_id in state.dudes, or -1 when there is none.
@@ -79,7 +80,8 @@ static func is_decided(state: Dictionary) -> bool:
 
 
 ## Handles a body that has just reached 0 HP. An enemy dies: enemy_died is emitted and it is
-## removed from combat.enemies. A Dude is Passed Out: passed_out becomes true and dude_passed_out
+## removed from combat.enemies, then task 017's death rules run (haul back, Brew drop reported;
+## core/combat/enemy_death.gd). A Dude is Passed Out: passed_out becomes true and dude_passed_out
 ## is emitted, unless the fight holds a pass-out save for them (task 021, Smelling Salts solo:
 ## combat.pass_out_saves), which is used up instead: their HP becomes the saved HP (at most
 ## max_hp) and pass_out_prevented is emitted. Does nothing if id names no living body.
@@ -97,8 +99,12 @@ static func knock_out_in_place(state: Dictionary, id: String, events: Array) -> 
 		return
 	index = enemy_index(state, id)
 	if index != -1:
+		# enemy: the dying enemy, kept for task 017's death rules after it leaves the list.
+		var enemy: Dictionary = state["combat"]["enemies"][index]
 		state["combat"]["enemies"].remove_at(index)
 		events.append(Event.make("enemy_died", {"enemy_uid": id}))
+		# Task 017: its haul goes back and its Brew drop is reported (core/combat/enemy_death.gd).
+		EnemyDeath.after_death_in_place(state, enemy, events)
 
 
 ## Task 021: uses the fight's pass-out save for a Dude who would pass out, if there is one: HP

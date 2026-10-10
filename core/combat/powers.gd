@@ -12,8 +12,8 @@
 ##                        (core/combat/fight.gd). The turn a Power is played, it has not fired yet.
 ##   "enemy_buffed":      an enemy gained a buff (G10, answered "accept": Guard or Swole; healing is
 ##                        not a buff). Found from the events an op emitted: a guard_changed with a
-##                        positive delta on an enemy (BUFF_EVENTS). No op raises an enemy's Swole
-##                        yet; the op that does (task 017) must emit an event listed in BUFF_EVENTS.
+##                        positive delta on an enemy, or a stat_changed raising an enemy's Swole
+##                        (task 017's gain_swole, task 021's gain_stat; BUFF_EVENTS, BUFF_STATS).
 ##   "enemy_grossed_out": an enemy was Grossed Out (a grossed_out event).
 ## Order: by the events in the order they happened; for each, Dudes in seat order, each Dude's
 ## Powers oldest first, each Power's triggers in definition order. Two copies of one Power both
@@ -30,8 +30,13 @@ const Bodies := preload("res://core/combat/bodies.gd")
 const CardDef := preload("res://core/schema/card_def.gd")
 
 ## Event type -> the field naming the body whose buff it reports. A positive delta on an enemy is a
-## buff (G10). Add the Swole event here when an op that raises an enemy's Swole is built.
-const BUFF_EVENTS := {"guard_changed": "target_id"}
+## buff (G10). stat_changed (task 021; task 017's gain_swole emits it too) counts only for the stats
+## in BUFF_STATS. Only the core lane changes this.
+const BUFF_EVENTS := {"guard_changed": "target_id", "stat_changed": "target_id"}
+
+## Stats whose rise in a stat_changed event is a buff (G10: Guard or Swole; Guard has its own event).
+## Only the core lane changes this.
+const BUFF_STATS: Array[String] = ["swole"]
 
 ## Trigger "when" values (core/schema/card_def.gd POWER_WHENS), named here for the code that fires them.
 const WHEN_TURN_START: String = "turn_start"
@@ -56,6 +61,7 @@ static func reactions(ruleset: Dictionary, state: Dictionary, events: Array, fro
 		# event: one event to react to.
 		var event: Dictionary = events[i]
 		if BUFF_EVENTS.has(event["type"]) and event["delta"] > 0 \
+				and (not event.has("stat") or BUFF_STATS.has(event["stat"])) \
 				and Bodies.enemy_index(state, event[BUFF_EVENTS[event["type"]]]) != -1:
 			records.append_array(matching(ruleset, state, WHEN_ENEMY_BUFFED, event[BUFF_EVENTS[event["type"]]]))
 		elif event["type"] == "grossed_out":

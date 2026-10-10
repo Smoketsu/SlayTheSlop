@@ -50,6 +50,7 @@ const Play := preload("res://core/combat/play.gd")
 const BroMove := preload("res://core/combat/bro_move.gd")
 const Brews := preload("res://core/combat/brews.gd")
 const GearTriggers := preload("res://core/combat/gear_triggers.gd")
+const EnemyBehaviors := preload("res://core/combat/enemy_behaviors.gd")
 
 ## Request types that act inside a fight's player phase. Every other type is wrong_phase for now.
 const FIGHT_REQUESTS: Array[String] = ["play_card", "set_ready", "use_brew", "use_bro_move"]
@@ -78,6 +79,8 @@ static func apply(ruleset: Dictionary, state: Dictionary, request: Variant) -> D
 			Fight.finish_if_decided_in_place(ruleset, next, events)
 		"play_card":
 			Play.resolve_in_place(ruleset, next, index, request, events)
+			# Task 017: enemies' cards_played triggers (Kobold RA's Noise Complaint, Detention).
+			EnemyBehaviors.after_card_played_in_place(ruleset, next, index, events)
 			Fight.finish_if_decided_in_place(ruleset, next, events)
 		"set_ready":
 			_set_ready_in_place(ruleset, next, index, request["ready"], events)
@@ -85,6 +88,8 @@ static func apply(ruleset: Dictionary, state: Dictionary, request: Variant) -> D
 			# Task 013: empty the Bro Meter and play the Dude's Bro Move.
 			BroMove.resolve_in_place(ruleset, next, index, request, events)
 			Fight.finish_if_decided_in_place(ruleset, next, events)
+	# Task 017: whatever the request did, enemies at their split point split now (Keg Slime).
+	EnemyBehaviors.settle_in_place(ruleset, next, events)
 	# Task 021: if this request ended the fight, end-of-fight Gear runs (core/combat/gear_triggers.gd).
 	GearTriggers.after_request_in_place(ruleset, state, next, events)
 	next["dudes"][index]["last_seq"] = request["seq"]

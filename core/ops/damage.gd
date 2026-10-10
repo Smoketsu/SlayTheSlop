@@ -31,6 +31,7 @@ const Event := preload("res://core/schema/event.gd")
 const Bodies := preload("res://core/combat/bodies.gd")
 const Statuses := preload("res://core/combat/statuses.gd")
 const Ratio := preload("res://core/ops/ratio.gd")
+const Periodic := preload("res://core/combat/periodic_statuses.gd")
 
 ## True: an enemy move with this op needs Dudes to aim at, so its intent shows targets.
 const NEEDS_TARGET: bool = true
@@ -98,17 +99,18 @@ static func run(state: Dictionary, effect: Dictionary, context: Dictionary, even
 
 
 ## Damage order steps 1-4 and step 5's rounding: returns the damage of one hit before Guard.
-## Reads only. See the file header for each step.
+## Reads only. See the file header for each step. Task 017: on a Faded target the result is then
+## capped at FADED_MAX_DAMAGE, attack or not (core/combat/periodic_statuses.gd).
 ## constants: ruleset.constants; reads NOODLE_MULT, BROKEN_ARM_MAX_REDUCTION, EXPOSED_MULT.
 ## attacker: the Dude or enemy dealing the hit, or {} when it is gone (no Swole, no statuses).
 ## target: the Dude or enemy taking it. base: the effect's amount, 0 or more.
 ## attack: true for attack damage (G3); false skips steps 1-4 and returns base.
 static func hit_amount(constants: Dictionary, attacker: Dictionary, target: Dictionary, base: int, attack: bool) -> int:
 	if not attack:
-		return maxi(0, base)
+		return Periodic.cap_hit(constants, target, maxi(0, base))
 	# raw: step 1, base + Swole, never below 0.
 	var raw: int = maxi(0, base + attacker.get("swole", 0))
-	return Ratio.floor_times(raw, multiplier(constants, attacker, target))
+	return Periodic.cap_hit(constants, target, Ratio.floor_times(raw, multiplier(constants, attacker, target)))
 
 
 ## Damage order steps 2-4 as one exact ratio (core/ops/ratio.gd): Noodle Arms, Broken Arm (enemy

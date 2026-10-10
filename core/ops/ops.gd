@@ -39,6 +39,10 @@ const GainStatOp := preload("res://core/ops/gain_stat.gd")
 const RemoveDebuffsOp := preload("res://core/ops/remove_debuffs.gd")
 const TapCardsOp := preload("res://core/ops/tap_cards.gd")
 const PreventPassOutOp := preload("res://core/ops/prevent_pass_out.gd")
+const SummonEnemyOp := preload("res://core/ops/summon_enemy.gd")
+const StealDollaBillsOp := preload("res://core/ops/steal_dolla_bills.gd")
+const FleeOp := preload("res://core/ops/flee.gd")
+const GainSwoleOp := preload("res://core/ops/gain_swole.gd")
 
 ## Op name (the effect's "op" value) -> the script implementing it. Only the core lane changes this.
 const OPS := {
@@ -55,6 +59,11 @@ const OPS := {
 	"self_damage": SelfDamageOp,
 	"tap_cards": TapCardsOp,
 	"thorns": ThornsOp,
+	# Task 017 (floor 1 enemies).
+	"flee": FleeOp,
+	"gain_swole": GainSwoleOp,
+	"steal_dolla_bills": StealDollaBillsOp,
+	"summon_enemy": SummonEnemyOp,
 	# Task 015.
 	"add_card": AddCardOp,
 	"lose_hype": LoseHypeOp,
@@ -133,7 +142,8 @@ static func needs_target(effects: Array) -> bool:
 ##                     "attack", a Bro Move, or an enemy move (task 009);
 ##           "from_card": bool, true when the effect comes from a card, for Hungover (task 009);
 ##           "ruleset": the whole read-only content, for Power triggers (task 013) and ops that
-##                      read definitions (tap_cards, task 021); without it no Power trigger fires;
+##                      read definitions (tap_cards, task 021; summon_enemy and gain_swole with a
+##                      tag, task 017); without it no Power trigger fires;
 ##           "cards": ruleset.cards, read-only, card id -> definition, for add_card (task 015)}.
 ## make_context() builds one. events: the event list, appended to.
 static func run(state: Dictionary, effect: Dictionary, context: Dictionary, events: Array) -> void:

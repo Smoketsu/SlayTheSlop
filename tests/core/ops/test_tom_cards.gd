@@ -7,6 +7,7 @@ const Ops := preload("res://core/ops/ops.gd")
 const Fixtures := preload("res://tests/core/combat/fixtures.gd")
 const TomFixtures := preload("res://tests/core/ops/tom_fixtures.gd")
 const Event := preload("res://core/schema/event.gd")
+const Powers := preload("res://core/combat/powers.gd")
 const RunState := preload("res://core/schema/run_state.gd")
 
 ## Seed for every fight in this file. Any value works; fixed so every run is the same.
@@ -301,6 +302,27 @@ func test_reply_guy() -> void:
 	var second: Dictionary = _ready(rules, turn["state"])
 	assert_eq(_enemy(second["state"], "e11")["ick"], 4, "fires every time")
 	assert_eq(second["state"]["dudes"][0]["powers"], [uid], "lasts the fight")
+
+
+## Reply Guy also answers an enemy gaining Swole (G10): task 017's gain_swole emits stat_changed with
+## stat "swole", which Powers treat as a buff; a stat_changed for another stat is not one.
+func test_reply_guy_answers_enemy_swole() -> void:
+	# rules: the ruleset.
+	var rules: Dictionary = TomFixtures.ruleset()
+	# state: Reply Guy active against the Hitter (e11).
+	var state: Dictionary = _fight(rules, ["test_hitter"])
+	# uid: the Reply Guy copy.
+	var uid: String = Fixtures.give(state, 0, "tom_test_reply_guy")
+	state = _ok(rules, state, Fixtures.play("p1", 0, uid, ""))["state"]
+	# events: what the ops emit, as the enemy itself gains Swole.
+	var events: Array = []
+	Ops.run(state, {"op": "gain_swole", "amount": 2}, Ops.make_context(rules, "e11", [], false, false), events)
+	assert_true(events.has(Event.make("power_triggered",
+		{"player_id": "p1", "card_uid": uid, "when": "enemy_buffed", "subject_id": "e11"})), "Swole is a buff")
+	assert_eq(_enemy(state, "e11")["ick"], 2, "2 Ick on the enemy that gained Swole")
+	# other: a stat_changed for a stat that is not a buff (G10 names only Guard and Swole).
+	var other: Array = [Event.make("stat_changed", {"target_id": "e11", "stat": "max_hp", "delta": 5, "value": 65})]
+	assert_eq(Powers.reactions(rules, state, other, 0), [], "max_hp is not a buff")
 
 
 ## Double Arm Day: "Deal 9 damage twice. Each hit breaks 1 arm" - damage, break, damage, break.
