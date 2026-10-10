@@ -3,7 +3,7 @@ id: 006
 title: Tom's data - the 14 GDD cards, his Dude file, and Chest Bump
 lane: content
 owner: B
-status: in_review
+status: done
 branch: b/006-tom-data
 depends_on: [001]
 blocked_on: []
@@ -40,3 +40,4 @@ GDD "Tom, the Enforcer", "Bro Meter", "Example card definition", "Card definitio
 ## Log
 - 2026-10-10 B: Claimed. Every gap in `blocked_on` is answered (steamjgrube accepted all defaults; see `docs/proposals/decision-log.md`).
 - 2026-10-10 B: Done. `data/dudes/tom.json` and 15 card files (Tom's 14 GDD cards and Chest Bump), copied from Agent A's `tests/core/ops/tom_fixtures.gd` (what the core's Tom tests play) with ids renamed `tom_test_*` → `tom_*`. Chest Bump's rarity is `special` (G17; the fixture said `rare`). `tom_arm_bar` is the GDD example plus `text`. Only Arm Bar has an upgrade (G15). Punch and Flex stay `tom_punch` / `tom_flex` (per-Dude ids); whether other Dudes share them is for later. Verified: `tools/test.sh` all passing; `tests/data/test_tom_data.gd` checks tom.json, Arm Bar against the GDD example, every card against the fixture, and upgrades.
+- 2026-10-10 B: Merged with #60 (which landed #56–#59); Agent A reviewed it: 363 passed. Status `done`.
