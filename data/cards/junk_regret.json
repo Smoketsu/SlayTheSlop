@@ -1,0 +1,16 @@
+{
+  "id": "junk_regret",
+  "name": "Regret",
+  "owner": "junk",
+  "type": "junk",
+  "rarity": "special",
+  "cost": -1,
+  "target": "none",
+  "effects": [],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "removable": false,
+  "lasts": "run",
+  "text": "Unplayable. Cannot be removed at Baileys"
+}
