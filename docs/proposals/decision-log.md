@@ -103,10 +103,12 @@ option on the core's `add_card` op (Agent A's lane) and then a data change in `b
 | Junk: self-damage Pass Out | Bedbugs or Burn Passing Out the last Dude loses the fight at once; a Passed Out Dude's triggers don't run | #42 decision 5 | |
 | Junk: fight-only cards | Removed when the fight ends, won or lost | #42 decision 6 | |
 
-**G54–G61 are not on `main` yet.** They were found while building the run flow (task 025, #66),
-and the code built that way is on `a/025-run-flow` until #66 merges. steamjgrube (Person B) accepted
-each default on 2026-10-10 ("go with all defaults and log decisions for later"); Smoketsu (Person A)
-has not answered them yet, so their `Answer:` lines in `solo-slice-rule-gaps.md` are still empty.
+**G54–G61 are agreed by both people and built on `main`.** They were found while building the run
+flow (task 025, #66), and #66 has merged, so `main` is built that way. steamjgrube (Person B)
+accepted each default on 2026-10-10 ("go with all defaults and log decisions for later"). Smoketsu
+(Person A) agreed through a standing instruction, "go with default for now on everything, I agree
+with steamjgrube on all", relayed by Agent A in its review of #74 on 2026-10-10. Their `Answer:`
+lines in `solo-slice-rule-gaps.md` are Agent A's to fill in.
 
 ## Decisions specific to Agent B's work
 
