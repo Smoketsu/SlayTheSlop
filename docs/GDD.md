@@ -62,13 +62,14 @@ The setting is a fantasy kingdom that works exactly like a college campus. The d
 | --- | --- |
 | Energy | Hype |
 | Block | Guard |
-| Gold | Beer Money |
+| Gold | Dolla Bills |
 | Relic | Gear |
 | Potion | Brew |
 | Elite | Rival |
 | Event | Side Quest |
 | Rest site | The Tailgate |
 | Shop | Baileys |
+| Potion bought at the shop | Shake |
 | Exhaust | Tapped |
 | Ascension level | Keg Level |
 
@@ -108,7 +109,7 @@ A run is three floors of about 15 nodes each, then a final boss; the party picks
 1. Pick a Dude (co-op: each player picks one; no duplicates by default).
 2. Choose the next node on the floor map.
 3. Resolve the node: fight, shop, rest or gamble.
-4. Take the reward: a card, Beer Money, Gear or a Brew.
+4. Take the reward: a card, Dolla Bills, Gear or a Brew.
 5. Repeat until the floor boss, then pick one of three Boss Gear and descend.
 6. Win or pass out. Earn Rep either way, which unlocks new cards, Gear and Dudes.
 
@@ -125,11 +126,11 @@ A run is three floors of about 15 nodes each, then a final boss; the party picks
 
 | Node | What happens | Share of a floor |
 | --- | --- | --- |
-| Brawl | Normal fight. Reward: 1 of 3 cards, 10–20 Beer Money, 40% chance of a Brew | 45% |
-| Rival | Elite fight. Reward: a Gear, 25–35 Beer Money, 1 of 3 cards | 10% |
+| Brawl | Normal fight. Reward: 1 of 3 cards, 10–20 Dolla Bills, 40% chance of a Brew | 45% |
+| Rival | Elite fight. Reward: a Gear, 25–35 Dolla Bills, 1 of 3 cards | 10% |
 | Side Quest | A short choice with a safe option and a dumb option | 20% |
 | The Tailgate | Nap (heal 30% of max HP) or Lift (upgrade one card) | 12% |
-| Baileys | Buy cards, Gear and Brews; pay to remove a card | 8% |
+| Baileys | Buy cards, Gear and Shake; pay to remove a card | 8% |
 | Loot | Free Gear from an unattended cooler | 5% |
 | Boss | End of the floor. Reward: 1 of 3 Boss Gear, full heal | 1 per floor |
 
@@ -137,7 +138,7 @@ A run is three floors of about 15 nodes each, then a final boss; the party picks
 
 | Side Quest | Safe option | Dumb option |
 | --- | --- | --- |
-| The Beer Pong Table | Walk away | Bet 50 Beer Money: 50% to double it, 50% to lose it and gain a Hangover card |
+| The Beer Pong Table | Walk away | Bet 50 Dolla Bills: 50% to double them, 50% to lose them and gain a Hangover card |
 | Gas-Station Sushi | Skip it | Heal 25 HP; 35% chance to start the next fight with Hungover for 3 turns |
 | 3 a.m. Tattoo | Go to bed | Gain a random Gear and a permanent Regret card |
 | Free Couch on the Curb | Leave it | Full heal; 30% chance to add Bedbugs, a junk card that deals 1 damage when drawn |
@@ -236,7 +237,7 @@ Co-op is 2–4 players over the internet, each with their own Dude, deck, hand, 
 | Hands | Teammates can see each other's hands and can ping a card to say "I'm about to play this" |
 | Passing out | A Dude at 0 HP is Passed Out and skips turns. They wake at 30% HP if the team wins the fight. If everyone passes out, the run ends |
 | Card rewards | Every player gets their own pick of 3 cards from their own Dude's pool |
-| Beer Money | Earned and spent individually. Players can Spot a teammate any amount at Baileys |
+| Dolla Bills | Earned and spent individually. Players can Spot a teammate any amount at Baileys |
 | Gear | One Gear per player from Rival fights and Loot nodes, drafted in turn. First pick rotates each time |
 | Map path | Players vote on the next node. Ties go to the Designated Driver, a role that rotates each floor |
 | Side Quests | Each player chooses for themselves, so one Dude can get the tattoo while three watch |
@@ -320,7 +321,7 @@ Tom is the starting Dude: a large bald man who shuts enemies down by breaking th
 
 ## Cheney, the Chapter President
 
-Cheney makes everyone richer in Hype and Beer Money, runs team-wide Auras, and spends the surplus on the most expensive attacks in the game.
+Cheney makes everyone richer in Hype and Dolla Bills, runs team-wide Auras, and spends the surplus on the most expensive attacks in the game.
 
 | Attribute | Value |
 | --- | --- |
@@ -329,12 +330,12 @@ Cheney makes everyone richer in Hype and Beer Money, runs team-wide Auras, and s
 | Role | Economy, support, burst damage |
 | Difficulty | Medium |
 | Look | Popped collar under chainmail, boat shoes, never carries his own bag |
-| Starting Gear | Dad's Credit Card: +1 Hype on the first turn of each fight, +5 Beer Money after each fight |
+| Starting Gear | Dad's Credit Card: +1 Hype on the first turn of each fight, +5 Dolla Bills after each fight |
 | Signature mechanics | Resource generation and Auras |
 
 ### How Cheney plays
 
-- **Resource generation.** Cheney makes Hype for himself and teammates, and turns fights into Beer Money.
+- **Resource generation.** Cheney makes Hype for himself and teammates, and turns fights into Dolla Bills.
 - **Auras** are Powers that affect every player. He holds 2 at a time, and playing a third replaces the oldest. Clout raises Aura values by 1 per point.
 - **Big attacks.** His damage cards cost 2, 3 or X Hype and hit harder per card than anyone's. Early turns set up; later turns cash in.
 
@@ -353,19 +354,19 @@ Cheney makes everyone richer in Hype and Beer Money, runs team-wide Auras, and s
 | Shotgun | Skill | 1 | Common | Draw 1 card. Next turn, gain 2 Hype |
 | Liquid Courage | Skill, Assist | 1 | Common | Target Dude gains 2 Swole this turn. Draw 1 card |
 | Good Vibes | Aura | 1 | Common | At end of turn, every player gains 3 Guard |
-| Bar Tab | Attack | 1 | Common | Deal 8 damage. Gain 5 Beer Money |
+| Bar Tab | Attack | 1 | Common | Deal 8 damage. Gain 5 Dolla Bills |
 | Round on Me | Skill | 1 | Uncommon | Every other player gains 1 Hype. In solo play, gain 2 Hype. Tapped |
 | Main Character Energy | Aura | 2 | Uncommon | Every player's attacks deal 2 more damage per hit |
-| Bottle Service | Attack | 3 | Uncommon | Deal 26 damage. If this kills the target, gain 15 Beer Money |
+| Bottle Service | Attack | 3 | Uncommon | Deal 26 damage. If this kills the target, gain 15 Dolla Bills |
 | Trust Fund | Aura | 3 | Rare | At Refresh, Cheney gains 1 Hype. Every second turn, each other player gains 1 Hype |
-| Make It Rain | Attack | 1 | Rare | Spend up to 40 Beer Money. Deal that much damage, split evenly among all enemies. Tapped |
+| Make It Rain | Attack | 1 | Rare | Spend up to 40 Dolla Bills. Deal that much damage, split evenly among all enemies. Tapped |
 | Keg Stand | Attack | X | Rare | Deal 8 damage to a random enemy, X times |
 
 ### Build directions
 
 - **Whale.** Generate Hype early, then play 3-cost and X-cost attacks every turn.
 - **Vibe Curator.** Swap Auras to match the fight; strongest in a full party.
-- **Old Money.** Hoard Beer Money and convert it into damage with Make It Rain and money-scaling Gear.
+- **Old Money.** Hoard Dolla Bills and convert them into damage with Make It Rain and money-scaling Gear.
 
 ## Nate, the Hacker
 
@@ -553,7 +554,7 @@ Any Dude can find these. In co-op, Gear belongs to the player who drafts it.
 | Wraparound Shades | Uncommon | Attacks | Exposed you apply lasts 1 turn longer |
 | Beer Goggles | Uncommon | Rewards | Card rewards offer 4 cards instead of 3. One of them has its text hidden |
 | Participation Trophy | Uncommon | Healing | If you end a fight below 50% HP, heal 8 |
-| Fake ID | Uncommon | Shop | Prices at Baileys are 20% lower |
+| Medical Card | Uncommon | Shop | Prices at Baileys are 20% lower |
 | Spotter's Gloves | Uncommon | Co-op | When you give Guard to a teammate, gain half that much. Solo: Assist cards give 2 more Guard |
 | Championship Ring | Rare | Attacks | Attacks that cost 2 or more Hype deal 4 more damage |
 | Protein Bucket | Rare | Stat | +2 Swole, −1 Chill |
@@ -567,7 +568,7 @@ After each floor boss, every player picks 1 of 3. Each one is strong and has a c
 | Gear | Upside | Downside |
 | --- | --- | --- |
 | Beer Helmet | +1 Hype per turn | Start each fight with a Hangover card in your draw pile |
-| Dad's Platinum Card | +1 Hype per turn | You no longer earn Beer Money from fights |
+| Dad's Platinum Card | +1 Hype per turn | You no longer earn Dolla Bills from fights |
 | Cursed Intramural Trophy | +1 Draw per turn | Every enemy starts each fight with 1 Swole |
 
 ### Dude Gear
@@ -579,7 +580,7 @@ These only appear for their owner and change the Dude's signature mechanic.
 | Arm Wrestling Table | Tom | Uncommon | Every enemy starts the fight with 1 Broken Arm |
 | Whole Can of Body Spray | Tom | Rare | When Tom applies Ick, the target takes 2 damage per stack applied |
 | Aux Cord | Cheney | Rare | +1 Aura slot |
-| Money Clip | Cheney | Uncommon | At the start of each fight, gain 1 Hype per 100 Beer Money held, up to 3 |
+| Money Clip | Cheney | Uncommon | At the start of each fight, gain 1 Hype per 100 Dolla Bills held, up to 3 |
 | Mechanical Keyboard | Nate | Rare | Tech attacks that hit more than once hit 1 extra time |
 | Eight-Pack Genetics | Nate | Uncommon | The Six-Pack has 8 Abs instead of 6 |
 | Extra Strings | Grube | Rare | +1 Puppet slot |
@@ -604,11 +605,13 @@ Drinking a Brew costs no Hype and can be done at any point in the player phase.
 
 ### Prices at Baileys
 
-| Item | Beer Money |
+Baileys sells weed, not drinks, so at Baileys every Brew is sold under the name Shake. Shake is the shop's name only: it can be any Brew, and once bought it is a normal Brew in a Brew slot.
+
+| Item | Dolla Bills |
 | --- | --- |
 | Card | 50–150 by rarity |
 | Gear | 150–300 by rarity |
-| Brew | 50–75 |
+| Shake | 50–75 |
 | Remove a card | 75, rising by 25 each time |
 
 ## Enemies
@@ -624,7 +627,7 @@ HP values are for solo play; co-op applies the multiplier from the multiplayer s
 | Goblin Pledge | Normal | 12 | 2 | Hits for 5. If it is the last goblin standing, calls one more Goblin Pledge |
 | Goblin Bouncer | Normal | 28 | 2 | Alternates 8 Guard with a 9-damage hit. Checks ID: applies 1 Noodle Arms |
 | Keg Slime | Normal | 24 | 0 | Hits for 7. At half HP, splits into two Foam Slimes with 10 HP each |
-| Dorm Rats (pack of 3) | Normal | 8 each | 2 | Each bite deals 3 and steals 5 Beer Money. They flee on turn 4; kill them to get it back |
+| Dorm Rats (pack of 3) | Normal | 8 each | 2 | Each bite deals 3 and steals 5 Dolla Bills. They flee on turn 4; kill them to get the Dolla Bills back |
 | Skeleton Intern | Normal | 18 | 2 | Hits for 6. Every other turn, shuffles Paperwork into the target's deck |
 | Boo-zer | Normal | 16 | 0 | A ghost. Every other turn it is Faded and takes at most 1 damage per hit. Hits for 8 |
 | Mimic Cooler | Normal | 30 | 0 | Disguised as a Loot node. Bites for 12. Always drops a Brew |
@@ -669,7 +672,7 @@ Every enemy here is festival staff or an attendee. What species they are under t
 | Flower Crown Dryad | Normal | 50 | 2 | Attendee. Good Vibes Only: heals every enemy for 6 each turn. Hits for 8 |
 | The Mosh Pit | Normal | 90 | 0 | Attendees, counted as one enemy with too many arms to break. Hits every Dude and Puppet for 5 and gains 1 Swole per turn |
 | Totem Pole Guy | Normal | 55 | 2 | Attendee carrying a 12-foot sign. While he lives, enemy intents are hidden. Hits for 9 |
-| Overpriced Vendor | Normal | 45 | 2 | Worker. $14 lemonade: every player loses 5 Beer Money per turn. Hits for 1 per 10 Beer Money the target holds, minimum 6 |
+| Overpriced Vendor | Normal | 45 | 2 | Worker. $14 lemonade: every player loses 5 Dolla Bills per turn. Hits for 1 per 10 Dolla Bills the target holds, minimum 6 |
 | Crowd Surfer | Normal | 40 | 2 | Attendee. On odd turns he is up on the crowd and cannot be hit by single-target cards. On even turns he lands on a random Dude for 18 |
 | Porta-Potty Mimic | Normal | 65 | 0 | Traps a Dude inside for a turn: they draw 2 fewer cards and gain 2 Hungover. Bites for 14 |
 | The Sound Guy | Rival | 150 | 2 | Worker. Each turn he mutes one card type for every player, announced a turn ahead. Feedback screech: 10 damage to all |
@@ -767,7 +770,7 @@ A cosmic headache made of everything the party did this weekend. It rides in the
 - **It remembers.** It gains 10 HP for every Brew drunk this run and 1 Swole for every Dumb option taken in a Side Quest, up to 8.
 - **Phase 1, Packing the Car.** Sunlight deals 6 damage to all players, rising by 2 each turn. Every other turn it shuffles a Hangover card into each deck.
 - **Phase 2, at 60% HP: The Quiet Stretch.** It splits into one Personal Hangover per player, each with 100 HP. Nobody in the car is talking: players can only target their own, and Assist cards are disabled. Auras still work. In solo play there is one, and it copies the Dude's starter attacks.
-- **Phase 3, The Drive-Thru.** When every Personal Hangover is dead, it re-forms at 40% HP. The party is back together, so the Bro Meter fills twice as fast. Every third turn it presents The Bill: damage to all players equal to 10% of the party's total Beer Money.
+- **Phase 3, The Drive-Thru.** When every Personal Hangover is dead, it re-forms at 40% HP. The party is back together, so the Bro Meter fills twice as fast. Every third turn it presents The Bill: damage to all players equal to 10% of the party's total Dolla Bills.
 
 ## Meta progression
 
@@ -919,7 +922,7 @@ Two players can aim at an enemy that dies to the first card. The second card is 
 | `cards_played_this_turn` | Number | Used by Noise Complaint, Detention, card limits and the solo Bro Meter |
 | `gear` | List | Ids of Gear owned |
 | `brews` / `brew_slots` | List / number | Brews held and how many can be held. Base 3 slots |
-| `beer_money` | Number | Currency held |
+| `dolla_bills` | Number | Currency held |
 | `passed_out` | True or false | True at 0 HP. The Dude skips turns until woken |
 | `ready` | True or false | True once the player has ended their turn |
 | `abs_ready` / `abs_max` | Number | Nate only. Abs ready to give Guard, and the size of the Six-Pack. Base 6 |
@@ -1053,6 +1056,7 @@ No dates are set yet. Each phase has a gate that must pass before the next one s
 
 | Version | Date | Change | Reason |
 | --- | --- | --- | --- |
+| 0.5 | 2026-10-10 | Baileys sells weed instead of drinks: every Brew sold there is called Shake. Fake ID renamed to Medical Card. Gold renamed from Beer Money to Dolla Bills; data field `beer_money` renamed to `dolla_bills`. Rules unchanged | Requested re-theme |
 | 0.4 | 2026-10-10 | Final floor renamed from The Afterparty to The Drive Home. The Hangover's phases renamed to Packing the Car, The Quiet Stretch and The Drive-Thru. Rules unchanged | Requested re-theme |
 | 0.3 | 2026-10-10 | Fifth Dude added: Ethan, the Foreman, with Crash, Scaffolding and Rolls, 14 cards, 2 Gear, a Bro Move and an unlock condition. New fields: crash, roll, scaffolding, nap\_turns, skip\_next\_nap, dice stream, SCAFFOLDING\_MAX, NAP\_WAKE\_ON\_ASSIST. Card target raised from 260 to 320 | New character requested |
 | 0.2 | 2026-10-10 | Floor 2 is now Dylan's Keep and floor 3 is Firefly Music Festival, each with 11 new enemies and 2 new bosses. The Haunted Quad, The Dean's Keep and their enemies and bosses are removed | Requested re-theme |
