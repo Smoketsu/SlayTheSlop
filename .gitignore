@@ -2,9 +2,9 @@
 .godot/
 # Pinned Godot binaries installed by tools/install_godot.sh.
 .tools/
-# Export output.
+# Export output of tools/build.sh. export_presets.cfg is NOT ignored: it is the shared build
+# config (task 051). Godot 4 keeps export passwords in .godot/export_credentials.cfg, ignored above.
 build/
-export_presets.cfg
 # OS clutter.
 .DS_Store
 Thumbs.db
