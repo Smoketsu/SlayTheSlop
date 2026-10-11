@@ -3,7 +3,7 @@ id: 001
 title: Bootstrap - engine decision, project file, shared contracts, task board
 lane: core
 owner: A
-status: blocked
+status: done
 branch: claude/practical-ride-8ake0f
 depends_on: []
 blocked_on: []
@@ -33,7 +33,7 @@ CLAUDE.md; GDD "Technical design" and "Scope, milestones and open questions".
 ## Acceptance checks
 
 - [x] Engine and language confirmed by Person A: Godot 4 + GDScript; data format JSON. Boss for the slice: Goblin King Chad.
-- [ ] Person B confirms the same (CLAUDE.md asks for both people). Approving this PR counts.
+- [x] Person B confirms the same (CLAUDE.md asks for both people). Approving this PR counts.
 - [x] `project.godot` imports headless with Godot 4.7.2-stable (`godot --headless --path . --import`).
 - [x] `data/constants.json` holds every GDD tuning constant with value, unit and meaning.
 - [x] `core/schema/` defines run, Dude, combat and enemy state; requests; events; card, enemy and Dude definitions.
@@ -70,3 +70,7 @@ CLAUDE.md; GDD "Technical design" and "Scope, milestones and open questions".
 - 2026-10-10 A: Task 002 merged (#6). Reviewed by running `tools/test.sh` on its head with main
   merged in: 27 passed, 0 failed, with `tests/core/` unmodified. CI check ticked. Only Person B's
   confirmation of the tech stack remains.
+- 2026-10-11 A: Done. Person B's confirmation is recorded in CLAUDE.md's "Tech stack" table (engine
+  and language "Confirmed by Person A and Person B 2026-10-10"), and CI has run `tools/test.sh` on
+  every PR since #6. The data format row still says Person B was not asked separately; that is a
+  CLAUDE.md note, not a check of this task.

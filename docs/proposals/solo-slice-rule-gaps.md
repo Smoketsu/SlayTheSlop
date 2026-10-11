@@ -202,21 +202,21 @@ that is Grossed Out while Friend Zone is active, whatever caused it, (b) only en
 Friend Zone's own start-of-turn Ick, or (c) enemies already waiting to skip at the start of a turn.
 Suggested (as built in task 013): (a). Exposed 2 = 2 stacks, so it lasts through 2 of the players'
 turns. Reading (b) is a data change in the card (an `if` condition on the second effect).
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G33. Chest Bump's 20 damage: one enemy or all?** "Deal 20 damage. Break 1 arm on every enemy."
 Ethan's Bro Move says "to all enemies" explicitly; Chest Bump does not. Suggested (as built): the 20
 damage goes to one enemy the player picks, and the arm break to every enemy. The `use_bro_move`
 request therefore carries an optional `target_id`; the client (task 018) must send it, or the
 request is refused as `bad_target`.
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G34. Powers: duplicates and Passed Out Dudes.** The GDD says a Power "lasts the rest of the
 fight" but not whether two copies of the same Power both work, or whether a Passed Out Dude's
 Powers keep working (it says so only for Ethan's Nap, which "is not Passed Out"). Suggested (as
 built): every copy played works on its own (two Reply Guys apply 2 Ick twice), and a Passed Out
 Dude's Powers do not fire until he wakes.
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 ## Found while building the floor 1 enemies and Goblin King Chad (tasks 017 and 019)
 
@@ -227,13 +227,13 @@ Each gap below was built as suggested so the slice can play. Each is also descri
 - It can call again every time it is the last goblin; there is no once-per-fight limit.
 - "Goblin" means any enemy whose data has the tag `goblin`. Goblin King Chad and the Goblin Bouncer have that tag, so a Pledge never calls while either of them is alive.
 
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G36. When do summoned enemies join and act?** This covers the Pledge's call, Shot-Caller's replacement and Chad's Rush.
 - Suggested (as built): each new enemy joins at the right end of the fight.
 - It has no intent until the next turn's intents, so it first acts the turn after it arrives.
 
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G37. Keg Slime's split.** "At half HP, splits into two Foam Slimes with 10 HP each."
 - Suggested (as built): it checks for a split after the card or enemy action that did the damage, not in the middle of a multi-hit. It splits when it is above 0 HP and at or below half its max HP.
@@ -241,7 +241,7 @@ Answer:
 - The halves are fresh: no statuses, Ick or Guard carry over. They take the Keg Slime's position.
 - If it splits during the player phase, the halves pick intents at once and act that turn.
 
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G38. Dorm Rats fleeing.** "They flee on turn 4 with what they stole."
 - Suggested (as built): fleeing is the rat's action in turn 4's enemy phase. Its intent is shown at turn 4's start.
@@ -249,19 +249,19 @@ Answer:
 - A fight where every remaining enemy fled ends as "won".
 - The haul is tracked per player. A Passed Out Dude still gets their Dolla Bills back when a rat is killed.
 
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G39. Does stealing ignore Guard?** "Each bite steals 5 Dolla Bills."
 - Suggested (as built): yes. The steal happens whatever Guard the Dude has; only the bite's damage meets Guard.
 
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G40. Boo-zer's Faded.** "Every other turn it is Faded and takes at most 1 damage per hit."
 - Suggested (as built): the cap (`FADED_MAX_DAMAGE`) applies to every hit, attack or not, thorns included. It applies after damage order step 5's rounding and before Guard.
 - Faded is a status with 1 stack, switched at the start of each turn, and it never wears off by itself.
 - Which turn the cycle starts on is left to the data (Agent B's task 010).
 
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G41. Kobold RA's Noise Complaint.** "5 damage to a player who plays 5 or more cards in a turn."
 - Suggested (as built): it fires once per turn, right after the player's 5th card resolves.
@@ -269,19 +269,19 @@ Answer:
 - Each Kobold complains once.
 - It still fires while the Kobold is waiting to skip an action (Grossed Out).
 
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G42. Sewer Gator: when does its Swole arrive?** "Gains 2 Swole whenever it deals unblocked damage."
 - Suggested (as built): 2 Swole for each hit that got past Guard. It is added after the whole Death Roll, so the roll's own hits use the old Swole. Three unblocked hits give +6 for next time.
 
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G43. Goblin Shot-Caller's turn.**
 - Suggested (as built): on its every-other turn it first replaces a dead Pledge if fewer than 2 are standing; otherwise it gives Swole.
 - "All goblins" includes the Shot-Caller itself.
 - Its escort Pledges stand to its right.
 
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G44. Goblin King Chad's priorities.**
 - Suggested (as built), highest first:
@@ -293,49 +293,49 @@ Answer:
 - So below 50% HP, with 2 Pledges up, he still starts a Keg Stand.
 - Below 50% HP he never Rushes. This changes the GDD's "every third turn" for that phase.
 
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G45. Keg Stand's timing and lifters.**
 - Suggested (as built): the charge starts when he picks his intent. The start turn and the next turn are the 2 charging turns, and the hit is the third turn's intent.
 - The lifters are the first 2 Pledges, left to right, when the charge starts. A Pledge summoned later doesn't lift, and its death doesn't count.
 - A lifter killed at any time from the start turn's intent until the hit removes 10 from the hit.
 
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G46. "Kill both and he falls."**
 - Suggested (as built): the moment the second lifter dies, the charge ends and he gains Exposed 2.
 - He skips his next action, which is the current turn's charging or hitting action.
 - His next intent after that is chosen normally.
 
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G47. Grossed Out on Keg Stand's hit turn.**
 - Suggested (as built): the skip wastes the hit, and the charge still ends.
 
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 ## Smaller interpretations made while building (tasks 013, 015, 017 and 021)
 
 Agent B listed these in the review of #50 as not yet recorded anywhere a person would see them. Each is built as described.
 
 **G48. Snap City's "now Armless".** An enemy that was already Armless before the hit still counts as "now Armless".
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G49. When do thorns fire?** Thorns fire even when Guard absorbs the whole hit. They also fire after the hit Passes Out the Dude.
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G50. The Bro Move.** The Bro Move is not a card play. It ignores Detention's limit and does not fill the Bro Meter.
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G51. Stat floors.** Gear and Brew stat changes (`gain_stat`) stop at a floor for some stats:
 - `max_hp` never goes below 1. Lowering max HP below current HP lowers HP too.
 - `hype_per_turn`, `draw_per_turn` and `brew_slots` never go below 0.
 - Swole, Chill and Clout have no floor.
 
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G52. Fight-only stats after a loss.** Stat changes that last for one fight (Protein Shake) are reverted when the fight ends, whether it was won or lost.
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 ## Found while guarding Power triggers (task 031)
 
@@ -371,7 +371,7 @@ data or small code change if the people answer differently. None is answered yet
 Lift and the Brownie only upgrade cards whose upgrade is not empty (G15), and today only Arm Bar has one.
 Suggested (as built): upgrade as many as can be (0, 1 or 2), drawn on the `side_quest` stream; the
 2 Foggy still applies.
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G55. What may be skipped, and what may repeat.**
 - Suggested (as built): a card reward may be skipped (`choose_reward` -1, GDD); the Boss Gear pick
@@ -379,7 +379,7 @@ Answer:
 - Which Side Quest a node holds is drawn on the `side_quest` stream (the GDD's stream for "gambles and
   random outcomes"; `encounters` is for enemies). Side Quests and encounters may repeat on a floor:
   the GDD has no rule against it.
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G56. What card, Gear and Brew offers draw from.**
 - Suggested (as built): card offers draw from the Dude's own pool only ("from their own Dude's
@@ -390,12 +390,12 @@ Answer:
 - Baileys cards use the same odds as card rewards (G21 gives odds for rewards only).
 - Gear (Loot, Rival rewards, Baileys, 3 a.m. Tattoo) and Brews (Brawl rewards, Mimic drops, Baileys)
   have no rarity odds in the GDD: each is drawn equally likely. Baileys never stocks the same item twice.
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G57. Rounding of "30% of max HP".** Nap heals `TAILGATE_NAP_HEAL` of max HP; a Passed Out Dude wakes
 at `REVIVE_HP_FRACTION` of max HP after a won fight. Suggested (as built): both round down, like the
 damage order; a revived Dude wakes with at least 1 HP.
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G58. Brews that come from fights.**
 - Suggested (as built): a Mimic Cooler fight at a Loot node gives only the Brew it drops: no Loot Gear
@@ -403,7 +403,7 @@ Answer:
 - Dropped Brews (`combat.brews_dropped`) go to every Dude, each drawn from their own `rewards` stream.
 - A Brew reward with every Brew slot full is lost (`brew_not_kept`); there is no swap screen. At
   Baileys a Shake with every slot full cannot be bought.
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G59. Co-op rules the run flow does not build yet** (networking is out of scope, but these are
 written down so they are not forgotten).
@@ -413,14 +413,14 @@ written down so they are not forgotten).
 - "Players can Spot a teammate any amount at Baileys": not built.
 - `EXTRA_ENEMY_PARTY_SIZE` ("Brawls gain one enemy" at 3 players): which enemy is not stated; not built.
 - The Designated Driver "rotates each floor": only floor 1 exists.
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G60. Removing more than one card per Baileys visit.** GDD: "Remove a card: 75, rising by 25 each
 time". Suggested (as built, as written): a Dude may remove again at the same visit, at the risen price.
 (Slay the Spire allows one removal per shop; say so if that is wanted.)
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
 
 **G61. Is "Goblin Pledge + Skeleton Intern" an early Brawl?** G19: "the first two Brawls only use
 Pledges, Bouncer or Intern". Suggested (as built in the test fixtures): yes, a group made only of
 those enemies is early. The content lane marks it with `"early": true` in `data/encounters/`.
-Answer:
+Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
