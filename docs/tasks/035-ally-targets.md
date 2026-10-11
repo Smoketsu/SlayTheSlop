@@ -3,7 +3,7 @@ id: 035
 title: Cards that target a Dude ("ally"), and Guard that lands on them (Bro Hug)
 lane: core
 owner: A
-status: in_review
+status: done
 branch: a/035-ally-targets
 depends_on: [013, 021]
 blocked_on: []
@@ -76,3 +76,6 @@ this needs from Agent A", item 1.
   - Verified: with the flag forced off in `play.gd`, the co-op and Chill/Hungover tests fail.
     `tools/test.sh`: 473 passed, 0 failed. Fixed-seed hashes unchanged.
   - Not done: the client's Dude pick (Agent B); Bro Hug's data (Agent B).
+- 2026-10-11 A: Done. Merged in #96. Follow-up in the board PR: the run tests' fight bot
+  (`tests/run/fixtures/run_helpers.gd` `bot_request`) now plays ally cards on its own Dude
+  (`tests/run/test_bot_helpers.gd`). Bro Hug's data merged in #98.

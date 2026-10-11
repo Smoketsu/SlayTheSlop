@@ -120,7 +120,8 @@ static func weakest_enemy(state: Dictionary) -> String:
 
 ## Returns the next request a simple bot sends in a fight for one player: a Brew when below
 ## BOT_DRINK_PERCENT HP, the Bro Move when full, else the first playable card in hand (attacks and
-## debuffs at the weakest enemy), else set_ready. Uses Core.validate() to find legal requests.
+## debuffs at the weakest enemy; task 035: Assist cards, target "ally", on the bot's own Dude), else
+## set_ready. Uses Core.validate() to find legal requests.
 ## rules: the ruleset. state: the run state, in the player phase. player_index: the Dude's seat.
 ## seq: the seq to send.
 static func bot_request(rules: Dictionary, state: Dictionary, player_index: int, seq: int) -> Dictionary:
@@ -140,8 +141,14 @@ static func bot_request(rules: Dictionary, state: Dictionary, player_index: int,
 	for uid: String in dude["hand"]:
 		# card: the copy's definition (upgraded when Lifted), or {}.
 		var card: Dictionary = Upgrades.definition_of(rules, dude, uid)
-		# target: the target this card needs.
-		var target: String = enemy if card.get("target", "") == "enemy" else ""
+		# target: the target this card needs: the weakest enemy, the bot's own Dude for an ally
+		# card (task 035), otherwise none.
+		var target: String = ""
+		match card.get("target", ""):
+			"enemy":
+				target = enemy
+			"ally":
+				target = player_id
 		candidates.append(request("play_card", player_id, seq, {"card_uid": uid, "target_id": target, "crunch": false}))
 	for candidate: Dictionary in candidates:
 		if Core.validate(rules, state, candidate) == "":

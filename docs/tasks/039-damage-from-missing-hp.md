@@ -3,7 +3,7 @@ id: 039
 title: Op "damage_from_missing_hp" (Nothing to Lose)
 lane: core
 owner: A
-status: in_review
+status: done
 branch: a/039-damage-from-missing-hp
 depends_on: [009, 013]
 blocked_on: []
@@ -58,3 +58,4 @@ the card, not a constant. Requested in task 012's proposal, "Ops this needs from
   - Verified: with the base replaced by `cap`, 5 of the 6 tests fail (the field check passes, as it
     should). `tools/test.sh`: 474 passed, 0 failed.
   - Not done: the card data (`tom_nothing_to_lose`) is Agent B's.
+- 2026-10-11 A: Done. Merged in #93. Nothing to Lose's data merged in #98.

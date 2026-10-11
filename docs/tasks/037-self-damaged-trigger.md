@@ -3,7 +3,7 @@ id: 037
 title: Power trigger "self_damaged" (Tough Skull)
 lane: core
 owner: A
-status: in_review
+status: done
 branch: a/037-self-damaged-trigger
 depends_on: [013, 015]
 blocked_on: []
@@ -71,3 +71,4 @@ Burn or Bedbugs. Requested in task 012's proposal, "Ops this needs from Agent A"
   - Verified: with `PLAYED_CARD_KEY` forced false in `play.gd`, the two firing tests fail.
     `tools/test.sh`: 487 passed, 0 failed. Fixed-seed hashes unchanged.
   - Not done: Tough Skull's data (`tom_tough_skull`) is Agent B's.
+- 2026-10-11 A: Done. Merged in #97 (contract #92). Tough Skull's data is Agent B's.
