@@ -15,3 +15,10 @@ config/features=PackedStringArray("4.7")
 
 gdscript/warnings/untyped_declaration=1
 gdscript/warnings/inferred_declaration=0
+
+[rendering]
+
+; Task 051: lets the macOS export build its universal (x86_64 + arm64) app, which Godot refuses
+; unless ETC2/ASTC texture import is on. Every texture in the project imports lossless
+; (compress/mode=0), so this changes no imported texture. Shared contract: change only in its own PR.
+textures/vram_compression/import_etc2_astc=true

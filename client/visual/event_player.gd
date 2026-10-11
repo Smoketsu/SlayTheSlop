@@ -5,7 +5,13 @@
 ## and the screen redraws every view from the returned state once play() finishes, so skipping or
 ## cutting an animation short can never leave the screen wrong. With seconds <= 0 every event plays
 ## instantly and play() returns without waiting, so tests never depend on frame timing.
+##
+## Task 055: each event also starts its sound (client/audio/sounds.gd kind_for_event()) as it plays.
+## Sounds are fire and forget: nothing here waits for one, whatever seconds is.
 extends RefCounted
+
+## [added, task 055] The sound lookup and player.
+const Sounds := preload("res://client/audio/sounds.gd")
 
 ## Animation kinds effect_for() can return, each with what the view does:
 ## "damage": a hit that took HP (flash red, shake, number pops up). "blocked": a hit Guard took
@@ -64,7 +70,7 @@ func play(events: Array, views: Dictionary, on_event: Callable, clock: Node) -> 
 			await clock.get_tree().create_timer(wait).timeout
 
 
-## Starts one event's animation and returns how long it runs, in seconds: 0 for a "log" event, for
+## Starts one event's animation and its sound (task 055), and returns how long the animation runs, in seconds: 0 for a "log" event, for
 ## a target with no view (an enemy that spawned during this request), for a change that only
 ## updates a number (Guard lost, a hit of 0), and when seconds <= 0.
 ## event: one event. views: as in play().
@@ -72,6 +78,7 @@ func play_one(event: Dictionary, views: Dictionary) -> float:
 	# effect: what to show.
 	var effect: Dictionary = effect_for(event)
 	played.append("%s %s" % [effect["kind"], effect["target"]])
+	Sounds.play_event(event)
 	# view: the combatant it happens to, or null.
 	var view: Variant = views.get(effect["target"])
 	if effect["kind"] == "log" or view == null or not is_instance_valid(view):
