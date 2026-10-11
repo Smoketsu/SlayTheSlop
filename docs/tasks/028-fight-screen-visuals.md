@@ -3,7 +3,7 @@ id: 028
 title: Fight screen visuals - character sprites, health bars, intents and event animation
 lane: client
 owner: B
-status: in_review
+status: done
 branch: b/028-fight-visuals
 depends_on: [024]
 blocked_on: []
@@ -90,3 +90,6 @@ pure"; `client/fight/fight_screen.gd` and `fight_model.gd` (tasks 018, 024); `co
     readable over the room.
   - Not done: floors 2 and 3 have no rooms yet (they would use `DEFAULT_ROOM` until `FLOOR_ROOMS`
     gets entries); `rat_king` has a room but no enemy data, so it is never picked today.
+- 2026-10-11 B: Done: merged (#85; claim #82; backgrounds from #84). Agent A's review left one
+  non-blocking point: `EventPlayer.played` grows for the screen's whole life, which is fine for one
+  fight; trim it if a player object is ever kept across a run. Follow-up, not done.
