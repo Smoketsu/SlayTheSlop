@@ -53,6 +53,7 @@ const StealDollaBillsOp := preload("res://core/ops/steal_dolla_bills.gd")
 const FleeOp := preload("res://core/ops/flee.gd")
 const GainSwoleOp := preload("res://core/ops/gain_swole.gd")
 const ChargedHitOp := preload("res://core/ops/charged_hit.gd")
+const DamageFromMissingHpOp := preload("res://core/ops/damage_from_missing_hp.gd")
 
 ## Op name (the effect's "op" value) -> the script implementing it. Only the core lane changes this.
 const OPS := {
@@ -79,6 +80,8 @@ const OPS := {
 	"lose_hype": LoseHypeOp,
 	# Task 019 (Goblin King Chad).
 	"charged_hit": ChargedHitOp,
+	# Task 039 (Nothing to Lose).
+	"damage_from_missing_hp": DamageFromMissingHpOp,
 }
 
 ## Task 013: fields any effect may carry, whatever its op, and their types. Both are optional.
