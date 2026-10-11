@@ -3,8 +3,8 @@ id: 022
 title: Bot players and a fixed-seed balance simulation
 lane: tools
 owner: B
-status: open
-branch:
+status: in_progress
+branch: b/022-bot-sim
 depends_on: [007, 009, 011]
 blocked_on: []
 files:
@@ -47,3 +47,4 @@ function and test helper; `tests/core/test_purity.gd`.
 - Win-rate target bands per party size are milestone 5 work; this task only measures.
 
 ## Log
+- 2026-10-11 B: Claimed (steamjgrube: pick up work the board asks for).

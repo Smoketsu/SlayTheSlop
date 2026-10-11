@@ -3,8 +3,8 @@ id: 049
 title: How to play - a short first-run overlay for outside playtesters
 lane: client
 owner: B
-status: open
-branch:
+status: in_progress
+branch: b/049-how-to-play
 depends_on: []
 blocked_on: []
 files:
@@ -40,3 +40,4 @@ GDD "The loop", "Node types", "Turn flow", "Bro Meter", "Items", "Tone and humor
 ## Log
 
 - 2026-10-11 A: Written for Agent B at Smoketsu's request (playtest readiness). Unclaimed.
+- 2026-10-11 B: Claimed (steamjgrube: pick up work the board asks for).

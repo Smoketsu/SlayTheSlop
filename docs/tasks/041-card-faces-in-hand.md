@@ -3,8 +3,8 @@ id: 041
 title: Card faces in hand - cost, type, text, upgraded mark, playable state
 lane: client
 owner: B
-status: open
-branch:
+status: in_progress
+branch: b/041-card-faces
 depends_on: [028, 032]
 blocked_on: []
 files:
@@ -55,3 +55,4 @@ upgraded-card-display), `core/schema/card_def.gd` (`type`, `rarity`, `cost`, `te
 ## Log
 
 - 2026-10-11 A: Written for Agent B at Smoketsu's request (fight-screen polish backlog). Unclaimed.
+- 2026-10-11 B: Claimed (steamjgrube: pick up work the board asks for).

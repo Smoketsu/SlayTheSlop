@@ -3,7 +3,7 @@ id: 012
 title: Proposal - Tom's new slice cards and an upgrade for every Tom card
 lane: content
 owner: B
-status: in_review
+status: done
 branch: b/012-tom-cards-proposal
 depends_on: [006]
 blocked_on: []
@@ -63,3 +63,4 @@ files and `core/ops/README.md` (from task 007), so the proposal knows which ops 
   "`git diff --name-only main` lists only the proposal" holds once 006 (#59) merges, since this
   branch stacks on it. After the answers: a content task (even id ≥ 028) for the card files, and a
   core task for any accepted new op.
+- 2026-10-11 B: Done. Every question in the proposal is answered (accept) and built: 16 new Tom cards (task 030) and upgrades for every Tom card (task 032), both merged.
