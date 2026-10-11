@@ -99,6 +99,12 @@ const UNAVAILABLE := {
 ## Marks an upgraded (Lifted) card copy's name in a card list. Changed only by the client lane.
 const UPGRADED_MARK: String = "+"
 
+## [added, task 043] The run header's Deck button, and the title of the deck viewer it opens.
+## Changed only by the client lane.
+const DECK_LABEL: String = "Deck"
+## [added, task 043] The note under the deck viewer's title. Changed only by the client lane.
+const DECK_NOTE: String = "Every card you own this run, sorted by type, then name. Lifted cards show their upgrade."
+
 ## The money word (GDD glossary: Gold -> Dolla Bills). Changed only by a person's decision.
 const MONEY: String = "Dolla Bills"
 

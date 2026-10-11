@@ -26,6 +26,10 @@
 ## (end turn) button pulses while no card in hand can be played, as the core says (card_playable()).
 ## How long events and banners take is animation_seconds, which the run screen sets from the
 ## animation-speed client setting (client/settings/animation_speed.gd).
+##
+## Task 043: clicking a pile icon (draw, discard, Tapped; their counts update on every redraw) opens
+## a client/visual/pile_viewer.gd over the screen with that pile's cards as faces; the draw pile is
+## shown sorted (PILES_SORTED), never in draw order. Opening one reads the state and sends nothing.
 extends Control
 
 const FightModel := preload("res://client/fight/fight_model.gd")
@@ -46,6 +50,8 @@ const Icons := preload("res://client/visual/icons.gd")
 const TooltipText := preload("res://client/help/tooltip_text.gd")
 const TipButton := preload("res://client/visual/tip_button.gd")
 const TipBox := preload("res://client/visual/tip_box.gd")
+## [added, task 043] The overlay that shows a pile's cards.
+const PileViewer := preload("res://client/visual/pile_viewer.gd")
 ## The rules gateway: the real rules core (task 007), apply(ruleset, state, request). Co-op will
 ## swap in a network gateway with the same apply() here.
 const Gateway := preload("res://core/core.gd")
@@ -126,6 +132,13 @@ const BANNER_COLORS := {
 ## [added, task 047] Share of a banner's time spent fading in, and again fading out (0..0.5). Changed
 ## only by the client lane.
 const BANNER_FADE_SHARE: float = 0.15
+## [added, task 043] The piles a click on their icon opens (core/schema/dude_state.gd PILES names, as
+## written). Changed only by the client lane.
+const VIEWABLE_PILES: Array[String] = ["draw_pile", "discard_pile", "tapped_pile"]
+## [added, task 043] The piles the viewer shows sorted by type, then name, instead of in pile order.
+## The draw pile must stay here, so the viewer never reveals the shuffle. Changed only by the client
+## lane.
+const PILES_SORTED: Array[String] = ["draw_pile"]
 ## [added, task 047] Colour the Ready button pulses to while no card can be played. Changed only by
 ## the client lane.
 const PULSE_COLOR := Color(1.0, 0.8, 0.3)
@@ -230,6 +243,8 @@ var _banner_line: Label
 var _banner_tween: Tween
 ## [added, task 047] The Ready button as last drawn, for tests; rebuilt by every redraw.
 var _ready_button: Button
+## [added, task 043] The open pile viewer, or null.
+var _pile_viewer: Control
 ## [added, task 045] icons.gd key -> what it does (client/help/tooltip_text.gd all()), filled from the
 ## ruleset on every redraw and handed to each combatant view and the turn info badges.
 var _tooltips: Dictionary = {}
@@ -408,6 +423,12 @@ func _build_table() -> void:
 	right.add_child(piles)
 	for node: Control in [left, _hand_box, right]:
 		table.add_child(node)
+	# Task 043: a click on a pile icon opens its viewer.
+	for pair: Array in [[_draw_badge, "draw_pile"], [_discard_badge, "discard_pile"], [_tapped_badge, "tapped_pile"]]:
+		# badge: the pile's icon.
+		var badge: Control = pair[0]
+		badge.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		badge.gui_input.connect(_on_pile_input.bind(pair[1]))
 
 
 ## [added, task 057] Builds the Bro Meter: its icon and a small bar with "now / max" inside.
@@ -504,6 +525,38 @@ func press_dude(player_id: String) -> void:
 	_pending_card = ""
 	_pending_pick = ""
 	_send(_requests.play_card(card_uid, player_id))
+
+
+## [added, task 043] Opens the viewer of one of the local Dude's fight piles over the screen: its
+## cards as faces, sorted when the pile is in PILES_SORTED, otherwise in pile order. Replaces a
+## viewer already open. Reads the state only; sends nothing. Test hook (a click on the pile's icon
+## calls it). A name not in VIEWABLE_PILES, or no Dude, opens nothing.
+## pile: one of VIEWABLE_PILES, a core/schema/dude_state.gd pile name.
+func open_pile(pile: String) -> void:
+	# dude: the local Dude.
+	var dude: Dictionary = _local() if not _state.is_empty() else {}
+	if not VIEWABLE_PILES.has(pile) or dude.is_empty():
+		return
+	if pile_viewer() != null:
+		_pile_viewer.close()
+	_pile_viewer = PileViewer.new()
+	add_child(_pile_viewer)
+	_pile_viewer.show_cards(_ruleset, Icons.look(pile)["name"], Messages.PILE_NOTES.get(pile, ""),
+		PileViewer.entries_for(_ruleset, dude, dude[pile], PILES_SORTED.has(pile)))
+
+
+## [added, task 043] Returns the open pile viewer, or null when none is open. Tests use it.
+func pile_viewer() -> Control:
+	if _pile_viewer != null and is_instance_valid(_pile_viewer) and not _pile_viewer.is_queued_for_deletion():
+		return _pile_viewer
+	return null
+
+
+## [added, task 043] A pile icon got input: a left click opens that pile's viewer.
+## event: the input event. pile: the icon's pile, one of VIEWABLE_PILES.
+func _on_pile_input(event: InputEvent, pile: String) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		open_pile(pile)
 
 
 ## [added, task 047] Returns true when the Ready button should pulse: the core would accept ending

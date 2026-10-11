@@ -48,7 +48,12 @@
 ## Gear and Brews (task 045): the header also lists the local Dude's Gear and Brews as small tags
 ## whose tooltips say what each does, from the item's own data text (client/help/tooltip_text.gd).
 ## While the Baileys screen is up its Brews are called Shake there too (CLAUDE.md).
-## Test hooks: press_new_run(), press_continue(), press_back_to_menu(), send(), child_screen().
+## Deck (task 043): a Deck button at the end of the header line, shown on the map and every offer
+## screen (card reward, Boss Gear, The Tailgate, Baileys, Side Quest), opens a client/visual/
+## pile_viewer.gd with the local Dude's whole run deck (dude_state "deck"), sorted by type then name,
+## Lifted copies with their upgrade. It reads the state only and sends nothing.
+## Test hooks: press_new_run(), press_continue(), press_back_to_menu(), send(), child_screen(),
+## press_deck(), deck_viewer().
 extends Control
 
 const Ruleset := preload("res://core/ruleset/ruleset.gd")
@@ -75,6 +80,9 @@ const AnimationSpeed := preload("res://client/settings/animation_speed.gd")
 ## [added, task 045] Gear and Brew tooltips, and the Button whose tooltip wraps.
 const TooltipText := preload("res://client/help/tooltip_text.gd")
 const TipButton := preload("res://client/visual/tip_button.gd")
+## [added, task 043] The overlay that shows the deck, and the run screens' words.
+const PileViewer := preload("res://client/visual/pile_viewer.gd")
+const RunText := preload("res://client/run/run_text.gd")
 
 ## Screen names screen_for() returns, and SCREEN_MENU for the menu (no run). Fixed by the client
 ## lane; tests compare against them.
@@ -163,6 +171,11 @@ var item_tags: Array[Button] = []
 var _header_row: HBoxContainer
 ## [added, task 045] The Gear and Brew tags with their headings, right of _header.
 var _items_row: HBoxContainer
+## [added, task 043] The Deck button at the end of the header line; visible only on the map and the
+## offer screens. Read by tests.
+var deck_button: Button
+## [added, task 043] The open deck viewer, or null.
+var _deck_viewer: Control
 ## Widgets: the header (Dude, HP, Dolla Bills, floor, seed), the area children fill, the message bar.
 var _header: Label
 var _content: Control  # The area the menu, map, offer, fight or run-over view fills.
@@ -219,6 +232,12 @@ func _ready() -> void:
 	_items_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_header_row.add_child(_header)
 	_header_row.add_child(_items_row)
+	deck_button = Button.new()
+	deck_button.text = RunText.DECK_LABEL
+	deck_button.focus_mode = Control.FOCUS_NONE
+	deck_button.visible = false
+	deck_button.pressed.connect(press_deck)
+	_header_row.add_child(deck_button)
 	_content = Control.new()
 	_content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_message_label = Label.new()
@@ -527,6 +546,10 @@ func _draw_header() -> void:
 	if _header == null:
 		return
 	_draw_items()
+	# Task 043: the Deck button on the map and the offer screens only.
+	deck_button.visible = not _state.is_empty() and screen_for(_state, _player_id) in [SCREEN_MAP, SCREEN_OFFER]
+	if not deck_button.visible and deck_viewer() != null:
+		_deck_viewer.close()
 	if _state.is_empty():
 		_header.text = ""
 		return
@@ -560,6 +583,28 @@ func _draw_items() -> void:
 		_add_item_heading(ITEM_HEADINGS["shake" if shake else "brews"])
 		for brew_id: String in dude["brews"]:
 			_add_item_tag(_ruleset.get("brews", {}).get(brew_id, {}).get("name", brew_id), TooltipText.brew(_ruleset, brew_id, shake))
+
+
+## [added, task 043] The player pressed Deck (test hook; the button does the same): opens the deck
+## viewer over everything with the local Dude's deck, sorted by type then name, Lifted copies with
+## their upgrade. Nothing happens while the button is hidden. Reads the state only; sends nothing.
+func press_deck() -> void:
+	if deck_button == null or not deck_button.visible:
+		return
+	# dude: the local Dude.
+	var dude: Dictionary = _local()
+	if deck_viewer() != null:
+		_deck_viewer.close()
+	_deck_viewer = PileViewer.new()
+	add_child(_deck_viewer)
+	_deck_viewer.show_cards(_ruleset, RunText.DECK_LABEL, RunText.DECK_NOTE, PileViewer.entries_for(_ruleset, dude, dude["deck"], true))
+
+
+## [added, task 043] Returns the open deck viewer, or null when none is open. Tests use it.
+func deck_viewer() -> Control:
+	if _deck_viewer != null and is_instance_valid(_deck_viewer) and not _deck_viewer.is_queued_for_deletion():
+		return _deck_viewer
+	return null
 
 
 ## [added, task 045] Returns true while the state shows the Baileys screen: the offer screen with the
