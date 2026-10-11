@@ -11,7 +11,10 @@
 ##
 ## The menu never keeps a run itself: it emits run_ready and the run screen (client/run/
 ## run_screen.gd) takes over. Built in code, no scene file. Test hooks: press_new_run(),
-## press_continue().
+## press_continue(), press_how_to_play().
+##
+## How to play (task 049): the button only emits how_to_play_requested; the run screen shows the
+## panels (client/help/how_to_play.gd) over everything and keeps the "seen" setting.
 extends Control
 
 const NewRun := preload("res://core/run/new_run.gd")
@@ -20,6 +23,8 @@ const SaveStore := preload("res://client/run/save_store.gd")
 ## Emitted when a run is ready to play: a new run's first state, or the state loaded from the save.
 ## state: the run state. is_new: true for New Run, false for Continue.
 signal run_ready(state: Dictionary, is_new: bool)
+## Emitted when the player presses How to play (task 049). The run screen opens the panels.
+signal how_to_play_requested
 
 ## The message last shown under the buttons: the seed picked, a bad seed, a load error. Read by tests.
 var message: String = ""
@@ -73,7 +78,11 @@ func _ready() -> void:
 	_continue_button.text = "Continue"
 	_continue_button.pressed.connect(press_continue)
 	_message_label = Label.new()
-	for node: Control in [title, seed_row, _continue_button, _message_label]:
+	# help_button: How to play (task 049).
+	var help_button := Button.new()
+	help_button.text = "How to play"
+	help_button.pressed.connect(press_how_to_play)
+	for node: Control in [title, seed_row, _continue_button, help_button, _message_label]:
 		column.add_child(node)
 	refresh()
 
@@ -124,6 +133,11 @@ func press_continue() -> void:
 		return
 	_show("")
 	run_ready.emit(loaded["state"], false)
+
+
+## The player pressed How to play (task 049): asks the run screen to open the panels.
+func press_how_to_play() -> void:
+	how_to_play_requested.emit()
 
 
 ## Returns a seed picked by the client: a whole number from 0 to 4294967295, so it is short enough

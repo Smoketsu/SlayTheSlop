@@ -19,10 +19,17 @@ const Request := preload("res://core/schema/request.gd")
 const RunState := preload("res://core/schema/run_state.gd")
 const Ruleset := preload("res://core/ruleset/ruleset.gd")
 const DataFiles := preload("res://tools/data_files.gd")
+## [added, task 049] The settings store and the overlay's seen key, for _screen().
+const UserSettings := preload("res://client/settings/user_settings.gd")
+const HowToPlay := preload("res://client/help/how_to_play.gd")
 
 ## The save file these tests use, so they never touch a player's real save. Deleted before and
 ## after each test that writes it.
 const PATH: String = "user://test_run_screen.save"
+## [added, task 049] The client settings file these screens use, so they never touch a player's real
+## settings. _screen() marks How to play as seen in it, so these tests see the screens without the
+## overlay (task 049's own tests cover it).
+const SETTINGS_PATH: String = "user://test_run_screen_settings.cfg"
 ## The fixed seed of the runs here: its first node (the entrance's first link) is a Brawl that the
 ## simple play below wins, so the run reaches its first card reward.
 const SEED: int = 7
@@ -222,6 +229,8 @@ func _screen(gateway: Object = null) -> Control:
 	var screen: Control = RunScreen.instantiate()
 	screen.animation_seconds = 0.0
 	screen.save_path = PATH
+	screen.settings_path = SETTINGS_PATH
+	UserSettings.set_setting(HowToPlay.SEEN_KEY, true, SETTINGS_PATH)
 	screen.setup(_ruleset(), gateway)
 	(Engine.get_main_loop() as SceneTree).root.add_child(screen)
 	return screen
