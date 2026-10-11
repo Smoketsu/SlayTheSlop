@@ -3,7 +3,7 @@ id: 030
 title: Tom's new cards as data (the 13 whose ops exist)
 lane: content
 owner: B
-status: in_review
+status: done
 branch: b/030-tom-new-cards (PR #95, merged), then b/030-nothing-to-lose (PR #98, merged), then b/030-tough-skull
 depends_on: [012, 013]
 blocked_on: []
@@ -108,3 +108,4 @@ common, uncommon or rare, `core/run/pools.gd`) and can be offered as rewards and
   Bro Hug, Compound Fracture, Headbutt; Tough Skull not played). No other test changed. Verified:
   `tools/test.sh` -> 496 passed, 0 failed. Status stays `in_review` until the PR merges. Not done:
   upgrade values (the upgrade tables are not accepted).
+- 2026-10-11 B: Done: all 16 merged (#95, #98, #101). Still open for both people: the upgrade tables and Q1/Q2 in `tom-slice-cards.md`.
