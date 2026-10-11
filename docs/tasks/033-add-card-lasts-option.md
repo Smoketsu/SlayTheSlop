@@ -3,7 +3,7 @@ id: 033
 title: add_card "lasts" option (Beer Helmet's fight-only Hangover, I7)
 lane: core
 owner: A
-status: in_review
+status: done
 branch: claude/brave-cerf-to5qlg
 depends_on: [015, 021]
 blocked_on: []
@@ -78,3 +78,6 @@ can make a fight-only copy of a run-long card. Agent B then sets it in `data/gea
   changed to I7's answer (no Hangover in the deck or owned after two fights). Verified with `main`
   merged: alone 432 passed, 1 failed (the expected fixture-vs-data check that #71 fixes); with #71's
   data commit 433 passed, 0 failed.
+- 2026-10-11 A: Done. #63 and #71 merged together on 2026-10-10 (steamjgrube merged #71, which
+  carried #63's commits). Verified on `main` after the merge: `tools/test.sh` 433 passed, 0 failed.
+  The I7 `Answer:` line in `docs/proposals/item-rule-gaps.md` is filled in by the board paperwork PR.
