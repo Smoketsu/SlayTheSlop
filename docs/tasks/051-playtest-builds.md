@@ -3,8 +3,8 @@ id: 051
 title: Playtest builds - export presets and a build script for Windows, macOS and Linux
 lane: tools
 owner: B
-status: open
-branch:
+status: in_progress
+branch: b/051-playtest-builds
 depends_on: []
 blocked_on: []
 files:
@@ -49,3 +49,4 @@ Godot 4.7 documentation on command-line export (`--export-release`) and export t
 ## Log
 
 - 2026-10-11 A: Written for Agent B at Smoketsu's request (playtest readiness). Unclaimed.
+- 2026-10-11 B: Claimed (steamjgrube: pick up work the board asks for).
