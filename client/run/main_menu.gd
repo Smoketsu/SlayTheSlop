@@ -15,10 +15,16 @@
 ##
 ## How to play (task 049): the button only emits how_to_play_requested; the run screen shows the
 ## panels (client/help/how_to_play.gd) over everything and keeps the "seen" setting.
+##
+## Sound (task 055): a volume slider and Mute box (client/settings/sound_settings.gd) under the
+## buttons, saved in the client settings file setup() names, never in the run save.
 extends Control
 
 const NewRun := preload("res://core/run/new_run.gd")
 const SaveStore := preload("res://client/run/save_store.gd")
+## [added, task 055] The Sound row (volume and mute) and the settings store it saves to.
+const SoundSettings := preload("res://client/settings/sound_settings.gd")
+const UserSettings := preload("res://client/settings/user_settings.gd")
 
 ## Emitted when a run is ready to play: a new run's first state, or the state loaded from the save.
 ## state: the run state. is_new: true for New Run, false for Continue.
@@ -35,6 +41,11 @@ var last_seed: int = 0
 var _ruleset: Dictionary = {}
 ## Where Continue reads the save from, a user:// path. Set by setup().
 var _save_path: String = SaveStore.DEFAULT_PATH
+## [added, task 055] The user:// client settings file the Sound row reads and saves. Set by setup().
+var _settings_path: String = UserSettings.DEFAULT_PATH
+## [added, task 055] The Sound row (client/settings/sound_settings.gd), built in _ready(); null
+## before. Read by tests.
+var sound_settings: HBoxContainer
 ## Widgets: the seed field, the Continue button (disabled when there is no save) and the message.
 var _seed_field: LineEdit
 var _continue_button: Button
@@ -43,9 +54,13 @@ var _message_label: Label
 
 ## Gives the menu its content and save path. Call before or after adding it to the tree.
 ## ruleset: read-only content. save_path: the user:// save file Continue reads.
-func setup(ruleset: Dictionary, save_path: String) -> void:
+## settings_path: [added, task 055] the user:// client settings file the Sound row uses.
+func setup(ruleset: Dictionary, save_path: String, settings_path: String = UserSettings.DEFAULT_PATH) -> void:
 	_ruleset = ruleset
 	_save_path = save_path
+	_settings_path = settings_path
+	if sound_settings != null:
+		sound_settings.setup(_settings_path)
 	refresh()
 
 
@@ -82,7 +97,10 @@ func _ready() -> void:
 	var help_button := Button.new()
 	help_button.text = "How to play"
 	help_button.pressed.connect(press_how_to_play)
-	for node: Control in [title, seed_row, _continue_button, help_button, _message_label]:
+	sound_settings = SoundSettings.new()
+	sound_settings.setup(_settings_path)
+	sound_settings.save_failed.connect(func(error: String) -> void: _show("Couldn't save settings: " + error))
+	for node: Control in [title, seed_row, _continue_button, help_button, sound_settings, _message_label]:
 		column.add_child(node)
 	refresh()
 
