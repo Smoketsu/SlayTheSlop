@@ -24,6 +24,11 @@
 ## progression in the solo slice).
 ##
 ## Never computes a price, a discount or odds: the sub-screens read them from the state.
+##
+## How to play (task 049): show_how_to_play() puts client/help/how_to_play.gd over everything, from
+## the menu's button or, once per machine, when a new run starts. The once-only flag is the client
+## setting HowToPlay.SEEN_KEY in settings_path (client/settings/user_settings.gd), set when the
+## panels open; it never goes in the run state or the save.
 ## Run it with
 ##   "$(tools/install_godot.sh)" --path . res://client/run/run_screen.tscn
 ## With no setup() call it builds the ruleset from data/ (as client/dev/dev_fight.gd does).
@@ -41,6 +46,9 @@ const FightScreen := preload("res://client/fight/fight_screen.tscn")
 ## The map and offer screens, by path in client/run/ (interface: run_screen_api.md).
 const MapScreen := preload("res://client/run/map_screen.gd")
 const OfferScreen := preload("res://client/run/offer_screen.gd")
+## [added, task 049] The How to play overlay and the client settings store holding its seen flag.
+const HowToPlay := preload("res://client/help/how_to_play.gd")
+const UserSettings := preload("res://client/settings/user_settings.gd")
 
 ## Screen names screen_for() returns, and SCREEN_MENU for the menu (no run). Fixed by the client
 ## lane; tests compare against them.
@@ -76,6 +84,9 @@ var animation_seconds: float = 0.3
 ## The user:// file the run is saved to and Continue reads. Changed by whoever creates the screen
 ## (tests use their own file), before setup() or _ready().
 var save_path: String = SaveStore.DEFAULT_PATH
+## [added, task 049] The user:// client settings file the How to play seen flag lives in. Changed by
+## whoever creates the screen (tests use their own file), before the first New Run.
+var settings_path: String = UserSettings.DEFAULT_PATH
 ## The child shown now: one of the SCREEN_ names, or "" before _ready(). Read by tests.
 var current: String = ""
 ## The message last shown in the message bar (a reject, a save problem). Read by tests.
@@ -95,6 +106,8 @@ var _state: Dictionary = {}
 var _player_id: String = ""
 ## The child shown now (menu, map, fight, offer or run-over view), or null.
 var _child: Control
+## [added, task 049] The How to play overlay while it is open, else null.
+var _how_to_play: Control
 ## Widgets: the header (Dude, HP, Dolla Bills, floor, seed), the area children fill, the message bar.
 var _header: Label
 var _content: Control
@@ -170,6 +183,7 @@ func show_menu() -> void:
 	_replace_child(menu, SCREEN_MENU)
 	menu.setup(_ruleset, save_path)
 	menu.run_ready.connect(_on_run_ready)
+	menu.how_to_play_requested.connect(show_how_to_play)
 	_draw_header()
 
 
@@ -259,9 +273,32 @@ func _on_run_ready(state: Dictionary, is_new: bool) -> void:
 	_show_message("")
 	if is_new:
 		_take_state(state)
+		if not UserSettings.get_setting(HowToPlay.SEEN_KEY, false, settings_path):
+			show_how_to_play()
 	else:
 		_state = state
 		_route()
+
+
+## [added, task 049] Opens the How to play overlay over everything (no-op while it is open) and
+## records in the client settings that it has been seen, so a new run does not open it again.
+func show_how_to_play() -> void:
+	if how_to_play_screen() != null:
+		return
+	_how_to_play = HowToPlay.new()
+	_how_to_play.setup(_ruleset, _local().get("dude_id", ""))
+	add_child(_how_to_play)
+	# error: why the seen flag could not be saved, or "".
+	var error: String = UserSettings.set_setting(HowToPlay.SEEN_KEY, true, settings_path)
+	if error != "":
+		_show_message("Couldn't save settings: " + error)
+
+
+## [added, task 049] Returns the How to play overlay while it is open, else null. Tests use it.
+func how_to_play_screen() -> Control:
+	if _how_to_play != null and is_instance_valid(_how_to_play) and not _how_to_play.is_queued_for_deletion():
+		return _how_to_play
+	return null
 
 
 ## The fight screen applied a request and finished animating it.
