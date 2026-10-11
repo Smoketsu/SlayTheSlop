@@ -9,8 +9,9 @@ extends "res://tests/framework/test_case.gd"
 
 ## The presets file, at the project root (shared contract).
 const PRESETS_PATH := "res://export_presets.cfg"
-## The build script and the Godot installer, which must pin the same Godot version.
+## The build script, which must pin the same Godot version as INSTALL_SCRIPT.
 const BUILD_SCRIPT := "res://tools/build.sh"
+## The Godot installer, whose pinned version BUILD_SCRIPT must match.
 const INSTALL_SCRIPT := "res://tools/install_godot.sh"
 ## Every preset tools/build.sh must export: {preset name: Godot export platform}.
 const EXPECTED_PRESETS := {
@@ -114,8 +115,9 @@ func test_presets_keep_runtime_files() -> void:
 func test_build_script_pins_installed_godot_version() -> void:
 	# pin: a GODOT_VERSION="x.y.z" line at the start of a line.
 	var pin := RegEx.create_from_string("(?m)^GODOT_VERSION=\"([^\"]+)\"$")
-	# built, installed: the match in each script, or null when the line is missing.
+	# built: the match in BUILD_SCRIPT, or null when the line is missing.
 	var built: RegExMatch = pin.search(FileAccess.get_file_as_string(BUILD_SCRIPT))
+	# installed: the match in INSTALL_SCRIPT, or null when the line is missing.
 	var installed: RegExMatch = pin.search(FileAccess.get_file_as_string(INSTALL_SCRIPT))
 	assert_true(built != null, "%s has a GODOT_VERSION line" % BUILD_SCRIPT)
 	assert_true(installed != null, "%s has a GODOT_VERSION line" % INSTALL_SCRIPT)
