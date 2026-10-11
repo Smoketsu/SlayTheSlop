@@ -84,7 +84,8 @@ const TYPES := {
 	"thorns_changed": {"target_id": TYPE_STRING, "delta": TYPE_INT, "thorns": TYPE_INT},
 	# [added, task 013] A Power's trigger fired; its effects follow as their own events. player_id: the
 	# Dude who played the Power. card_uid: the Power card copy (in that Dude's powers). when: one of
-	# card_def.gd POWER_WHENS. subject_id: the enemy uid it is about, "" for turn_start.
+	# card_def.gd POWER_WHENS. subject_id: the enemy uid it is about, "" for turn_start and
+	# self_damaged (task 037).
 	"power_triggered": {"player_id": TYPE_STRING, "card_uid": TYPE_STRING, "when": TYPE_STRING, "subject_id": TYPE_STRING},
 	# [added, task 021] A Dude gained a Gear (its stats follow as stat_changed). gear_id: a data/gear/ id.
 	"gear_gained": {"player_id": TYPE_STRING, "gear_id": TYPE_STRING},

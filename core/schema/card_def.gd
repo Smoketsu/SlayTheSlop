@@ -108,7 +108,9 @@ const TRIGGER_SPEC := {
 ## building the new trigger. "turn_start": at the start of each turn, once the Dudes have Refreshed
 ## (Friend Zone). "enemy_buffed": an enemy gained a buff, that is Guard or Swole (G10; Reply Guy).
 ## "enemy_grossed_out": an enemy was Grossed Out (Friend Zone's Exposed).
-const POWER_WHENS: Array[String] = ["turn_start", "enemy_buffed", "enemy_grossed_out"]
+## [added, task 037] "self_damaged": the Power's own Dude took damage from a self_damage effect of
+## their own card (Skull Bash, Pickup Line), not from enemies, Burn or Bedbugs (Tough Skull).
+const POWER_WHENS: Array[String] = ["turn_start", "enemy_buffed", "enemy_grossed_out", "self_damaged"]
 
 ## [added, task 013] Who a Power trigger's effects land on. "subject": the enemy the trigger is
 ## about (enemy_buffed and enemy_grossed_out only). "all_enemies": every enemy in the fight when it
