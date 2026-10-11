@@ -39,6 +39,16 @@ const SKIP_REASONS := {
 	"armless": "Armless",
 }
 
+## [added, task 047] Banner kinds (client/visual/event_player.gd BANNERS) -> {"title": the big word,
+## "line": a smaller line under it, "" for none}. Writers may change the words; the kinds are the
+## client's. tests/client checks that no kind is missing.
+const BANNERS := {
+	"your_turn": {"title": "Your turn", "line": ""},
+	"enemy_turn": {"title": "Enemy turn", "line": ""},
+	"victory": {"title": "Victory", "line": "The Dudes win. Nobody is more surprised than the Dudes."},
+	"passed_out": {"title": "Passed Out", "line": "Lights out, bro."},
+}
+
 ## [added, task 041] Card types (core/schema/card_def.gd TYPES) -> the label on a card face, in the
 ## GDD "Card types and keywords" terms. tests/client checks that no type is missing.
 const CARD_TYPES := {

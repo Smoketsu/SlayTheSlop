@@ -37,6 +37,9 @@
 ## Run it with
 ##   "$(tools/install_godot.sh)" --path . res://client/run/run_screen.tscn
 ## With no setup() call it builds the ruleset from data/ (as client/dev/dev_fight.gd does).
+## Animation speed (task 047): each fight's event and banner lengths follow the menu's Animations
+## setting (client/settings/animation_speed.gd); the fight screen shows the victory or Passed Out
+## banner before it reports the state, so this screen moves on only after it.
 ## Sound (task 055): the saved volume and mute (client/audio/volume.gd) are applied when the screen
 ## is ready; the menu's Sound row changes them. Every button under this screen (menus, map, offers,
 ## fight, How to play) plays Sounds.CLICK when pressed, hooked as each button enters the tree, so no
@@ -67,6 +70,8 @@ const UserSettings := preload("res://client/settings/user_settings.gd")
 ## [added, task 055] The sound lookup and player, and the master volume and mute.
 const Sounds := preload("res://client/audio/sounds.gd")
 const Volume := preload("res://client/audio/volume.gd")
+## [added, task 047] The animation-speed client setting.
+const AnimationSpeed := preload("res://client/settings/animation_speed.gd")
 ## [added, task 045] Gear and Brew tooltips, and the Button whose tooltip wraps.
 const TooltipText := preload("res://client/help/tooltip_text.gd")
 const TipButton := preload("res://client/visual/tip_button.gd")
@@ -111,8 +116,10 @@ const RUN_OVER_TEXT := {
 	"lost": "Passed out. The run is over.",
 }
 
-## Seconds each fight event animates, handed to every fight screen this screen makes. 0 makes the
-## fights synchronous, which tests use. Changed by whoever creates the screen.
+## Seconds each fight event animates at normal speed. Task 047: every fight screen this screen makes
+## gets it times the animation-speed client setting (AnimationSpeed.seconds(), read from
+## settings_path), so "instant" gives 0. 0 makes the fights synchronous whatever the setting, which
+## tests use. Changed by whoever creates the screen.
 var animation_seconds: float = 0.3
 ## The user:// file the run is saved to and Continue reads. Changed by whoever creates the screen
 ## (tests use their own file), before setup() or _ready().
@@ -426,7 +433,7 @@ func _route() -> void:
 		SCREEN_FIGHT:
 			# fight: a fight screen on this fight, with this screen as its gateway.
 			var fight: Control = FightScreen.instantiate()
-			fight.animation_seconds = animation_seconds
+			fight.animation_seconds = AnimationSpeed.seconds(animation_seconds, settings_path)
 			fight.setup(self, _ruleset, _state, _player_id)
 			fight.state_applied.connect(_on_fight_applied)
 			_replace_child(fight, kind)

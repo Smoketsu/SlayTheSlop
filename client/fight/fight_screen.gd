@@ -18,6 +18,14 @@
 ## slightly darkened. Placeholder art (assets/placeholder/). Run it with
 ##   "$(tools/install_godot.sh)" --path . res://client/fight/fight_screen.tscn
 ## With no setup() call it starts a fight on the real data (client/dev/dev_fight.gd).
+##
+## Task 047, the rhythm of a fight: a banner across the middle of the screen when a turn starts
+## ("Your turn", also when the screen opens on a player phase), when the enemy phase starts ("Enemy
+## turn") and when the fight ends ("Victory" / "Passed Out"), placed among the events by
+## client/visual/event_player.gd banners_for() and shown before the screen moves on; and the Ready
+## (end turn) button pulses while no card in hand can be played, as the core says (card_playable()).
+## How long events and banners take is animation_seconds, which the run screen sets from the
+## animation-speed client setting (client/settings/animation_speed.gd).
 extends Control
 
 const FightModel := preload("res://client/fight/fight_model.gd")
@@ -98,6 +106,32 @@ const BRO_BACK_COLOR := Color(0.1, 0.1, 0.1, 0.85)
 ## Translucent panel behind the event log and the message bar, so their text reads over the room.
 ## Changed only by the client lane.
 const TEXT_PANEL_COLOR := Color(0.06, 0.06, 0.08, 0.6)
+## [added, task 047] The band behind a banner, across the whole width. Changed only by the client lane.
+const BANNER_BACK_COLOR := Color(0.04, 0.04, 0.06, 0.82)
+## [added, task 047] Font size of a banner's big word, in pixels. Changed only by the client lane.
+const BANNER_FONT_SIZE: int = 52
+## [added, task 047] Font size of the line under it, in pixels. Changed only by the client lane.
+const BANNER_LINE_FONT_SIZE: int = 18
+## [added, task 047] Where the banner's band is centred, as a share of the screen's height from the
+## top (0..1). Changed only by the client lane.
+const BANNER_CENTER: float = 0.38
+## [added, task 047] Banner kind (event_player.gd BANNERS) -> the colour of its big word. Changed only
+## by the client lane; a kind missing here is white.
+const BANNER_COLORS := {
+	"your_turn": Color(1.0, 0.85, 0.35),
+	"enemy_turn": Color(1.0, 0.45, 0.35),
+	"victory": Color(0.5, 1.0, 0.5),
+	"passed_out": Color(0.75, 0.75, 0.8),
+}
+## [added, task 047] Share of a banner's time spent fading in, and again fading out (0..0.5). Changed
+## only by the client lane.
+const BANNER_FADE_SHARE: float = 0.15
+## [added, task 047] Colour the Ready button pulses to while no card can be played. Changed only by
+## the client lane.
+const PULSE_COLOR := Color(1.0, 0.8, 0.3)
+## [added, task 047] Seconds of one pulse of the Ready button, there and back. Not tied to the
+## animation speed: it is a hint, not an event. Changed only by the client lane.
+const PULSE_SECONDS: float = 0.9
 
 ## [added, task 020] Emitted after every applied request, once its events have animated and the
 ## screen has redrawn. The run screen (client/run/run_screen.gd) listens to take the new state and
@@ -121,6 +155,15 @@ var event_lines: Array[String] = []
 ## The room drawn behind this fight (backgrounds.gd room_for()), picked once in setup() so the room
 ## does not change when the boss falls. Read by tests.
 var room: String = ""
+## [added, task 047] One line per banner shown, "<kind>@<n>" where n is how many lines animation_log
+## held when it showed (so it came after those events and before the rest), in order; skipped
+## animations still log their banners. Read by tests. Only grows.
+var banner_log: Array[String] = []
+## [added, task 047] The banner's big word while a banner shows, "" otherwise. Read by tests.
+var banner_text: String = ""
+## [added, task 047] True while the Ready button pulses: the core would accept ending the turn and
+## would refuse every card in hand. Set by every redraw. Read by tests.
+var ready_pulsing: bool = false
 
 ## The gateway requests go to: anything with apply(ruleset, state, request). Set by setup().
 var _gateway: Object
@@ -176,6 +219,17 @@ var _bro_label: Label
 var _background: TextureRect
 ## Plain FALLBACK_COLOR behind the room picture, seen only when the room has no file.
 var _backdrop: ColorRect
+## [added, task 047] The banner: a band across the screen holding _banner_title and _banner_line,
+## hidden while no banner shows. Built in _ready(), on top of everything.
+var _banner: PanelContainer
+## [added, task 047] The banner's big word.
+var _banner_title: Label
+## [added, task 047] The smaller line under it.
+var _banner_line: Label
+## [added, task 047] The banner's fade, killed when the next banner starts; null when none ran.
+var _banner_tween: Tween
+## [added, task 047] The Ready button as last drawn, for tests; rebuilt by every redraw.
+var _ready_button: Button
 ## [added, task 045] icons.gd key -> what it does (client/help/tooltip_text.gd all()), filled from the
 ## ruleset on every redraw and handed to each combatant view and the turn info badges.
 var _tooltips: Dictionary = {}
@@ -222,6 +276,7 @@ func _ready() -> void:
 	add_child(_arena)
 	_build_top()
 	_build_table()
+	_build_banner()
 	if _ruleset.is_empty():
 		# started: a placeholder fight on the real data.
 		var started: Dictionary = DevFight.start()
@@ -230,6 +285,44 @@ func _ready() -> void:
 			return
 		setup(Gateway.new(), started["ruleset"], started["state"], started["player_id"])
 	_redraw()
+	# Task 047: a fight opens on its first player phase; say so.
+	if not _state.is_empty() and _state["combat"] != null and _state["combat"]["phase"] == "player":
+		_player.seconds = animation_seconds
+		_on_banner("your_turn", _player.banner_seconds("your_turn"))
+
+
+## [added, task 047] Builds the banner: a band across the screen, centred at BANNER_CENTER of its
+## height, with the big word and a line under it; hidden, and it lets clicks through.
+func _build_banner() -> void:
+	_banner = PanelContainer.new()
+	_banner.anchor_left = 0.0
+	_banner.anchor_right = 1.0
+	_banner.anchor_top = BANNER_CENTER
+	_banner.anchor_bottom = BANNER_CENTER
+	_banner.grow_vertical = Control.GROW_DIRECTION_BOTH
+	_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# band: the band's fill.
+	var band := StyleBoxFlat.new()
+	band.bg_color = BANNER_BACK_COLOR
+	band.content_margin_top = 10
+	band.content_margin_bottom = 12
+	_banner.add_theme_stylebox_override("panel", band)
+	# column: the word over the line.
+	var column := VBoxContainer.new()
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_banner.add_child(column)
+	_banner_title = Label.new()
+	_banner_title.add_theme_font_size_override("font_size", BANNER_FONT_SIZE)
+	_banner_line = Label.new()
+	_banner_line.add_theme_font_size_override("font_size", BANNER_LINE_FONT_SIZE)
+	for label: Label in [_banner_title, _banner_line]:
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.add_theme_constant_override("outline_size", 6)
+		label.add_theme_color_override("font_outline_color", Color.BLACK)
+		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		column.add_child(label)
+	_banner.visible = false
+	add_child(_banner)
 
 
 ## [added, task 057] Builds the top strip: the turn label and, right of it, the message; under them
@@ -413,6 +506,20 @@ func press_dude(player_id: String) -> void:
 	_send(_requests.play_card(card_uid, player_id))
 
 
+## [added, task 047] Returns true when the Ready button should pulse: the core would accept ending
+## the turn now (Core.validate() on a probe set_ready that is never sent) and would refuse every
+## card in the local hand (card_playable()). No rule is worked out here. Reads only.
+func ready_should_pulse() -> bool:
+	if _requests == null or _state.is_empty() or _state["combat"] == null:
+		return false
+	if Gateway.validate(_ruleset, _state, _requests.probe_set_ready()) != "":
+		return false
+	for uid: String in _local().get("hand", []):
+		if card_playable(uid):
+			return false
+	return true
+
+
 ## The player pressed Ready (end turn).
 func press_ready() -> void:
 	if not _busy:
@@ -478,12 +585,16 @@ func _send(request: Dictionary) -> void:
 	var names: Dictionary = EventText.names_for(_ruleset, [_state, result["state"]])
 	_busy = true
 	if skip_animations:
-		for event: Dictionary in result["events"]:
-			animation_log.append(_describe(event))
-			_log_event(EventText.line(event, names))
+		# banners: where the banners go (task 047); logged, not shown.
+		var banners: Dictionary = EventPlayer.banners_for(result["events"])
+		for i: int in result["events"].size():
+			if banners.has(i):
+				_on_banner(banners[i], 0.0)
+			animation_log.append(_describe(result["events"][i]))
+			_log_event(EventText.line(result["events"][i], names))
 	else:
 		_player.seconds = animation_seconds
-		await _player.play(result["events"], _views, _on_event.bind(names), self)
+		await _player.play(result["events"], _views, _on_event.bind(names), self, _on_banner)
 	_state = result["state"]
 	_busy = false
 	_redraw()
@@ -521,7 +632,11 @@ func _redraw() -> void:
 	for card: Dictionary in model["hand"]:
 		_add_card(card)
 	_add_button(_actions_box, "Bro Move", press_bro_move, not model["bro_ready"])
-	_add_button(_actions_box, "Ready", press_ready, false)
+	_ready_button = _add_button(_actions_box, "Ready", press_ready, false)
+	# Task 047: the Ready button pulses while no card can be played.
+	ready_pulsing = ready_should_pulse()
+	if ready_pulsing:
+		_pulse(_ready_button)
 	_bro_bar.max_value = maxi(1, model["bro_meter_max"])
 	_bro_bar.value = model["bro_meter_now"]
 	_bro_label.text = model["bro_meter"]
@@ -609,6 +724,58 @@ func _add_card(card: Dictionary) -> void:
 	_hand_box.add_child(view)
 
 
+## [added, task 047] Shows a banner (the event player calls it where banners_for() puts one; the
+## screen calls it when it opens on a player phase): logs it in banner_log, then shows the band with
+## the kind's words (messages.gd BANNERS), fading in and out over seconds, and hides it again. With
+## seconds <= 0 it is only logged, so the drawing never keeps a banner.
+## kind: a banner kind (event_player.gd BANNERS). seconds: how long it shows.
+func _on_banner(kind: String, seconds: float) -> void:
+	banner_log.append("%s@%d" % [kind, animation_log.size()])
+	if _banner == null:
+		return
+	if _banner_tween != null and _banner_tween.is_valid():
+		_banner_tween.kill()
+	if seconds <= 0.0 or not is_inside_tree():
+		_hide_banner()
+		return
+	# words: the banner's title and line.
+	var words: Dictionary = Messages.BANNERS.get(kind, {"title": kind.capitalize(), "line": ""})
+	banner_text = words["title"]
+	_banner_title.text = words["title"]
+	_banner_title.add_theme_color_override("font_color", BANNER_COLORS.get(kind, Color.WHITE))
+	_banner_line.text = words["line"]
+	_banner_line.visible = words["line"] != ""
+	_banner.modulate.a = 0.0
+	_banner.visible = true
+	_banner_tween = create_tween()
+	_banner_tween.tween_property(_banner, "modulate:a", 1.0, seconds * BANNER_FADE_SHARE)
+	_banner_tween.tween_interval(seconds * (1.0 - 2.0 * BANNER_FADE_SHARE))
+	_banner_tween.tween_property(_banner, "modulate:a", 0.0, seconds * BANNER_FADE_SHARE)
+	_banner_tween.tween_callback(_hide_banner)
+
+
+## [added, task 047] Hides the banner and empties its words, so no banner text stays on screen.
+func _hide_banner() -> void:
+	banner_text = ""
+	if _banner == null:
+		return
+	_banner.visible = false
+	_banner_title.text = ""
+	_banner_line.text = ""
+
+
+## [added, task 047] Makes a button pulse to PULSE_COLOR and back, over and over, until it is freed.
+## button: the button (the Ready button).
+func _pulse(button: Button) -> void:
+	if not button.is_inside_tree():
+		button.modulate = PULSE_COLOR
+		return
+	# tween: the endless pulse, bound to the button so it ends with it.
+	var tween: Tween = button.create_tween().set_loops()
+	tween.tween_property(button, "modulate", PULSE_COLOR, PULSE_SECONDS / 2.0)
+	tween.tween_property(button, "modulate", Color.WHITE, PULSE_SECONDS / 2.0)
+
+
 ## Called by the event player before each event animates: logs it and shows its line.
 ## event: the event. names: display names, from EventText.names_for().
 func _on_event(event: Dictionary, names: Dictionary) -> void:
@@ -628,10 +795,11 @@ func _log_event(line: String) -> void:
 		_log_label.visible = true
 
 
-## Adds one button to a container. Task 045: a client/visual/tip_button.gd, so a tooltip wraps.
+## Adds one button to a container and returns it (task 047). Task 045: a client/visual/
+## tip_button.gd, so a tooltip wraps.
 ## box: the container. text: the button's label. on_press: called when pressed. disabled: greyed out.
 ## tooltip: [added, task 045] its hover text (client/help/tooltip_text.gd), "" for none.
-func _add_button(box: Container, text: String, on_press: Callable, disabled: bool, tooltip: String = "") -> void:
+func _add_button(box: Container, text: String, on_press: Callable, disabled: bool, tooltip: String = "") -> Button:
 	# button: the new button.
 	var button: Button = TipButton.new()
 	button.text = text
@@ -639,6 +807,7 @@ func _add_button(box: Container, text: String, on_press: Callable, disabled: boo
 	button.disabled = disabled
 	button.pressed.connect(on_press)
 	box.add_child(button)
+	return button
 
 
 ## Shows a message to the player.
