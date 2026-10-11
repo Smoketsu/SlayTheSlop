@@ -1,9 +1,8 @@
-## Tom's new cards as data (task 030): the 15 of the 16 cards accepted in
-## docs/proposals/tom-slice-cards.md (decision log row "Task 012: Tom's 16 new cards", #91) whose
-## rules the core already has. Lane: tools (Agent B).
+## Tom's new cards as data (task 030): all 16 cards accepted in docs/proposals/tom-slice-cards.md
+## (decision log row "Task 012: Tom's 16 new cards", #91). Lane: tools (Agent B).
 ## Each file is checked against the accepted proposal, the schema, the op catalogue, the real ruleset
 ## and Tom's card pool; a few cards are played through Core.apply on the real data, and a fixed-seed
-## fight plays a deck holding all 15.
+## fight plays a deck holding all 16.
 extends "res://tests/framework/test_case.gd"
 
 const Check := preload("res://tests/data/content_check.gd")
@@ -16,7 +15,7 @@ const Fight := preload("res://core/combat/fight.gd")
 const Snapshot := preload("res://core/run/save/snapshot.gd")
 const RunState := preload("res://core/schema/run_state.gd")
 
-## The 15 new cards exactly as accepted in tom-slice-cards.md ("New cards"), card id -> definition.
+## The 16 new cards exactly as accepted in tom-slice-cards.md ("New cards"), card id -> definition.
 ## Numbers, text, rarity, target and keywords are the proposal's. "upgrade" is {} because the
 ## proposal's upgrade tables are not accepted yet (only the 16 cards are). Changed only when a person
 ## changes a card in the proposal or the decision log.
@@ -81,6 +80,13 @@ const ACCEPTED := {
 		"cost": 2, "target": "enemy",
 		"effects": [{"op": "damage", "amount": 18}, {"op": "self_damage", "amount": 4}],
 		"keywords": [], "crunch": null, "upgrade": {}, "text": "Deal 18 damage. Tom takes 4 damage"},
+	# Uncommon Power, Head First: whenever Tom takes damage from his own card's self_damage, he gains
+	# 3 Guard (self_damaged Power trigger from task 037, #97).
+	"tom_tough_skull": {"id": "tom_tough_skull", "name": "Tough Skull", "owner": "tom", "type": "power",
+		"rarity": "uncommon", "cost": 1, "target": "none", "effects": [],
+		"power_triggers": [{"when": "self_damaged", "target": "self", "effects": [{"op": "guard", "amount": 3}]}],
+		"keywords": [], "crunch": null, "upgrade": {},
+		"text": "Whenever Tom takes damage from his own card, gain 3 Guard"},
 	# Rare, Orthopedic Surgeon: Deal 10 damage. Break 2 arms (capped at the enemy's arm_count).
 	"tom_full_nelson": {"id": "tom_full_nelson", "name": "Full Nelson", "owner": "tom", "type": "attack", "rarity": "rare",
 		"cost": 3, "target": "enemy",
@@ -105,15 +111,21 @@ const ACCEPTED := {
 
 ## Accepted cards that wait for a rule from Agent A, so have no data file yet: card id -> the core
 ## task that builds the rule. When one of those tasks merges, the card's own content task removes it
-## here and adds it to ACCEPTED.
-const WAITING := {
-	"tom_tough_skull": "037 (self_damaged Power trigger)",
-}
+## here and adds it to ACCEPTED. Empty since Tough Skull joined (task 037 merged in #97): all 16 are
+## data now. Kept so a card a person adds to the proposal later can wait here.
+const WAITING := {}
 
-## Tom's card pool (core/run/pools.gd card_pool) with the 15 new cards: rarity -> number of cards.
-## GDD cards: 4 common, 4 uncommon, 2 rare. New: 6 common, 5 uncommon, 4 rare (the proposal's 6, 6
-## and 4, minus Tough Skull).
-const POOL_SIZES := {"common": 10, "uncommon": 9, "rare": 6}
+## The proposal whose "New cards" section lists every accepted new card as a "#### `card_id`: Name"
+## heading. Read-only here; people change it.
+const PROPOSAL_PATH: String = "res://docs/proposals/tom-slice-cards.md"
+## How many new cards the proposal accepted (decision log row "Task 012: Tom's 16 new cards").
+## Changed only when a person adds or removes an accepted card.
+const ACCEPTED_COUNT: int = 16
+
+## Tom's card pool (core/run/pools.gd card_pool) with the 16 new cards: rarity -> number of cards.
+## GDD cards: 4 common, 4 uncommon, 2 rare. New: 6 common, 6 uncommon, 4 rare (the proposal's 6, 6
+## and 4).
+const POOL_SIZES := {"common": 10, "uncommon": 10, "rare": 6}
 
 ## The enemy of the single-card checks: 28 HP, 2 arms (GDD floor 1 table).
 const TEST_FOE: String = "goblin_bouncer"
@@ -132,17 +144,18 @@ const MAX_REQUESTS: int = 300
 ## Re-recorded when Bro Hug and Nothing to Lose joined the deck (15 new cards; was
 ## ["won", 6, 21, 71] with 13): the two extra cards change the shuffle and the plays, and the policy
 ## may now aim an ally card at Tom.
-const RECORDED: Array = ["won", 6, 20, 69]
-## Recorded: the new card ids the fixed-seed fight played at least once, sorted (10 of the 15; Full
-## Nelson, Hot Take, Main Character Energy, Nothing to Lose and Story Time were not played before
-## the fight was won). Same rule as RECORDED; re-recorded with RECORDED.
-const RECORDED_PLAYED: Array = ["tom_bro_hug", "tom_compound_fracture", "tom_dislocate", "tom_gym_selfie",
-	"tom_headbutt", "tom_headlock", "tom_noggin_knock", "tom_noogie", "tom_stare_down",
+## Re-recorded again when Tough Skull joined the deck (16 new cards; was ["won", 6, 20, 69] with 15):
+## the extra card changes the shuffle and so the draws and plays.
+const RECORDED: Array = ["won", 5, 15, 80]
+## Recorded: the new card ids the fixed-seed fight played at least once, sorted (10 of the 16; Bro
+## Hug, Compound Fracture, Headbutt, Hot Take, Story Time and Tough Skull were not played before the
+## fight was won). Same rule as RECORDED; re-recorded with RECORDED.
+const RECORDED_PLAYED: Array = ["tom_dislocate", "tom_full_nelson", "tom_gym_selfie", "tom_headlock",
+	"tom_main_character_energy", "tom_noggin_knock", "tom_noogie", "tom_nothing_to_lose", "tom_stare_down",
 	"tom_three_hour_podcast"]
 
 
-## data/cards holds exactly the 15 accepted files whose rules exist, each equal to the proposal, and
-## not the waiting card.
+## data/cards holds every accepted new card, each equal to the proposal, and no waiting card.
 func test_new_cards_match_the_proposal() -> void:
 	# ids: every card file name.
 	var ids: Array[String] = Check.ids_in("data/cards")
@@ -151,7 +164,34 @@ func test_new_cards_match_the_proposal() -> void:
 		assert_eq(Check.load_file("data/cards/%s.json" % id), Check.as_data(ACCEPTED[id]), id)
 	for id: String in WAITING:
 		assert_false(ids.has(id), "%s waits for task %s" % [id, WAITING[id]])
-	assert_eq(ACCEPTED.size(), 15, "15 of the 16 accepted cards")
+	assert_eq(ACCEPTED.size(), ACCEPTED_COUNT, "all 16 accepted cards are in ACCEPTED")
+	assert_true(WAITING.is_empty(), "no accepted card waits for a rule")
+
+
+## Every card heading in the proposal's "New cards" section is in ACCEPTED and has a data file, and
+## there are exactly ACCEPTED_COUNT of them, so no accepted card is left out.
+func test_every_proposal_card_has_a_file() -> void:
+	# text: the proposal. start: where its "New cards" section starts.
+	var text: String = FileAccess.get_file_as_string(PROPOSAL_PATH)
+	assert_ne(text, "", "the proposal is readable")
+	var start: int = text.find("\n## New cards")
+	assert_ne(start, -1, "the proposal has a New cards section")
+	if start == -1:
+		return
+	# end: where the next level-2 heading starts, or -1 for the end of the file. section: the text.
+	var end: int = text.find("\n## ", start + 1)
+	var section: String = text.substr(start, end - start if end != -1 else -1)
+	# heading: matches a "#### `card_id`: Name" line. found: the card ids in the section, in order.
+	var heading: RegEx = RegEx.create_from_string("(?m)^#### `([a-z0-9_]+)`")
+	var found: Array[String] = []
+	for m: RegExMatch in heading.search_all(section):
+		found.append(m.get_string(1))
+	assert_eq(found.size(), ACCEPTED_COUNT, "the proposal lists %d new cards" % ACCEPTED_COUNT)
+	# ids: every card file name.
+	var ids: Array[String] = Check.ids_in("data/cards")
+	for id: String in found:
+		assert_true(ACCEPTED.has(id), "%s is in ACCEPTED" % id)
+		assert_true(ids.has(id), "%s has a file" % id)
 
 
 ## Every new card passes the card schema, the op catalogue (effects and Power trigger effects) and
@@ -292,6 +332,63 @@ func test_bro_hug_in_solo_guards_tom() -> void:
 	assert_eq(result["state"]["dudes"][0]["guard"], 7, "Tom gains 7 Guard")
 
 
+## Tough Skull in play, then Skull Bash at a Goblin Bouncer: after Skull Bash's 2 self-damage (Tom
+## has no Guard, so his HP drops by 2), Tough Skull fires once and Tom gains 3 Guard, in that order.
+## Then, in a fresh fight with only Tough Skull played, the Bouncer's Checks ID hit on turn 2 (it
+## Bounces on turn 1) fires nothing: an enemy hit is not Tom's own card.
+func test_tough_skull_guards_after_skull_bash_not_enemy_hits() -> void:
+	# setup: a fight with Tough Skull and Skull Bash in hand.
+	var setup: Dictionary = _fight_with_hand(["tom_tough_skull", "tom_skull_bash"])
+	if setup.is_empty():
+		return
+	# me: Tom's player_id. hp: his HP before. foe: the enemy's uid.
+	var me: String = setup["state"]["dudes"][0]["player_id"]
+	var hp: int = setup["state"]["dudes"][0]["hp"]
+	var foe: String = setup["state"]["combat"]["enemies"][0]["uid"]
+	assert_eq(setup["state"]["dudes"][0]["guard"], 0, "Tom starts with no Guard")
+	# played: the result after both cards.
+	var played: Dictionary = _play_all(setup, foe)
+	if played.is_empty():
+		return
+	assert_eq(played["state"]["dudes"][0]["hp"], hp - 2, "Skull Bash's 2 self-damage hits Tom's HP")
+	assert_eq(played["state"]["dudes"][0]["guard"], 3, "Tough Skull gives 3 Guard")
+	assert_eq(_skull_fires(played["events"]).size(), 1, "Tough Skull fires once")
+	# self_hit: index of Tom's self-damage event (the last damage_dealt on Tom).
+	var self_hit: int = -1
+	for i: int in played["events"].size():
+		if played["events"][i]["type"] == "damage_dealt" and played["events"][i]["target_id"] == me:
+			self_hit = i
+	assert_ne(self_hit, -1, "Tom took his self-damage")
+	# types: the event types from Tom's self-damage on.
+	var types: Array = played["events"].slice(self_hit, self_hit + 3).map(func(e: Dictionary) -> String: return e["type"])
+	assert_eq(types, ["damage_dealt", "power_triggered", "guard_changed"], "self-damage, then the trigger, then Guard")
+
+	# alone_setup: a fresh fight with only Tough Skull in hand. alone: after it is played.
+	var alone_setup: Dictionary = _fight_with_hand(["tom_tough_skull"])
+	if alone_setup.is_empty():
+		return
+	var alone: Dictionary = _play_all(alone_setup, foe)
+	if alone.is_empty():
+		return
+	# state: the current state. events: every event of two Readies (turn 1: the Bouncer Bounces;
+	# turn 2: its Checks ID hits Tom).
+	var state: Dictionary = alone["state"]
+	var events: Array = []
+	for turn: int in 2:
+		# ready_request: Tom's Ready. result: the core's answer.
+		var ready_request: Dictionary = {"type": "set_ready", "player_id": me, "seq": state["dudes"][0]["last_seq"] + 1, "ready": true}
+		var result: Dictionary = Core.apply(alone_setup["rules"], state, ready_request)
+		assert_eq(result["reject"], "", "Ready on turn %d" % (turn + 1))
+		if result["reject"] != "":
+			return
+		state = result["state"]
+		events.append_array(result["events"])
+	assert_true(events.any(func(e: Dictionary) -> bool:
+		return e["type"] == "damage_dealt" and e["target_id"] == me and e["source_id"] == foe),
+		"the Goblin Bouncer hits Tom")
+	assert_eq(_skull_fires(events), [], "an enemy hit does not fire Tough Skull")
+
+
 ## Tom fights a Goblin Pledge and a Goblin Bouncer on the real data with his starter deck plus one
 ## of each new card, playing a new card whenever one is legal. Every state passes run_state.check(),
 ## the fight ends as RECORDED, it plays RECORDED_PLAYED, and a replay gives identical snapshot bytes.
@@ -375,6 +472,13 @@ func _damage_to(events: Array, target_id: String) -> Array:
 		if e["type"] == "damage_dealt" and e["target_id"] == target_id:
 			amounts.append(e["amount"])
 	return amounts
+
+
+## Returns the power_triggered events with when "self_damaged" (Tough Skull firing) in events.
+## events: core events.
+func _skull_fires(events: Array) -> Array:
+	return events.filter(func(e: Dictionary) -> bool:
+		return e["type"] == "power_triggered" and e["when"] == "self_damaged")
 
 
 ## Returns true when events raise status on target_id.

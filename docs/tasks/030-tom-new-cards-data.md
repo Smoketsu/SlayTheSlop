@@ -4,7 +4,7 @@ title: Tom's new cards as data (the 13 whose ops exist)
 lane: content
 owner: B
 status: in_review
-branch: b/030-tom-new-cards (PR #95, merged), then b/030-nothing-to-lose
+branch: b/030-tom-new-cards (PR #95, merged), then b/030-nothing-to-lose (PR #98, merged), then b/030-tough-skull
 depends_on: [012, 013]
 blocked_on: []
 files:
@@ -92,3 +92,19 @@ common, uncommon or rare, `core/run/pools.gd`) and can be offered as rewards and
   10 of 15 (adds Bro Hug and Headbutt; drops Hot Take, Story Time and Main Character Energy).
   Verified: `tools/test.sh` -> 488 passed, 0 failed. Not done: Tough Skull (task 037); upgrade
   values.
+- 2026-10-11 B: 16 of 16 done. #98 merged before Agent A's #97 (task 037, Power trigger
+  `self_damaged`), so Tough Skull is on its own branch `b/030-tough-skull` from main after both.
+  Added `tom_tough_skull` (Power, cost 1, uncommon, target `none`, `power_triggers`
+  `[{"when": "self_damaged", "target": "self", "effects": [guard 3]}]`, `"upgrade": {}`) exactly as
+  the proposal. `tests/data/test_tom_new_cards.gd`: Tough Skull in `ACCEPTED` (16 cards), `WAITING`
+  now empty (asserted), `POOL_SIZES` uncommon 9 -> 10; new `test_every_proposal_card_has_a_file`
+  reads the 16 `#### \`card_id\`` headings of the proposal's "New cards" section and checks each
+  is in `ACCEPTED` and has a file; new `test_tough_skull_guards_after_skull_bash_not_enemy_hits`
+  through `Core.apply` on the real data: with Tough Skull in play, Skull Bash's 2 self-damage hits
+  Tom's HP, then Tough Skull fires once and Tom gains 3 Guard (events in that order); in a fresh
+  fight the Goblin Bouncer's turn 2 hit on Tom fires nothing. The fixed-seed fight was re-recorded
+  (its deck is built from `ACCEPTED`): `RECORDED` ["won", 6, 20, 69] -> ["won", 5, 15, 80];
+  `RECORDED_PLAYED` now 10 of 16 (adds Full Nelson, Main Character Energy, Nothing to Lose; drops
+  Bro Hug, Compound Fracture, Headbutt; Tough Skull not played). No other test changed. Verified:
+  `tools/test.sh` -> 496 passed, 0 failed. Status stays `in_review` until the PR merges. Not done:
+  upgrade values (the upgrade tables are not accepted).
