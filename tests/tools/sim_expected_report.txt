@@ -1,0 +1,26 @@
+Dungeon Dudes fight simulation (task 022)
+bots: greedy, random
+party sizes: 1, 2
+dudes by seat: sim_dude (repeated to fill the seats)
+seeds: 5 (1..5)
+encounters: sim_grunts, sim_brute+sim_grunt
+turn cap: 30
+turns: mean and max per fight (a stalled fight counts the cap); dmg/dude: mean HP lost to hits per Dude per fight
+
+bot      party  encounter           fights   won  lost stalled   win% turns_mean turns_max  dmg/dude  dmg by seat
+greedy       1  sim_grunts               5     5     0       0  100.0        3.2         4       7.0  p1 7.0
+greedy       1  sim_brute+sim_grunt      5     4     1       0   80.0        4.6         6      34.2  p1 34.2
+greedy       1  (all)                   10     9     1       0   90.0        3.9         6      20.6  p1 20.6
+
+greedy       2  sim_grunts               5     5     0       0  100.0        3.0         3       2.6  p1 2.4, p2 2.8
+greedy       2  sim_brute+sim_grunt      5     5     0       0  100.0        4.4         5      12.5  p1 16.6, p2 8.4
+greedy       2  (all)                   10    10     0       0  100.0        3.7         5       7.6  p1 9.5, p2 5.6
+
+random       1  sim_grunts               5     5     0       0  100.0        5.8         9      16.0  p1 16.0
+random       1  sim_brute+sim_grunt      5     1     4       0   20.0        5.0         7      39.8  p1 39.8
+random       1  (all)                   10     6     4       0   60.0        5.4         9      27.9  p1 27.9
+
+random       2  sim_grunts               5     5     0       0  100.0        6.2         8       9.1  p1 6.2, p2 12.0
+random       2  sim_brute+sim_grunt      5     4     1       0   80.0        8.6        11      32.3  p1 36.0, p2 28.6
+random       2  (all)                   10     9     1       0   90.0        7.4        11      20.7  p1 21.1, p2 20.3
+
