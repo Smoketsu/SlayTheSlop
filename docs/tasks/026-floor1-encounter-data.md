@@ -3,7 +3,7 @@ id: 026
 title: Floor 1 encounters as data
 lane: content
 owner: B
-status: in_review
+status: done
 branch: b/026-floor1-encounters
 depends_on: [010, 025]
 blocked_on: []
@@ -61,3 +61,4 @@ GDD "Floor 1: The Basement", "Node types", "Map"; `core/schema/encounter_def.gd`
   `"early"` from `basement_pledge_and_intern` together with Agent A's fixture.
 - 2026-10-10 B: Merged `b/run-event-text` (#75) into this branch so it is green on its own:
   `tools/test.sh` -> 422 passed, 0 failed. Merge this PR after #75, or in place of it.
+- 2026-10-11 B: Done: merged (#76).

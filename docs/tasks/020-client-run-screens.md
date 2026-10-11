@@ -3,7 +3,7 @@ id: 020
 title: Placeholder run screens - menu, map, rewards, Tailgate, Baileys, Side Quest, run over, saving
 lane: client
 owner: B
-status: in_review
+status: done
 branch: b/020-run-screens
 depends_on: [018, 025, 027]
 blocked_on: []
@@ -85,3 +85,4 @@ and screen state in `core/schema/`; task 027's `to_bytes` / `from_bytes`; task 0
   "unplayable" refusal on the offer screen reads as a shop refusal, with `tests/client/test_run_rejects.gd`.
   Verified: `tools/test.sh` -> all passing (see the PR); rendered the menu-to-map path under Xvfb.
   Not done: `run_screen.tscn` as the main scene (contract PR to `project.godot`, needs Person A).
+- 2026-10-11 B: Done: merged (#87); `run_screen.tscn` became the main scene in #88.

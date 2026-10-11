@@ -3,7 +3,7 @@ id: 016
 title: The five GDD Side Quests as data
 lane: content
 owner: B
-status: in_review
+status: done
 branch: b/016-side-quest-data
 depends_on: [025]
 blocked_on: []
@@ -72,3 +72,4 @@ GDD "Example Side Quests", "Junk cards", "Statuses", "Rules that change in co-op
   has no recorded answer; the files follow the built default (only Arm Bar can be upgraded today, so
   the Brownie upgrades 1 card). "gold" is checked as a plain substring, so a future word like
   "golden" would trip the test; change the check then, not the text.
+- 2026-10-11 B: Done: merged (#77).

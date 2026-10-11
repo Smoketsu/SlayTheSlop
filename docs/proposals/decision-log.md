@@ -77,10 +77,7 @@ final: each row can be reopened.
 | I8 | Smelling Salts, solo. | Built: the save lasts until used or the fight ends; drinking a second one first does not stack (still one save). Co-op waking ("wake a Passed Out teammate at 25% HP") is not built; in co-op the Brew is refused as `unplayable` until it is. | `item-rule-gaps.md` | |
 | I9 | Brew slots. | `dude_state.brews` is a packed list, so drinking slot 0 of [A, B] leaves [B] in slot 0. Built: any slot index with no Brew, including one past `brew_slots`, is refused as `empty_slot` (no separate reject code). | `item-rule-gaps.md` | |
 
-**Accepting a default that is not built yet.** I7's default (Beer Helmet's Hangover lasts one fight
-only) is not what `main` does today: `main` adds a run-long Hangover every fight. It needs a `lasts`
-option on the core's `add_card` op (Agent A's lane) and then a data change in `beer_helmet.json`
-(Agent B). Every other default above matches what is built.
+I7 is built: Beer Helmet's Hangover lasts one fight only (task 033's `lasts` option, #63; `beer_helmet.json`, #71).
 
 ## Other defaults accepted the same day
 
