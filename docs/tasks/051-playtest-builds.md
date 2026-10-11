@@ -95,3 +95,10 @@ Godot 4.7 documentation on command-line export (`--export-release`) and export t
     new test file; no export in CI). `shellcheck tools/build.sh` (0.11.0) -> clean.
   - **Not done:** the macOS build (blocked, above); nobody has run the Windows or macOS build on a
     real Windows or Mac yet. The smoke test runs only on Linux x86_64.
+- 2026-10-11 B: macOS unblocked. Contract PRs: #114 (`export_presets.cfg` and `.gitignore`) and
+  #115 (`project.godot` `import_etc2_astc=true`). Both need Smoketsu's approval and must merge
+  before this branch, which merges both plus task 022 (for the shared `tools/README.md`). On that
+  combined tree: `tools/build.sh --check` -> exit 0, all three presets exported (Windows 110 MB,
+  macOS 64 MB, Linux 76 MB), "Smoke test passed". `tools/test.sh` -> 553 passed, 0 failed (after
+  commenting two declarations in `tests/tools/test_export_presets.gd` that 022's documentation
+  check flagged). The first acceptance check stays open until #114 is approved.
