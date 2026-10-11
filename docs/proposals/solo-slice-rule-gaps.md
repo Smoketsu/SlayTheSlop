@@ -424,3 +424,15 @@ Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; S
 Pledges, Bouncer or Intern". Suggested (as built in the test fixtures): yes, a group made only of
 those enemies is early. The content lane marks it with `"early": true` in `data/encounters/`.
 Answer: **accept** (steamjgrube, Person B, 2026-10-10: "go with all defaults"; Smoketsu, Person A, agrees with steamjgrube on all. Recorded in `decision-log.md`.)
+
+## Found while building Assist targets (task 035)
+
+**G62. Assist cards ("ally" target).** GDD "Card types and keywords": "The card can target a teammate.
+In solo play it targets yourself." Bro Hug: "Target Dude gains 7 Guard". The GDD leaves open:
+(a) whether a co-op player may target themselves, (b) whether a Passed Out Dude can be targeted, and
+(c) whose Chill and Hungover apply to Guard given to another Dude.
+Suggested, as built: (a) yes, any Dude, the player's own included; (b) no, a Passed Out Dude is
+`bad_target` (Ethan's Napping is not Passed Out; waking him is not built); (c) the giver's Chill
+applies, as Swole is the attacker's, and the receiver's Hungover reduces it, as Hungover is "gains
+25% less Guard from cards". In solo the giver and receiver are the same Dude, so (c) changes nothing there.
+Answer: **accept** under Smoketsu's standing instruction to take the defaults (2026-10-11). Confirm or change.
