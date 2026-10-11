@@ -23,6 +23,11 @@
 ## or "lost") the save is deleted, because a finished run cannot be continued (no Rep or meta
 ## progression in the solo slice).
 ##
+## Run log (task 053): every gateway answer also goes to the run's client/run/run_log.gd, which
+## appends one JSON line to run_log_path when the run is won or lost, or when New Run replaces an
+## unfinished saved run (abandoned). A write failure only shows a message. The run-over view's Open
+## log folder button (test hook press_open_log_folder()) opens that file's folder.
+##
 ## Never computes a price, a discount or odds: the sub-screens read them from the state.
 ## Run it with
 ##   "$(tools/install_godot.sh)" --path . res://client/run/run_screen.tscn
@@ -35,6 +40,8 @@ const DataFiles := preload("res://tools/data_files.gd")
 ## The default gateway: the real rules core, apply(ruleset, state, request).
 const Core := preload("res://core/core.gd")
 const SaveStore := preload("res://client/run/save_store.gd")
+## Task 053: the playtest run log, one JSON line per ended run.
+const RunLog := preload("res://client/run/run_log.gd")
 const MainMenu := preload("res://client/run/main_menu.gd")
 const Messages := preload("res://client/fight/messages.gd")
 const FightScreen := preload("res://client/fight/fight_screen.tscn")
@@ -76,6 +83,9 @@ var animation_seconds: float = 0.3
 ## The user:// file the run is saved to and Continue reads. Changed by whoever creates the screen
 ## (tests use their own file), before setup() or _ready().
 var save_path: String = SaveStore.DEFAULT_PATH
+## Task 053: the user:// file each ended run's record is appended to (run_log.gd). Changed by whoever
+## creates the screen (tests use their own file), before a run ends.
+var run_log_path: String = RunLog.DEFAULT_PATH
 ## The child shown now: one of the SCREEN_ names, or "" before _ready(). Read by tests.
 var current: String = ""
 ## The message last shown in the message bar (a reject, a save problem). Read by tests.
@@ -95,6 +105,9 @@ var _state: Dictionary = {}
 var _player_id: String = ""
 ## The child shown now (menu, map, fight, offer or run-over view), or null.
 var _child: Control
+## Task 053: the log of the run in memory (run_log.gd), fed by apply(); null before a run and once the
+## run's record is written.
+var _run_log: RunLog
 ## Widgets: the header (Dude, HP, Dolla Bills, floor, seed), the area children fill, the message bar.
 var _header: Label
 var _content: Control
@@ -229,7 +242,11 @@ func _reject_text(code: String) -> String:
 ## Returns the gateway's {"state", "events", "reject"}.
 func apply(ruleset: Dictionary, state: Dictionary, request: Dictionary) -> Dictionary:
 	sent_requests.append(request.duplicate(true))
-	return _gateway.apply(ruleset, state, request)
+	# result: the gateway's answer, also handed to the run log (task 053).
+	var result: Dictionary = _gateway.apply(ruleset, state, request)
+	if _run_log != null:
+		_run_log.observe(state, result)
+	return result
 
 
 ## Returns the child shown now (the menu, a sub-screen, the fight screen or the run-over view), or
@@ -258,6 +275,9 @@ func _on_run_ready(state: Dictionary, is_new: bool) -> void:
 	_player_id = state["dudes"][0]["player_id"]
 	_show_message("")
 	if is_new:
+		_log_abandoned()
+	_run_log = RunLog.new(state, not is_new)
+	if is_new:
 		_take_state(state)
 	else:
 		_state = state
@@ -279,6 +299,9 @@ func _take_state(state: Dictionary) -> void:
 	var kind: String = screen_for(_state, _player_id)
 	if kind == SCREEN_WON or kind == SCREEN_LOST:
 		SaveStore.delete_save(save_path)
+		if _run_log != null:
+			_write_run_log(_run_log, RunLog.WON if kind == SCREEN_WON else RunLog.LOST)
+			_run_log = null
 	elif kind != SCREEN_FIGHT:
 		# error: why the save failed, or "".
 		var error: String = SaveStore.save_state(_state, save_path)
@@ -339,9 +362,48 @@ func _run_over_view(kind: String) -> Control:
 	var back := Button.new()
 	back.text = "Back to menu"
 	back.pressed.connect(press_back_to_menu)
+	# open_log: opens the run log's folder (task 053).
+	var open_log := Button.new()
+	open_log.text = "Open log folder"
+	open_log.pressed.connect(press_open_log_folder)
 	column.add_child(label)
 	column.add_child(back)
+	column.add_child(open_log)
 	return view
+
+
+## The player pressed Open log folder on the run-over view (task 053): opens the folder holding
+## run_log_path in the system's file browser; does nothing in a headless run (tests).
+## Returns true when the folder was handed to the system to open.
+func press_open_log_folder() -> bool:
+	return RunLog.open_folder(run_log_path)
+
+
+## Task 053: New Run is replacing a saved run that never ended, so it is logged as abandoned: from the
+## log in memory when that holds this run, otherwise from the save alone ("resumed" true). A save that
+## does not load is not logged.
+func _log_abandoned() -> void:
+	if not SaveStore.has_save(save_path):
+		return
+	# loaded: SaveStore.load_state()'s {"state", "error"}.
+	var loaded: Dictionary = SaveStore.load_state(save_path)
+	if loaded["error"] != "":
+		return
+	# run_log: the log the abandoned run's record comes from.
+	var run_log: RunLog = _run_log
+	if run_log == null or not run_log.is_run(loaded["state"]):
+		run_log = RunLog.new(loaded["state"], true)
+	_write_run_log(run_log, RunLog.ABANDONED)
+	_run_log = null
+
+
+## Task 053: appends a run's record to run_log_path; a failure is shown and the game carries on.
+## run_log: the run's log. result: RunLog.WON, LOST or ABANDONED.
+func _write_run_log(run_log: RunLog, result: String) -> void:
+	# error: why the line was not written, or "".
+	var error: String = run_log.write(result, run_log_path)
+	if error != "":
+		_show_message("Couldn't write the run log: " + error)
 
 
 ## Replaces the shown child. The old one is removed now and freed at the end of the frame (it may
