@@ -114,6 +114,10 @@ var hovered: bool = false
 ## Seconds the hover animation takes; 0 or less makes it instant (tests). Set by whoever creates
 ## the view, before the mouse reaches it.
 var hover_seconds: float = HOVER_SECONDS
+## [added, task 043] false keeps the face at rest when hovered (a face in a pile viewer, where a
+## lifted face would be cut off by the scroll area); the tooltip still shows. Set by whoever creates
+## the view.
+var hover_enabled: bool = true
 
 ## The visible card, drawn over the button; it is what hovering moves. Ignores the mouse.
 var _face: Panel
@@ -232,9 +236,12 @@ func render(definition: Dictionary, is_upgraded: bool, can_play: bool, fallback_
 
 
 ## Lifts, straightens and enlarges the face (true) or puts it back at rest (false). Called by the
-## mouse entering and leaving the card; tests may call it. Changes only how the view looks.
+## mouse entering and leaving the card; tests may call it. Changes only how the view looks. Task 043:
+## always at rest while hover_enabled is false.
 ## on: true to lift the face, false to put it back.
 func hover(on: bool) -> void:
+	if not hover_enabled:
+		on = false
 	hovered = on
 	_place_face(on, hover_seconds)
 

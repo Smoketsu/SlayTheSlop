@@ -49,6 +49,15 @@ const BANNERS := {
 	"passed_out": {"title": "Passed Out", "line": "Lights out, bro."},
 }
 
+## [added, task 043] Fight piles (core/schema/dude_state.gd PILES, the three the pile viewer opens)
+## -> the note under the viewer's title. The draw pile is shown sorted, never in draw order, and says
+## so. Writers may change the words; the keys are the schema's pile names.
+const PILE_NOTES := {
+	"draw_pile": "Sorted by type, then name. The draw order stays a secret.",
+	"discard_pile": "Oldest first. The latest one is at the end.",
+	"tapped_pile": "Gone for the rest of the fight.",
+}
+
 ## [added, task 041] Card types (core/schema/card_def.gd TYPES) -> the label on a card face, in the
 ## GDD "Card types and keywords" terms. tests/client checks that no type is missing.
 const CARD_TYPES := {
