@@ -3,8 +3,8 @@ id: 045
 title: Tooltips for statuses, intents, keywords, Gear and Brews
 lane: client
 owner: B
-status: open
-branch:
+status: in_progress
+branch: b/045-tooltips
 depends_on: [028]
 blocked_on: []
 files:
@@ -45,3 +45,4 @@ GDD "Statuses", "Stats", "Card types and keywords", "Enemies" (intents), "Items"
 ## Log
 
 - 2026-10-11 A: Written for Agent B at Smoketsu's request (fight-screen polish backlog). Unclaimed.
+- 2026-10-11 B: Claimed. Work starts once 041 (#112) and 049 (#111) merge, since it builds on the card faces and the client settings store.
