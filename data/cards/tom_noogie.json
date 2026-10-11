@@ -1,0 +1,24 @@
+{
+  "id": "tom_noogie",
+  "name": "Noogie",
+  "owner": "tom",
+  "type": "attack",
+  "rarity": "common",
+  "cost": 0,
+  "target": "enemy",
+  "effects": [
+    {
+      "op": "damage",
+      "amount": 4
+    },
+    {
+      "op": "apply_status",
+      "status": "ick",
+      "stacks": 1
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Deal 4 damage. Apply 1 Ick"
+}

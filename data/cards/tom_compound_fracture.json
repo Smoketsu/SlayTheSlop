@@ -1,0 +1,29 @@
+{
+  "id": "tom_compound_fracture",
+  "name": "Compound Fracture",
+  "owner": "tom",
+  "type": "attack",
+  "rarity": "uncommon",
+  "cost": 2,
+  "target": "enemy",
+  "effects": [
+    {
+      "op": "damage",
+      "amount": 6
+    },
+    {
+      "op": "damage",
+      "amount": 6,
+      "if": "target_has_broken_arm"
+    },
+    {
+      "op": "damage",
+      "amount": 6,
+      "if": "target_now_armless"
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Deal 6 damage. If the target has a Broken Arm, deal 6 more. If it is Armless, deal 6 more"
+}

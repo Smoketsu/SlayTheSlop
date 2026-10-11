@@ -1,0 +1,22 @@
+{
+  "id": "tom_three_hour_podcast",
+  "name": "Three-Hour Podcast",
+  "owner": "tom",
+  "type": "skill",
+  "rarity": "rare",
+  "cost": 2,
+  "target": "enemy",
+  "effects": [
+    {
+      "op": "apply_status",
+      "status": "ick",
+      "stacks": 12
+    }
+  ],
+  "keywords": [
+    "tapped"
+  ],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Apply 12 Ick. Tapped"
+}

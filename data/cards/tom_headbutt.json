@@ -1,0 +1,23 @@
+{
+  "id": "tom_headbutt",
+  "name": "Headbutt",
+  "owner": "tom",
+  "type": "attack",
+  "rarity": "uncommon",
+  "cost": 2,
+  "target": "enemy",
+  "effects": [
+    {
+      "op": "damage",
+      "amount": 18
+    },
+    {
+      "op": "self_damage",
+      "amount": 4
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Deal 18 damage. Tom takes 4 damage"
+}
