@@ -37,6 +37,11 @@
 ## Run it with
 ##   "$(tools/install_godot.sh)" --path . res://client/run/run_screen.tscn
 ## With no setup() call it builds the ruleset from data/ (as client/dev/dev_fight.gd does).
+## Sound (task 055): the saved volume and mute (client/audio/volume.gd) are applied when the screen
+## is ready; the menu's Sound row changes them. Every button under this screen (menus, map, offers,
+## fight, How to play) plays Sounds.CLICK when pressed, hooked as each button enters the tree, so no
+## sub-screen needs its own code. Requests sent from the map and offer screens play their events'
+## sounds here (Dolla Bills gained); a fight's events play theirs in client/visual/event_player.gd.
 ## Test hooks: press_new_run(), press_continue(), press_back_to_menu(), send(), child_screen().
 extends Control
 
@@ -56,6 +61,9 @@ const OfferScreen := preload("res://client/run/offer_screen.gd")
 ## [added, task 049] The How to play overlay and the client settings store holding its seen flag.
 const HowToPlay := preload("res://client/help/how_to_play.gd")
 const UserSettings := preload("res://client/settings/user_settings.gd")
+## [added, task 055] The sound lookup and player, and the master volume and mute.
+const Sounds := preload("res://client/audio/sounds.gd")
+const Volume := preload("res://client/audio/volume.gd")
 
 ## Screen names screen_for() returns, and SCREEN_MENU for the menu (no run). Fixed by the client
 ## lane; tests compare against them.
@@ -91,8 +99,9 @@ var animation_seconds: float = 0.3
 ## The user:// file the run is saved to and Continue reads. Changed by whoever creates the screen
 ## (tests use their own file), before setup() or _ready().
 var save_path: String = SaveStore.DEFAULT_PATH
-## [added, task 049] The user:// client settings file the How to play seen flag lives in. Changed by
-## whoever creates the screen (tests use their own file), before the first New Run.
+## [added, task 049] The user:// client settings file the How to play seen flag lives in, and (task
+## 055) the volume and mute. Changed by whoever creates the screen (tests use their own file), before
+## _ready().
 var settings_path: String = UserSettings.DEFAULT_PATH
 ## Task 053: the user:// file each ended run's record is appended to (run_log.gd). Changed by whoever
 ## creates the screen (tests use their own file), before a run ends.
@@ -184,6 +193,8 @@ func _ready() -> void:
 			_show_message("data/ does not build: " + "; ".join(built["errors"]))
 			return
 		_ruleset = built["ruleset"]
+	Volume.apply_saved(settings_path)
+	get_tree().node_added.connect(_on_node_added)
 	show_menu()
 
 
@@ -194,7 +205,7 @@ func show_menu() -> void:
 	# menu: the new main menu.
 	var menu: Control = MainMenu.new()
 	_replace_child(menu, SCREEN_MENU)
-	menu.setup(_ruleset, save_path)
+	menu.setup(_ruleset, save_path, settings_path)
 	menu.run_ready.connect(_on_run_ready)
 	menu.how_to_play_requested.connect(show_how_to_play)
 	_draw_header()
@@ -237,6 +248,8 @@ func send(partial: Dictionary) -> String:
 		_show_message(_reject_text(result["reject"]))
 		return result["reject"]
 	_show_message("")
+	for event: Dictionary in result["events"]:
+		Sounds.play_event(event)
 	_take_state(result["state"])
 	return ""
 
@@ -319,6 +332,18 @@ func how_to_play_screen() -> Control:
 	if _how_to_play != null and is_instance_valid(_how_to_play) and not _how_to_play.is_queued_for_deletion():
 		return _how_to_play
 	return null
+
+
+## [added, task 055] A node entered the tree: a button under this screen gets the click sound.
+## node: the node that was added, anywhere in the tree.
+func _on_node_added(node: Node) -> void:
+	if node is BaseButton and is_ancestor_of(node) and not node.pressed.is_connected(_play_click):
+		node.pressed.connect(_play_click)
+
+
+## [added, task 055] Plays the button click. Fire and forget.
+func _play_click() -> void:
+	Sounds.play(Sounds.CLICK)
 
 
 ## The fight screen applied a request and finished animating it.

@@ -93,3 +93,33 @@ python3 -I assets/placeholder/source/slice_sheet.py assets/placeholder/source/ch
 ```
 
 This needs Pillow and NumPy. It writes the sheet's own labels, so rename `dorm_rats.png` to `dorm_rat.png` afterwards.
+
+## Sounds (`sounds/`)
+
+Placeholder sound effects (task 055), played by `client/audio/sounds.gd`, which looks each one up by its kind in `FILES` (`<kind>.wav`). A kind whose file is missing is silent.
+
+- **Who and when:** made by Agent B (steamjgrube's agent) on 2026-10-11, for this repository.
+- **How:** synthesized by `source/make_sounds.py` from sine, square and triangle waves and noise, using only the Python standard library. Nothing is sampled, recorded or downloaded, and no sound imitates a real game, film or brand. The script is deterministic: running it again writes byte-identical files.
+- **Licence:** made for this repository; the project may use, change or replace them freely. Placeholder sound only.
+- **Format:** 16-bit mono PCM WAV at 22050 Hz, each under 1 second; about 169 KB for all ten.
+
+| File | Kind | Played when | Length | How it sounds |
+| --- | --- | --- | --- | --- |
+| `card_played.wav` | `card_played` | A card or Bro Move is played | 0.14 s | Noise swish over a soft low tick |
+| `hit.wav` | `hit` | A hit takes HP | 0.20 s | Sine thump falling 150 to 55 Hz, with a short noise crack |
+| `blocked.wav` | `blocked` | Guard takes a hit whole | 0.22 s | Dull clank of three inharmonic partials |
+| `guard.wav` | `guard` | Someone gains Guard | 0.22 s | Two rising soft-square blips |
+| `enemy_death.wav` | `enemy_death` | An enemy dies | 0.45 s | Wobbling triangle sliding 420 to 70 Hz |
+| `passed_out.wav` | `passed_out` | A Dude Passes Out | 0.70 s | Three slow falling triangle notes (G, E, C) |
+| `click.wav` | `click` | Any button is pressed | 0.03 s | Very short tick |
+| `dolla_bills.wav` | `dolla_bills` | A Dude gains Dolla Bills | 0.27 s | Two-note high "ching" |
+| `victory.wav` | `victory` | A fight is won | 0.78 s | Rising C-major arpeggio ending on a held C |
+| `defeat.wav` | `defeat` | A fight is lost | 0.90 s | Three falling "wah wah" notes |
+
+Regenerate them with
+
+```
+python3 -I assets/placeholder/source/make_sounds.py assets/placeholder/sounds
+```
+
+A new sound needs an entry in the script's `SOUNDS`, in `client/audio/sounds.gd` `FILES`, and in the table above.
