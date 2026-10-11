@@ -484,7 +484,7 @@ fail `Ops.check()` is `unplayable`. File: `core/combat/powers.gd`.
 | `turn_start` | Once per turn, after every Dude's Refresh, before the player phase. Not on the turn the Power is played | No |
 | `enemy_buffed` | Each time an enemy gains a buff (G10): Guard (a `guard_changed` with a positive delta on an enemy) or Swole (a `stat_changed` with `stat` `"swole"` and a positive delta on an enemy: `gain_swole`, task 017; `gain_stat`, task 021) | Yes: that enemy |
 | `enemy_grossed_out` | Each time an enemy is Grossed Out (a `grossed_out` event), whatever caused it | Yes: that enemy |
-| `self_damaged` | **Not built yet (task 037):** the schema accepts it but nothing fires it. It will fire each time the Power's own Dude takes damage from a `self_damage` effect of their own card (Skull Bash, Pickup Line), not from enemies, Burn or Bedbugs (Tough Skull) | No |
+| `self_damaged` | Task 037 (Tough Skull). Each time the Power's own Dude takes damage from a `self_damage` effect of a card they played (Skull Bash, Pickup Line): once per such effect, even when Guard takes all of it; not for an amount of 0, not when the damage Passes Out the Dude. Never from enemies, Burn, Bedbugs, Gear, Brews or Power effects. Only that Dude's Powers fire | No |
 
 | `target` | Lands on |
 | --- | --- |

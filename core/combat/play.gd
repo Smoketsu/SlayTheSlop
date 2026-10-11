@@ -130,6 +130,8 @@ static func resolve_in_place(ruleset: Dictionary, state: Dictionary, dude_index:
 	# effects are "from cards" for Hungover (G4).
 	var context: Dictionary = Ops.make_context(ruleset, dude["player_id"],
 		targets(state, dude, card, request["target_id"])["targets"], card["type"] == ATTACK_TYPE, true)
+	# Task 037: these are a played card's effects, so its self_damage fires "self_damaged" Powers.
+	context[Ops.PLAYED_CARD_KEY] = true
 	# Task 035: an Assist card's Guard goes to the Dude it targets, not to the player.
 	context[GuardOp.ON_TARGETS_KEY] = card["target"] == ALLY_TARGET
 	dude["hand"].erase(uid)
