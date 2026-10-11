@@ -39,6 +39,13 @@ func set_ready(ready: bool) -> Dictionary:
 	return _next("set_ready", {"ready": ready})
 
 
+## [added, task 047] Returns the set_ready(true) request set_ready() would make next, without raising
+## the counter, so the screen can ask the core whether ending the turn would be accepted now
+## (Core.validate()) and never send it.
+func probe_set_ready() -> Dictionary:
+	return _build("set_ready", {"ready": true})
+
+
 ## Returns a use_brew request.
 ## slot: the Brew slot, from 0. target_id: the picked target, or "".
 func use_brew(slot: int, target_id: String) -> Dictionary:

@@ -18,12 +18,17 @@
 ##
 ## Sound (task 055): a volume slider and Mute box (client/settings/sound_settings.gd) under the
 ## buttons, saved in the client settings file setup() names, never in the run save.
+##
+## Animations (task 047): the animation-speed choice (client/settings/animation_settings.gd) under
+## the Sound row, saved in the same client settings file.
 extends Control
 
 const NewRun := preload("res://core/run/new_run.gd")
 const SaveStore := preload("res://client/run/save_store.gd")
 ## [added, task 055] The Sound row (volume and mute) and the settings store it saves to.
 const SoundSettings := preload("res://client/settings/sound_settings.gd")
+## [added, task 047] The Animations row (normal, fast, instant).
+const AnimationSettings := preload("res://client/settings/animation_settings.gd")
 const UserSettings := preload("res://client/settings/user_settings.gd")
 
 ## Emitted when a run is ready to play: a new run's first state, or the state loaded from the save.
@@ -46,10 +51,13 @@ var _settings_path: String = UserSettings.DEFAULT_PATH
 ## [added, task 055] The Sound row (client/settings/sound_settings.gd), built in _ready(); null
 ## before. Read by tests.
 var sound_settings: HBoxContainer
+## [added, task 047] The Animations row (client/settings/animation_settings.gd), built in _ready();
+## null before. Read by tests.
+var animation_settings: HBoxContainer
 ## Widgets: the seed field, the Continue button (disabled when there is no save) and the message.
 var _seed_field: LineEdit
-var _continue_button: Button
-var _message_label: Label
+var _continue_button: Button  # Continue; disabled when there is no save.
+var _message_label: Label  # The message under the buttons.
 
 
 ## Gives the menu its content and save path. Call before or after adding it to the tree.
@@ -61,6 +69,8 @@ func setup(ruleset: Dictionary, save_path: String, settings_path: String = UserS
 	_settings_path = settings_path
 	if sound_settings != null:
 		sound_settings.setup(_settings_path)
+	if animation_settings != null:
+		animation_settings.setup(_settings_path)
 	refresh()
 
 
@@ -100,7 +110,10 @@ func _ready() -> void:
 	sound_settings = SoundSettings.new()
 	sound_settings.setup(_settings_path)
 	sound_settings.save_failed.connect(func(error: String) -> void: _show("Couldn't save settings: " + error))
-	for node: Control in [title, seed_row, _continue_button, help_button, sound_settings, _message_label]:
+	animation_settings = AnimationSettings.new()
+	animation_settings.setup(_settings_path)
+	animation_settings.save_failed.connect(func(error: String) -> void: _show("Couldn't save settings: " + error))
+	for node: Control in [title, seed_row, _continue_button, help_button, sound_settings, animation_settings, _message_label]:
 		column.add_child(node)
 	refresh()
 
