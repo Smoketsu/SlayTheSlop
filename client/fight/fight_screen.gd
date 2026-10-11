@@ -7,9 +7,12 @@
 ##
 ## Layout (task 028): Dudes on the left and enemies on the right, each a client/visual/
 ## combatant_view.gd (sprite, HP bar, Guard, statuses, intent) that is clicked to target it; below
-## them the last event lines, the hand, the action buttons and the message bar. Events play through
-## client/visual/event_player.gd. Behind it all, the fight's room (client/visual/backgrounds.gd),
-## darkened so text stays readable. Placeholder art (assets/placeholder/). Run it with
+## them the last event lines, the hand, the action buttons and the message bar. Task 041: the hand
+## is a fan of card faces (client/visual/hand_view.gd holding client/visual/card_view.gd), with the
+## action buttons in a column to its right; a card the core would refuse right now is dimmed.
+## Events play through client/visual/event_player.gd. Behind it all, the fight's room
+## (client/visual/backgrounds.gd), darkened so text stays readable. Placeholder art
+## (assets/placeholder/). Run it with
 ##   "$(tools/install_godot.sh)" --path . res://client/fight/fight_screen.tscn
 ## With no setup() call it starts a fight on the real data (client/dev/dev_fight.gd).
 extends Control
@@ -23,6 +26,8 @@ const EventText := preload("res://client/fight/event_text.gd")
 const CombatantView := preload("res://client/visual/combatant_view.gd")
 const EventPlayer := preload("res://client/visual/event_player.gd")
 const Backgrounds := preload("res://client/visual/backgrounds.gd")
+const CardView := preload("res://client/visual/card_view.gd")
+const HandView := preload("res://client/visual/hand_view.gd")
 ## The rules gateway: the real rules core (task 007), apply(ruleset, state, request). Co-op will
 ## swap in a network gateway with the same apply() here.
 const Gateway := preload("res://core/core.gd")
@@ -89,14 +94,15 @@ var _player := EventPlayer.new()
 ## player_id or enemy uid -> its combatant_view.gd, as last drawn. Rebuilt by every redraw.
 var _views: Dictionary = {}
 ## Containers rebuilt on every redraw: header text, Dudes (left), enemies (right), hand, buttons,
-## message; and the event log, rewritten on every event line.
+## message; and the event log, rewritten on every event line. Task 041: the hand is a
+## client/visual/hand_view.gd of card_view.gd faces, and the buttons are a column right of it.
 var _header: Label
-var _dudes_box: HBoxContainer
-var _enemies_box: HBoxContainer
-var _hand_box: HBoxContainer
-var _actions_box: HBoxContainer
-var _message_label: Label
-var _log_label: Label
+var _dudes_box: HBoxContainer  # The Dudes' views, left.
+var _enemies_box: HBoxContainer  # The enemies' views, right.
+var _hand_box: Container  # The hand: a hand_view.gd of card_view.gd faces (task 041).
+var _actions_box: VBoxContainer  # Brew, Bro Move and Ready buttons, right of the hand (task 041).
+var _message_label: Label  # The message bar.
+var _log_label: Label  # The last LOG_LINES event lines.
 ## The room picture, filling the screen (cropped to keep its aspect); no texture when the room has
 ## no file.
 var _background: TextureRect
@@ -153,8 +159,15 @@ func _ready() -> void:
 	_log_label = Label.new()
 	_log_label.modulate = Color(1, 1, 1, 0.7)
 	_log_label.custom_minimum_size = Vector2(0, LOG_LINES * LOG_LINE_PIXELS)
-	_hand_box = HBoxContainer.new()
-	_actions_box = HBoxContainer.new()
+	_hand_box = HandView.new()
+	_hand_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_actions_box = VBoxContainer.new()
+	_actions_box.alignment = BoxContainer.ALIGNMENT_END
+	# table: the hand, taking the height left over, with the action buttons to its right (task 041).
+	var table := HBoxContainer.new()
+	table.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	table.add_child(_hand_box)
+	table.add_child(_actions_box)
 	_message_label = Label.new()
 	for label: Label in [_log_label, _message_label]:
 		# panel: the label's translucent background.
@@ -162,7 +175,7 @@ func _ready() -> void:
 		panel.bg_color = TEXT_PANEL_COLOR
 		panel.content_margin_left = 6
 		label.add_theme_stylebox_override("normal", panel)
-	for node: Control in [_header, arena, _log_label, _hand_box, _actions_box, _message_label]:
+	for node: Control in [_header, arena, _log_label, table, _message_label]:
 		root.add_child(node)
 	if _ruleset.is_empty():
 		# started: a placeholder fight on the real data.
@@ -330,7 +343,7 @@ func _redraw() -> void:
 			for slot: int in dude["brew_ids"].size():
 				_add_button(_actions_box, "Brew: " + dude["brew_ids"][slot], press_brew.bind(slot), false)
 	for card: Dictionary in model["hand"]:
-		_add_button(_hand_box, "[%s] %s\n%s" % [card["cost"], card["name"], card["text"]], press_card.bind(card["card_uid"]), false)
+		_add_card(card)
 	_add_button(_actions_box, "Bro Move", press_bro_move, not model["bro_ready"])
 	_add_button(_actions_box, "Ready", press_ready, false)
 	_message_label.text = message
@@ -346,6 +359,53 @@ func _add_view(box: Container, entry: Dictionary, enemy: bool, on_press: Callabl
 	view.pressed.connect(on_press)
 	box.add_child(view)
 	_views[view.id] = view
+
+
+## [added, task 041] Returns true when the core would accept playing this card copy now, with some
+## target the player could pick: the target sent without asking (Targeting.auto_target_in_state())
+## when the card asks for nothing, otherwise any enemy (ENEMY) or any pickable Dude (DUDE). The core
+## decides (Core.validate() on a probe request that is never sent); nothing about Hype, phase or
+## playability is worked out here. Reads only.
+## card_uid: a card copy in the local player's hand.
+func card_playable(card_uid: String) -> bool:
+	if _requests == null or _state.is_empty():
+		return false
+	for target_id: String in _probe_targets(card_uid):
+		if Gateway.validate(_ruleset, _state, _requests.probe_play_card(card_uid, target_id)) == "":
+			return true
+	return false
+
+
+## [added, task 041] Returns the target_ids card_playable() asks the core about for a card copy, in
+## the order the player would see them: [the auto target] for a card that asks for nothing, every
+## enemy uid in the fight (left to right) for one that asks for an enemy, every pickable Dude for one
+## that asks for a Dude. Reads only.
+## card_uid: a card copy in the local player's hand.
+func _probe_targets(card_uid: String) -> Array[String]:
+	# targets: the result.
+	var targets: Array[String] = []
+	match _pick_for(card_uid):
+		Targeting.ENEMY:
+			for enemy: Dictionary in _state["combat"]["enemies"]:
+				targets.append(enemy["uid"])
+		Targeting.DUDE:
+			targets = Targeting.pickable_dudes(_state)
+		_:
+			targets.append(Targeting.auto_target_in_state(_card_def(card_uid), _player_id))
+	return targets
+
+
+## [added, task 041] Adds one card face to the hand: drawn from the copy's effective definition
+## (_card_def()), dimmed when card_playable() is false, and playing the card through press_card()
+## when clicked, as the old text buttons did.
+## card: the card's hand entry from FightModel.build() (card_uid, name, upgraded).
+func _add_card(card: Dictionary) -> void:
+	# view: the new card face.
+	var view: Button = CardView.new()
+	view.hover_seconds = CardView.HOVER_SECONDS if animation_seconds > 0.0 else 0.0
+	view.render(_card_def(card["card_uid"]), card["upgraded"], card_playable(card["card_uid"]), card["name"])
+	view.pressed.connect(press_card.bind(card["card_uid"]))
+	_hand_box.add_child(view)
 
 
 ## Called by the event player before each event animates: logs it and shows its line.
