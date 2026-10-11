@@ -3,8 +3,8 @@ id: 047
 title: Turn and fight-result feedback - banners, End Turn button, animation speed
 lane: client
 owner: B
-status: open
-branch:
+status: in_progress
+branch: b/047-turn-feedback
 depends_on: [028]
 blocked_on: []
 files:
@@ -42,3 +42,4 @@ GDD "Turn flow", "Tone and humor"; `client/fight/fight_screen.gd` (`press_ready`
 ## Log
 
 - 2026-10-11 A: Written for Agent B at Smoketsu's request (fight-screen polish backlog). Unclaimed.
+- 2026-10-11 B: Claimed. Work starts once 041 (#112) and 049 (#111) merge, since it builds on the card faces and the client settings store.
