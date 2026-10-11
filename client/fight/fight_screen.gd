@@ -26,6 +26,8 @@ const Backgrounds := preload("res://client/visual/backgrounds.gd")
 ## The rules gateway: the real rules core (task 007), apply(ruleset, state, request). Co-op will
 ## swap in a network gateway with the same apply() here.
 const Gateway := preload("res://core/core.gd")
+## [added, task upgraded-card-display] The core's reader of a card copy's effective definition.
+const Upgrades := preload("res://core/combat/upgrades.gd")
 ## How many of the latest event lines the log under the fight shows, 1 or more. Changed only by
 ## the client lane.
 const LOG_LINES: int = 4
@@ -399,10 +401,13 @@ func _describe(event: Dictionary) -> String:
 	return "%s %s" % [event["type"], " ".join(parts)]
 
 
-## [added, task ally-pick] Returns the definition of a card copy in the local player's hand.
+## [added, task ally-pick] Returns the definition of a card copy in the local player's hand. Task
+## upgraded-card-display: the copy's effective definition (core/combat/upgrades.gd definition_of()),
+## so a Lifted copy is targeted as its upgraded definition says; {} when it has none (Targeting then
+## asks for nothing and the core refuses the card). Reads only.
 ## card_uid: the card copy.
 func _card_def(card_uid: String) -> Dictionary:
-	return _ruleset["cards"][_local()["cards"][card_uid]["def_id"]]
+	return Upgrades.definition_of(_ruleset, _local(), card_uid)
 
 
 ## [added, task ally-pick] Returns what the player must pick before a card copy is sent, in the

@@ -10,6 +10,9 @@
 ##   all_enemies, self, none  -> nothing to pick; target_id is "".
 ##   puppet                   -> Grube only, not in the solo slice; treated as nothing to pick.
 ## The core decides legality; this only decides what to ask.
+## Task upgraded-card-display: callers pass a card copy's effective definition (core/combat/
+## upgrades.gd definition_of()), which is {} for a copy with no usable definition; a definition
+## without "target" is treated as "none" (nothing to pick) and the core refuses the card.
 extends RefCounted
 
 ## Pick mode: nothing to pick.
@@ -23,7 +26,7 @@ const DUDE := "dude"
 ## Returns what the player must pick for this card: NONE, ENEMY or DUDE.
 ## card: the card definition. party_size: players in the run, 1-4.
 static func mode(card: Dictionary, party_size: int) -> String:
-	match card["target"]:
+	match card.get("target", NONE):
 		"enemy":
 			return ENEMY
 		"ally":
@@ -36,7 +39,7 @@ static func mode(card: Dictionary, party_size: int) -> String:
 ## otherwise "".
 ## card: the card definition. player_id: the local player. party_size: players in the run.
 static func auto_target(card: Dictionary, player_id: String, party_size: int) -> String:
-	return player_id if card["target"] == "ally" and party_size == 1 else ""
+	return player_id if card.get("target", NONE) == "ally" and party_size == 1 else ""
 
 
 ## [added, task ally-pick] Returns the player_ids of the Dudes an "ally" card may target: every Dude
@@ -58,7 +61,7 @@ static func pickable_dudes(state: Dictionary) -> Array[String]:
 ## auto_target_in_state() gives the target. Reads only.
 ## card: the card definition. state: a run state with a fight in it.
 static func mode_in_state(card: Dictionary, state: Dictionary) -> String:
-	if card["target"] == "ally":
+	if card.get("target", NONE) == "ally":
 		return DUDE if pickable_dudes(state).size() > 1 else NONE
 	return mode(card, state["party_size"])
 
@@ -68,4 +71,4 @@ static func mode_in_state(card: Dictionary, state: Dictionary) -> String:
 ## cards), otherwise "".
 ## card: the card definition. player_id: the local player.
 static func auto_target_in_state(card: Dictionary, player_id: String) -> String:
-	return player_id if card["target"] == "ally" else ""
+	return player_id if card.get("target", NONE) == "ally" else ""
