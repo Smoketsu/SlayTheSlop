@@ -21,7 +21,8 @@ The registry is `core/ops/ops.gd` (`OPS`); each op lives in its own file here.
 | `target: "all_enemies"` | every enemy in the fight when the card is played, left to right | the Dude |
 | `target: "self"` | the Dude playing it | the Dude |
 | `target: "none"` | nobody | the Dude |
-| `target: "ally"` / `"puppet"` | not built: the card is rejected with `bad_target` | |
+| `target: "ally"` (task 035; Assist cards, Bro Hug) | the `player_id` the player picked: any Dude who is not Passed Out, their own included (G62; in solo, their own). Anything else is `bad_target` | the Dude playing it |
+| `target: "puppet"` | not built: the card is rejected with `bad_target` | |
 | An enemy move | the intent's `target_ids` that are not Passed Out when it acts | the enemy |
 | A Bro Move (`use_bro_move`, task 013) | as for a card with the Bro Move card's `target`, from the request's optional `target_id` | the Dude using it |
 | A Power trigger (task 013) | the trigger's `target`: `subject`, `all_enemies` or `self` (see "Powers") | the Dude who played the Power |
@@ -116,7 +117,10 @@ The actor gains Guard. File: `core/ops/guard.gd`.
 
 - **Lands on:** the actor (the Dude playing the card, or the enemy using the move), whatever the
   card's `target` is. So "Deal 6 damage. Gain 3 Guard" on a `target: "enemy"` card works.
-- A Dude adds their `chill`, once per `guard` effect. Enemies have no Chill.
+  **Except** (task 035): on a card with `target: "ally"` (Bro Hug), each target Dude gains it instead.
+- A Dude adds their `chill`, once per `guard` effect. Enemies have no Chill. On an `ally` card it is
+  the **giver's** Chill (the player's, as Swole is the attacker's), and the **receiver's** Hungover
+  (G62).
 - **Hungover** (G4): a Hungover Dude's Guard from a card is (`amount` + Chill) × `HUNGOVER_MULT`,
   rounded down once. Brace 5 with 4 Chill while Hungover gives 6. Guard that does not come from a
   card (later: Gear, Brews) is not reduced.

@@ -169,7 +169,11 @@ func test_play_card_rejects() -> void:
 	_assert_rejected(rules, state, Fixtures.play("p1", 0, brace, enemy), "bad_target")
 	_assert_rejected(rules, state, Fixtures.play("p1", 0, Fixtures.give(state, 0, "neutral_test_sweep"), enemy), "bad_target")
 	_assert_rejected(rules, state, Fixtures.play("p1", 0, Fixtures.give(state, 0, "neutral_test_freebie"), "p1"), "bad_target")
-	_assert_rejected(rules, state, Fixtures.play("p1", 0, Fixtures.give(state, 0, "neutral_test_spot"), "p1"), "bad_target")
+	# spot: an ally card (Assist). Task 035: a Dude's player_id is legal for it (tests/core/ops/
+	# test_ally_targets.gd); no target or an enemy is not.
+	var spot: String = Fixtures.give(state, 0, "neutral_test_spot")
+	_assert_rejected(rules, state, Fixtures.play("p1", 0, spot, ""), "bad_target")
+	_assert_rejected(rules, state, Fixtures.play("p1", 0, spot, enemy), "bad_target")
 	# hype: no Hype left, so a cost-1 card is no_hype even with a good target.
 	state["dudes"][0]["hype"] = 0
 	_assert_rejected(rules, state, Fixtures.play("p1", 0, jab, enemy), "no_hype")

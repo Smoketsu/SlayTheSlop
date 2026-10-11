@@ -21,8 +21,10 @@
 ##   - crunch true is "unplayable" (Nate only, not built). Task 025: an upgraded copy plays with its
 ##     upgraded definition (core/combat/upgrades.gd); one whose upgrade cannot apply is "unplayable".
 ##   - Targets: "enemy" needs the uid of an enemy still in the fight; "all_enemies" and "none" need
-##     target_id ""; "self" takes "" or the player's own id. "ally" and "puppet" are "bad_target"
-##     until Assist cards and Puppets are built.
+##     target_id ""; "self" takes "" or the player's own id. Task 035: "ally" (Assist cards, Bro Hug)
+##     takes the player_id of a Dude who is not Passed Out, the player's own included (GDD "Assist":
+##     "In solo play it targets yourself"; G62), and its guard effects give the Guard to that Dude
+##     (core/ops/guard.gd ON_TARGETS_KEY). "puppet" is "bad_target" until Puppets are built.
 ##   - A Dude who is already ready may still play cards (the GDD does not forbid it).
 ##   - Task 015: while a card with play_limit_in_hand (Detention) is in the Dude's hand and they have
 ##     played that many cards this turn, every play is "unplayable" (core/combat/card_triggers.gd).
@@ -38,12 +40,16 @@ const BroMeter := preload("res://core/combat/bro_meter.gd")
 const CardTriggers := preload("res://core/combat/card_triggers.gd")
 const GearTriggers := preload("res://core/combat/gear_triggers.gd")
 const Upgrades := preload("res://core/combat/upgrades.gd")
+const GuardOp := preload("res://core/ops/guard.gd")
 
 ## Card type (core/schema/card_def.gd TYPES) whose damage effects are attack damage (G3, task 009).
 const ATTACK_TYPE: String = "attack"
 
 ## Task 013: the Dude state list a played Power goes to (core/schema/dude_state.gd "powers").
 const POWERS_LIST: String = "powers"
+
+## Task 035: the card target (core/schema/card_def.gd TARGETS) that picks a Dude (Assist cards).
+const ALLY_TARGET: String = "ally"
 
 
 ## Returns the reject reason for a play_card request, or "" when it is legal. Checks, in order:
@@ -100,6 +106,10 @@ static func targets(state: Dictionary, dude: Dictionary, card: Dictionary, targe
 		"none":
 			if target_id == "":
 				return {"ok": true, "targets": []}
+		ALLY_TARGET:
+			# Task 035: any Dude who is not Passed Out, the player's own included (G62).
+			if Bodies.dude_index(state, target_id) != -1 and not Bodies.find_alive(state, target_id).is_empty():
+				return {"ok": true, "targets": [target_id]}
 	return {"ok": false, "targets": []}
 
 
@@ -120,6 +130,8 @@ static func resolve_in_place(ruleset: Dictionary, state: Dictionary, dude_index:
 	# effects are "from cards" for Hungover (G4).
 	var context: Dictionary = Ops.make_context(ruleset, dude["player_id"],
 		targets(state, dude, card, request["target_id"])["targets"], card["type"] == ATTACK_TYPE, true)
+	# Task 035: an Assist card's Guard goes to the Dude it targets, not to the player.
+	context[GuardOp.ON_TARGETS_KEY] = card["target"] == ALLY_TARGET
 	dude["hand"].erase(uid)
 	dude["hype"] -= cost
 	dude["cards_played_this_turn"] += 1
