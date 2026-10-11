@@ -30,6 +30,27 @@ const STATUSES := {
 	"faded": "Faded",
 }
 
+## [added, task 041] Card types (core/schema/card_def.gd TYPES) -> the label on a card face, in the
+## GDD "Card types and keywords" terms. tests/client checks that no type is missing.
+const CARD_TYPES := {
+	"attack": "Attack",
+	"skill": "Skill",
+	"power": "Power",
+	"aura": "Aura",
+	"junk": "Junk",
+}
+
+## [added, task 041] Card rarities (core/schema/card_def.gd RARITIES) -> the label on a card face.
+## "special" is Junk and Bro Move cards (G17), never offered as a reward. tests/client checks that no
+## rarity is missing.
+const CARD_RARITIES := {
+	"starter": "Starter",
+	"common": "Common",
+	"uncommon": "Uncommon",
+	"rare": "Rare",
+	"special": "Special",
+}
+
 ## Map node types (core/schema/run_state.gd map node "type") -> how a line names that node, in the
 ## GDD "Node types" terms. Used for node_entered and, through event_text.gd names_for(), vote_cast.
 const NODE_TYPES := {
@@ -70,6 +91,19 @@ static func reject(code: String) -> String:
 ## status: a status id such as "noodle_arms".
 static func status_name(status: String) -> String:
 	return STATUSES.get(status, status.capitalize())
+
+
+## [added, task 041] Returns the card-face label of a card type, falling back to the type code
+## capitalized.
+## type: a card definition's "type", such as "attack".
+static func card_type_name(type: String) -> String:
+	return CARD_TYPES.get(type, type.capitalize())
+
+
+## [added, task 041] Returns the card-face label of a rarity, falling back to the code capitalized.
+## rarity: a card definition's "rarity", such as "common".
+static func rarity_name(rarity: String) -> String:
+	return CARD_RARITIES.get(rarity, rarity.capitalize())
 
 
 ## Returns the player-facing word for an event field whose value is a code rather than an id: a

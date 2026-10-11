@@ -3,7 +3,7 @@ id: 041
 title: Card faces in hand - cost, type, text, upgraded mark, playable state
 lane: client
 owner: B
-status: in_progress
+status: in_review
 branch: b/041-card-faces
 depends_on: [028, 032]
 blocked_on: []
@@ -31,19 +31,19 @@ upgraded-card-display), `core/schema/card_def.gd` (`type`, `rarity`, `cost`, `te
 
 ## Acceptance checks
 
-- [ ] A card-face view in `client/visual/` builds a card from its effective definition (after
+- [x] A card-face view in `client/visual/` builds a card from its effective definition (after
       upgrades) and nothing else: no card id is hard-coded in it.
-- [ ] It shows name, cost, type, rarity and rules text; X-cost or unplayable (cost -1) cards show
+- [x] It shows name, cost, type, rarity and rules text; X-cost or unplayable (cost -1) cards show
       that instead of a number.
-- [ ] An upgraded copy shows the upgraded name mark and the upgraded text and cost.
-- [ ] A card is dimmed when the core would refuse to play it. The view asks the core
+- [x] An upgraded copy shows the upgraded name mark and the upgraded text and cost.
+- [x] A card is dimmed when the core would refuse to play it. The view asks the core
       (`Core.validate` with the play request, or the same check the screen already uses); it does
       not re-implement Hype or playability rules in the client.
-- [ ] Hover lifts and enlarges the card; it never changes `state` (the read-only state test from
+- [x] Hover lifts and enlarges the card; it never changes `state` (the read-only state test from
       task 024 still passes through a fight played by presses).
-- [ ] A test builds the face for a common card, an upgraded card and a Junk card and checks the
+- [x] A test builds the face for a common card, an upgraded card and a Junk card and checks the
       text it shows (`drawn_text()` or an equivalent text collector).
-- [ ] `tools/test.sh` passes.
+- [x] `tools/test.sh` passes.
 
 ## Notes
 
@@ -56,3 +56,20 @@ upgraded-card-display), `core/schema/card_def.gd` (`type`, `rarity`, `cost`, `te
 
 - 2026-10-11 A: Written for Agent B at Smoketsu's request (fight-screen polish backlog). Unclaimed.
 - 2026-10-11 B: Claimed (steamjgrube: pick up work the board asks for).
+- 2026-10-11 B: Done, in review. `client/visual/card_view.gd` (one face, `render(definition,
+  is_upgraded, can_play, fallback_name)`, `hover()`, `drawn_text()`) and `client/visual/hand_view.gd`
+  (fan/overlap layout) replace the hand's text buttons; the action buttons moved to a column right of
+  the hand so 10 cards fit 1280x720 (and the default 1152x648). Dimming asks the core:
+  `fight_screen.gd` `card_playable()` runs `Core.validate()` on a probe play request
+  (`request_maker.gd` `probe_play_card()`, never sent) for the auto target, each enemy or each
+  pickable Dude. Dimmed cards stay clickable, so the reject message still explains why. Tests:
+  `tests/client/test_card_faces.gd` (10 tests: common, upgraded, Junk/X/no-definition faces; labels
+  for every type and rarity; dimming matches the core card by card on a 10-card hand with 1 Hype;
+  all dimmed outside the player phase; hover on a frozen state sends and changes nothing; full hand
+  inside 1280x720 and below every Dude and enemy view; spacing; no card id; documentation lint);
+  `test_upgraded_cards.gd` `_hand_texts()` now reads the faces. Verified visually with a scratch
+  scene (10-card hand, 1 Hype, a Lifted Arm Bar and Regret) at 1280x720 and 1152x648, with and
+  without hover; scratch removed. `tools/test.sh`: 523 passed, 0 failed.
+  Not done: no card art (flat colours only); keywords are not drawn separately (the data's text
+  already says "Tapped"); a hovered face may cover the event log and action buttons, by design. The
+  GDD sets no hand limit, so "full hand = 10" comes from this task's Notes.

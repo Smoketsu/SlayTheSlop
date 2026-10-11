@@ -11,6 +11,8 @@ extends "res://tests/framework/test_case.gd"
 const FightScreen := preload("res://client/fight/fight_screen.tscn")
 const FightModel := preload("res://client/fight/fight_model.gd")
 const RunText := preload("res://client/run/run_text.gd")
+## [added, task 041] The card face the hand is drawn with.
+const CardView := preload("res://client/visual/card_view.gd")
 const DevFight := preload("res://client/dev/dev_fight.gd")
 const Core := preload("res://core/core.gd")
 const Upgrades := preload("res://core/combat/upgrades.gd")
@@ -77,7 +79,7 @@ func test_hand_shows_upgraded_arm_bar() -> void:
 	assert_true(entry["upgraded"], "marked upgraded")
 	# screen: the fight screen on the frozen state.
 	var screen: Control = _screen(started)
-	assert_true(_hand_texts(screen).has("[%s] %s\n%s" % [entry["cost"], entry["name"], entry["text"]]), "the hand button shows the upgraded copy: %s" % str(_hand_texts(screen)))
+	assert_true(_hand_texts(screen).has("[%s] %s\n%s" % [entry["cost"], entry["name"], entry["text"]]), "the card face shows the upgraded copy: %s" % str(_hand_texts(screen)))
 	_free(screen)
 	# other: a plain card in hand keeps its plain name.
 	for other: String in dude["hand"]:
@@ -217,13 +219,15 @@ func _hand_entry(model: Dictionary, uid: String) -> Dictionary:
 	return {}
 
 
-## Returns the text of every hand button on a screen, left to right. screen: from _screen().
+## Returns what every card in a screen's hand shows, left to right, as "[cost] name\ntext". Task 041:
+## the hand holds card faces (client/visual/card_view.gd), so this reads each face's shown cost, name
+## and rules text. screen: from _screen().
 func _hand_texts(screen: Control) -> Array[String]:
 	# texts: the result.
 	var texts: Array[String] = []
 	for child: Node in screen._hand_box.get_children():
-		if child is Button:
-			texts.append((child as Button).text)
+		if child is CardView:
+			texts.append("[%s] %s\n%s" % [child.shown_cost, child.shown_name, child.shown_text])
 	return texts
 
 
