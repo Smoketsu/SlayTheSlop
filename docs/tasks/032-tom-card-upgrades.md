@@ -3,7 +3,7 @@ id: 032
 title: Tom's card upgrades as data (all 30 cards)
 lane: content
 owner: B
-status: in_review
+status: done
 branch: b/032-tom-upgrades
 depends_on: [012, 025, 030]
 blocked_on: []
@@ -96,3 +96,4 @@ definition's `text` and screens would show the old numbers.
   definition, so an upgraded copy in hand still shows its base cost and text (the run screens only
   mark a Lifted copy's name). Showing `core/combat/upgrades.gd` `definition_of()` there instead is
   client work for a separate task.
+- 2026-10-11 B: Done: merged (#105, claim #104). Upgraded copies display with their upgraded definition in the client (#106).
