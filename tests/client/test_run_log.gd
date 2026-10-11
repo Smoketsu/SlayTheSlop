@@ -17,12 +17,18 @@ const JsonValues := preload("res://core/schema/json_values.gd")
 const Core := preload("res://core/core.gd")
 const Ruleset := preload("res://core/ruleset/ruleset.gd")
 const DataFiles := preload("res://tools/data_files.gd")
+## The settings store and the How to play seen key (task 049), for _screen().
+const UserSettings := preload("res://client/settings/user_settings.gd")
+const HowToPlay := preload("res://client/help/how_to_play.gd")
 
 ## The log file these tests write, so they never touch a player's real log. Deleted before and after
 ## each test that writes it.
 const LOG_PATH: String = "user://test_run_log.jsonl"
 ## The save file the run screen tests use. Deleted before and after each test that writes it.
 const SAVE_PATH: String = "user://test_run_log.save"
+## The client settings file the run screen tests use, so they never touch a player's real settings.
+## _screen() marks How to play (task 049) as seen in it, so New Run does not open the overlay.
+const SETTINGS_PATH: String = "user://test_run_log_settings.cfg"
 ## A log path in a folder that does not exist, so opening it for writing fails.
 const BAD_LOG_PATH: String = "user://test_run_log_no_such_folder/run_log.jsonl"
 ## Seed of the run screen tests' runs. Any int works; fixed so failures repeat.
@@ -335,6 +341,8 @@ func _screen(gateway: Object = null) -> Control:
 	screen.animation_seconds = 0.0
 	screen.save_path = SAVE_PATH
 	screen.run_log_path = LOG_PATH
+	screen.settings_path = SETTINGS_PATH
+	UserSettings.set_setting(HowToPlay.SEEN_KEY, true, SETTINGS_PATH)
 	screen.setup(Ruleset.build(DataFiles.read_all())["ruleset"], gateway)
 	(Engine.get_main_loop() as SceneTree).root.add_child(screen)
 	return screen
