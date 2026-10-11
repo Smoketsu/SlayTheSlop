@@ -1,15 +1,17 @@
 # tools/
 
-Lane: tools (Agent B). Scripts that build, check and measure the game; none of them is part of the
-rules core, and none of them changes game data.
+Scripts for working on Dungeon Dudes. Lane: tools (Agent B). None of them is part of the rules core,
+and none of them changes game data. Run every command from the repository root, on Linux or macOS
+(on Windows, use WSL).
 
 | Path | What it is |
 | --- | --- |
-| `test.sh` | Installs the pinned Godot if missing, imports the project, runs every test (CLAUDE.md "Commands") |
-| `install_godot.sh` | Installs the pinned Godot into `.tools/` and prints the binary's path |
-| `data_files.gd` | Reads every file under `data/` for `core/ruleset/ruleset.gd` `build()` |
-| `bots/` | Bot players that play fights through `Core.apply()` only (task 022) |
-| `sim/` | The fixed-seed fight simulation and its command (task 022) |
+| `install_godot.sh` | Installs the pinned Godot (4.7.2-stable) into `.tools/` if missing, checksum verified, and prints the binary's path |
+| `test.sh [words...]` | Imports the project and runs every test headless (see CLAUDE.md "Commands") |
+| `build.sh [--check] [PRESET...]` | Exports the playtest builds into `build/` (task 051, below) |
+| `data_files.gd` | Not a command: reads every file under `data/` for `core/ruleset/ruleset.gd` `build()`. The game itself loads it at runtime, so it ships inside every build (see `export_presets.cfg`) |
+| `bots/` | Bot players that play fights through `Core.apply()` only (task 022, below) |
+| `sim/` | The fixed-seed fight simulation and its command (task 022, below) |
 
 ## Bots (`tools/bots/`)
 
@@ -65,3 +67,82 @@ times or unordered keys). Speed on the solo-slice data: the command above (both 
 (`tests/tools/sim_fixtures.gd`) and compares it with `tests/tools/sim_expected_report.txt`. If a
 deliberate rules change alters that report, the test's failure message prints the new one; check the
 change is expected and replace the file with it in the same PR.
+
+## Playtest builds: `tools/build.sh`
+
+```
+tools/build.sh                          # export Windows, macOS and Linux into build/
+tools/build.sh --check                  # the same, then smoke-test the Linux build
+tools/build.sh --check Linux "Windows Desktop"   # only these presets
+tools/build.sh --help
+```
+
+What it does, in order:
+
+1. Installs the pinned Godot with `tools/install_godot.sh` if needed.
+2. Installs the matching export templates (`Godot_v4.7.2-stable_export_templates.tpz` from the
+   official GitHub release) if they are missing. The download is about 1 GB, once per machine; the
+   script refuses it unless its SHA-512 equals the one pinned in the script (copied from the
+   release's `SHA512-SUMS.txt`), the same way `install_godot.sh` checks Godot. Godot only looks
+   for templates in its own data folder, so that is where they go (about 2 GB unpacked):
+   - Linux: `~/.local/share/godot/export_templates/4.7.2.stable/` (or under `$XDG_DATA_HOME`)
+   - macOS: `~/Library/Application Support/Godot/export_templates/4.7.2.stable/`
+3. Exports every preset in `export_presets.cfg` (or only the ones named) in release mode. Each
+   preset's folder is emptied first, so no file from an older build is left behind.
+4. With `--check`, runs the Linux build headless for 300 frames with a throwaway user data folder.
+   It fails if the game exits with an error code or prints any engine or script error (for
+   example a script or data file missing from the export). Needs a Linux x86_64 machine.
+
+The exit code is 0 only if every export (and the check) succeeded. Exporting is **not** part of
+`tools/test.sh` or CI (task 051). `tests/tools/test_export_presets.gd` runs in CI instead: it checks
+the presets without exporting (three presets writing into `build/`, test and tool files excluded,
+nothing the game loads excluded).
+
+### Where the builds land
+
+`build/` is git-ignored. Send testers the whole folder for their platform, zipped.
+
+| Platform | Output | Approximate size |
+| --- | --- | --- |
+| Windows (x86_64) | `build/windows/DungeonDudes.exe` + `DungeonDudes.pck` (keep them together) | 110 MB |
+| macOS (universal: Intel and Apple Silicon) | `build/macos/DungeonDudes.zip`, holding `Dungeon Dudes.app` | 65 MB |
+| Linux (x86_64) | `build/linux/DungeonDudes.x86_64` + `DungeonDudes.pck` (keep them together) | 76 MB |
+
+**macOS needs `import_etc2_astc`.** Godot refuses a universal macOS build unless `project.godot`
+sets `rendering/textures/vram_compression/import_etc2_astc=true`, and the official templates hold
+no Intel-only build to fall back on. That one-line `project.godot` change is its own contract PR
+(task 051 log). Until it is on your branch, `tools/build.sh` exits 1 after exporting the other two;
+use `tools/build.sh --check Linux "Windows Desktop"` to build just those.
+
+### What testers need to know
+
+- **macOS: the app is unsigned.** It has only an ad-hoc signature, not an Apple Developer ID, and
+  it is not notarized, so macOS blocks it the first time. Unzip it, move `Dungeon Dudes.app` to
+  Applications, open it once (macOS refuses), then go to **System Settings > Privacy & Security**,
+  scroll to the message about "Dungeon Dudes" and click **Open Anyway**, and confirm.
+- **Windows: the .exe is unsigned.** SmartScreen may say "Windows protected your PC": click
+  **More info**, then **Run anyway**. Keep `DungeonDudes.pck` next to the `.exe`.
+- **Linux:** keep `DungeonDudes.pck` next to the binary; if the binary lost its executable bit in
+  transfer, run `chmod +x DungeonDudes.x86_64`.
+
+### Where the save and logs live (`user://`)
+
+The game keeps these in Godot's user data folder for the project name "Dungeon Dudes":
+
+- `run.save`: the run in progress (deleted when a run ends).
+- `run_log.jsonl`: one line per finished or abandoned run (task 053). The run-over screen's
+  **Open log folder** button opens this folder. **This is the file to ask playtesters for.**
+- `settings.cfg`: client settings, such as whether How to play was already shown (task 049).
+- `logs/godot.log` (plus older ones): Godot's own log.
+
+If something breaks, ask the tester for `run_log.jsonl`, `run.save` and `logs/` from:
+
+| OS | Folder |
+| --- | --- |
+| Windows | `%APPDATA%\Godot\app_userdata\Dungeon Dudes\` (type it into Explorer's address bar) |
+| macOS | `~/Library/Application Support/Godot/app_userdata/Dungeon Dudes/` (Finder: Go > Go to Folder) |
+| Linux | `~/.local/share/godot/app_userdata/Dungeon Dudes/` (or `$XDG_DATA_HOME/godot/...` if set) |
+
+Deleting `run.save` starts the game fresh. Running the project from the Godot editor uses the same
+folder, so on a developer's machine an exported build and the editor share one save.
+`tools/build.sh --check` does not touch it (it runs with a throwaway folder).
