@@ -11,9 +11,14 @@
 ## card_uids; picking one sends the request with that card_uid. The Skip / Leave button exists only
 ## when the offer's "skippable" is true and sends choice_index -1.
 ## Baileys sells weed, not drinks: a Brew there reads "Shake: <Brew name> — <effect>" (G29).
+## Task 045: each option also has a hover tooltip from client/help/tooltip_text.gd option_tooltip()
+## (a card's keywords, a Gear's data text, a Shake's line).
 extends Control
 
 const RunText := preload("res://client/run/run_text.gd")
+## [added, task 045] Option tooltips, and the Button whose tooltip wraps.
+const TooltipText := preload("res://client/help/tooltip_text.gd")
+const TipButton := preload("res://client/visual/tip_button.gd")
 
 ## Emitted with {"type": "choose_reward", "reward_id": <offer id>, "choice_index": <index or -1>}
 ## and, for a Lift or a removal, "card_uid". The run screen adds player_id and seq.
@@ -130,8 +135,9 @@ func show_state(ruleset: Dictionary, state: Dictionary, player_id: String) -> vo
 		# option: one option of the offer.
 		var option: Dictionary = _offer["options"][i]
 		# button: its button.
-		var button := Button.new()
+		var button: Button = TipButton.new()
 		button.text = RunText.option_label(ruleset, _offer, option)
+		button.tooltip_text = TooltipText.option_tooltip(ruleset, option)
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.disabled = not option["available"]
 		button.pressed.connect(press_option.bind(i, ""))

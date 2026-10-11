@@ -5,7 +5,7 @@ Every art, sound or font file under `client/` is listed here with its source, as
 
 | File | Source | License |
 | --- | --- | --- |
-| *(none)* | The placeholder fight screen (task 018) uses Godot's built-in default theme and text only. | — |
+| *(none)* | No art, sound or font file lives under `client/`. The fight screen's icons (task 057) are read from `res://assets/placeholder/icons/`; their source is in `assets/placeholder/README.md` "Icons". | — |
 
 ## Art read from outside `client/`
 

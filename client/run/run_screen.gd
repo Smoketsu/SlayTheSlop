@@ -42,6 +42,9 @@
 ## fight, How to play) plays Sounds.CLICK when pressed, hooked as each button enters the tree, so no
 ## sub-screen needs its own code. Requests sent from the map and offer screens play their events'
 ## sounds here (Dolla Bills gained); a fight's events play theirs in client/visual/event_player.gd.
+## Gear and Brews (task 045): the header also lists the local Dude's Gear and Brews as small tags
+## whose tooltips say what each does, from the item's own data text (client/help/tooltip_text.gd).
+## While the Baileys screen is up its Brews are called Shake there too (CLAUDE.md).
 ## Test hooks: press_new_run(), press_continue(), press_back_to_menu(), send(), child_screen().
 extends Control
 
@@ -64,6 +67,9 @@ const UserSettings := preload("res://client/settings/user_settings.gd")
 ## [added, task 055] The sound lookup and player, and the master volume and mute.
 const Sounds := preload("res://client/audio/sounds.gd")
 const Volume := preload("res://client/audio/volume.gd")
+## [added, task 045] Gear and Brew tooltips, and the Button whose tooltip wraps.
+const TooltipText := preload("res://client/help/tooltip_text.gd")
+const TipButton := preload("res://client/visual/tip_button.gd")
 
 ## Screen names screen_for() returns, and SCREEN_MENU for the menu (no run). Fixed by the client
 ## lane; tests compare against them.
@@ -86,6 +92,18 @@ const SCREEN_LOST: String = "lost"
 const OFFER_REJECTS := {
 	"unplayable": "You can't take that right now: not enough Dolla Bills, or no free Brew slot.",
 }
+
+## [added, task 045] The words in front of the header's item tags: the Gear, the Brews, and the Brews
+## while the Baileys screen is up (Shake, CLAUDE.md "Baileys sells weed, not drinks"). Player-facing;
+## writers may change them, but "shake" must stay Shake.
+const ITEM_HEADINGS := {
+	"gear": "Gear:",
+	"brews": "Brews:",
+	"shake": "Shake:",
+}
+## [added, task 045] Font size of the header's item tags and their headings, in pixels. Changed only
+## by the client lane.
+const ITEM_FONT_SIZE: int = 13
 
 ## Run-over texts, by screen name. Player-facing; writers may change them.
 const RUN_OVER_TEXT := {
@@ -130,10 +148,18 @@ var _how_to_play: Control
 ## Task 053: the log of the run in memory (run_log.gd), fed by apply(); null before a run and once the
 ## run's record is written.
 var _run_log: RunLog
+## [added, task 045] One tag per Gear and Brew the local Dude holds, each a client/visual/
+## tip_button.gd (text: the item's name; tooltip_text: what it does, TooltipText.gear() / brew()), in
+## the state's order, Gear first. Rebuilt by _draw_header(); read by tests.
+var item_tags: Array[Button] = []
+## [added, task 045] The header line: _header, then _items_row. Built in _ready().
+var _header_row: HBoxContainer
+## [added, task 045] The Gear and Brew tags with their headings, right of _header.
+var _items_row: HBoxContainer
 ## Widgets: the header (Dude, HP, Dolla Bills, floor, seed), the area children fill, the message bar.
 var _header: Label
-var _content: Control
-var _message_label: Label
+var _content: Control  # The area the menu, map, offer, fight or run-over view fills.
+var _message_label: Label  # The message bar at the bottom (a reject, a save problem).
 
 
 ## Gives the screen its content and gateway. Call before adding it to the tree, or not at all to
@@ -179,10 +205,17 @@ func _ready() -> void:
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(root)
 	_header = Label.new()
+	# Task 045: the header line holds the text and the Gear and Brew tags.
+	_header_row = HBoxContainer.new()
+	_header_row.add_theme_constant_override("separation", 12)
+	_items_row = HBoxContainer.new()
+	_items_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_header_row.add_child(_header)
+	_header_row.add_child(_items_row)
 	_content = Control.new()
 	_content.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_message_label = Label.new()
-	for node: Control in [_header, _content, _message_label]:
+	for node: Control in [_header_row, _content, _message_label]:
 		root.add_child(node)
 	if _gateway == null:
 		_gateway = Core.new()
@@ -412,7 +445,7 @@ func _on_request_made(request: Dictionary) -> void:
 func _run_over_view(kind: String) -> Control:
 	# view: the whole view. column: its contents, centred.
 	var view := Control.new()
-	var column := VBoxContainer.new()
+	var column := VBoxContainer.new()  # the view's contents, centred
 	column.set_anchors_preset(Control.PRESET_FULL_RECT)
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
 	view.add_child(column)
@@ -482,18 +515,80 @@ func _replace_child(screen: Control, kind: String) -> void:
 
 
 ## Redraws the header from the state: the local Dude's name, HP and Dolla Bills, the floor and the
-## seed. Empty on the menu.
+## seed, and (task 045) the Gear and Brew tags. Empty on the menu.
 func _draw_header() -> void:
 	if _header == null:
 		return
+	_draw_items()
 	if _state.is_empty():
 		_header.text = ""
 		return
 	# dude: the local Dude. name_text: its display name from the data.
 	var dude: Dictionary = _local()
-	var name_text: String = _ruleset["dudes"].get(dude["dude_id"], {}).get("name", dude["dude_id"])
+	var name_text: String = _ruleset["dudes"].get(dude["dude_id"], {}).get("name", dude["dude_id"])  # its display name
 	_header.text = "%s - HP %d / %d - Dolla Bills %d - Floor %d - Seed %d" % [
 		name_text, dude["hp"], dude["max_hp"], dude["dolla_bills"], _state["floor"], _state["run_seed"]]
+
+
+## [added, task 045] Rebuilds the Gear and Brew tags from the local Dude in the state: a heading, then
+## one tag per item, each with its tooltip from the item's data text. Brews are under the Shake
+## heading, with Shake tooltips, while the state shows the Baileys screen (at_baileys()). Nothing on
+## the menu.
+func _draw_items() -> void:
+	for child: Node in _items_row.get_children():
+		_items_row.remove_child(child)
+		child.queue_free()
+	item_tags = []
+	# dude: the local Dude, or {} on the menu.
+	var dude: Dictionary = _local()
+	if dude.is_empty():
+		return
+	# shake: true while the Baileys screen is up.
+	var shake: bool = at_baileys()
+	if not dude["gear"].is_empty():
+		_add_item_heading(ITEM_HEADINGS["gear"])
+		for gear_id: String in dude["gear"]:
+			_add_item_tag(_ruleset.get("gear", {}).get(gear_id, {}).get("name", gear_id), TooltipText.gear(_ruleset, gear_id))
+	if not dude["brews"].is_empty():
+		_add_item_heading(ITEM_HEADINGS["shake" if shake else "brews"])
+		for brew_id: String in dude["brews"]:
+			_add_item_tag(_ruleset.get("brews", {}).get(brew_id, {}).get("name", brew_id), TooltipText.brew(_ruleset, brew_id, shake))
+
+
+## [added, task 045] Returns true while the state shows the Baileys screen: the offer screen with the
+## local Dude's first open offer a Baileys one. Reads the state only.
+func at_baileys() -> bool:
+	# dude: the local Dude, or {}.
+	var dude: Dictionary = _local()
+	if dude.is_empty() or screen_for(_state, _player_id) != SCREEN_OFFER or dude["offers"].is_empty():
+		return false
+	return dude["offers"][0]["kind"] == "baileys"
+
+
+## [added, task 045] Adds a heading ("Gear:") to the item row.
+## text: the heading's words.
+func _add_item_heading(text: String) -> void:
+	# label: the heading.
+	var label := Label.new()
+	label.text = text
+	label.modulate = Color(1, 1, 1, 0.7)
+	label.add_theme_font_size_override("font_size", ITEM_FONT_SIZE)
+	_items_row.add_child(label)
+
+
+## [added, task 045] Adds one item tag to the item row: a flat button that does nothing when pressed
+## and shows what the item does on hover.
+## text: the item's name. tooltip: its tooltip (TooltipText.gear() or brew()).
+func _add_item_tag(text: String, tooltip: String) -> void:
+	# tag: the new tag.
+	var tag: Button = TipButton.new()
+	tag.text = text
+	tag.tooltip_text = tooltip
+	tag.flat = true
+	tag.focus_mode = Control.FOCUS_NONE
+	tag.add_theme_font_size_override("font_size", ITEM_FONT_SIZE)
+	_items_row.add_child(tag)
+	item_tags.append(tag)
 
 
 ## Shows a message in the message bar.

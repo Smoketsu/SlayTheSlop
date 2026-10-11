@@ -4,12 +4,17 @@
 ## The icon comes from client/visual/icons.gd by key; a key with no icon shows its short text in a
 ## small rounded tag instead, never an error. The number sits right of the icon, or on top of it
 ## (overlay, for the Hype orb). Hovering shows tooltip_text, "<name>: <value>" in the GDD's terms,
-## so nothing the old text lines said is lost. Clicks pass through to whatever holds the badge (a
+## so nothing the old text lines said is lost; task 045 adds what the thing does on the next line
+## (client/help/tooltip_text.gd, passed in as show_value()'s description) and wraps the tooltip
+## (client/visual/tooltip_view.gd). Clicks pass through to whatever holds the badge (a
 ## combatant view stays clickable for targeting). Display only: nothing here reads or writes game
 ## state.
 extends HBoxContainer
 
 const Icons := preload("res://client/visual/icons.gd")
+## [added, task 045] The tooltip's words and its wrapping look.
+const TooltipText := preload("res://client/help/tooltip_text.gd")
+const TooltipView := preload("res://client/visual/tooltip_view.gd")
 
 ## Side of the icon of a badge under a character, in pixels. Changed only by the client lane.
 const ICON_PIXELS: int = 18
@@ -67,9 +72,10 @@ func _init() -> void:
 ## badge_key: an icons.gd key (anything else gets the text fallback). value: the number as text, ""
 ## for none. tooltip_value: what the tooltip says after the name; "" uses value. icon_pixels: side of
 ## the icon in pixels. font_size: the number's font size in pixels. overlay: true puts the number on
-## top of the icon (centred) instead of right of it.
+## top of the icon (centred) instead of right of it. description: [added, task 045] what the thing
+## does (client/help/tooltip_text.gd describe()), shown on the tooltip's second line; "" for none.
 func show_value(badge_key: String, value: String, tooltip_value: String = "", icon_pixels: int = ICON_PIXELS,
-		font_size: int = FONT_SIZE, overlay: bool = false) -> void:
+		font_size: int = FONT_SIZE, overlay: bool = false, description: String = "") -> void:
 	key = badge_key
 	value_text = value
 	# look: the icon, name and fallback text of the key.
@@ -92,9 +98,16 @@ func show_value(badge_key: String, value: String, tooltip_value: String = "", ic
 		_value.reparent(self, false)
 	# said: the value as the tooltip says it.
 	var said: String = tooltip_value if tooltip_value != "" else value
-	tooltip_text = look["name"] + (": " + said if said != "" else "")
+	tooltip_text = TooltipText.badge(look["name"], said, description)
 
 
 ## Returns true when the key has no icon and its short text is shown instead.
 func uses_fallback() -> bool:
 	return _fallback.visible
+
+
+## [added, task 045] Godot asks for the tooltip control when the mouse rests on the badge: the
+## tooltip text, wrapped (client/visual/tooltip_view.gd).
+## for_text: the badge's tooltip_text.
+func _make_custom_tooltip(for_text: String) -> Object:
+	return TooltipView.make(for_text)
