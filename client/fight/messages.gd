@@ -30,6 +30,15 @@ const STATUSES := {
 	"faded": "Faded",
 }
 
+## [added, task 057] Why an enemy will skip its intended move (core/combat/statuses.gd SKIP_GROSSED_OUT,
+## SKIP_FALLEN, SKIP_ARMLESS) -> the words the skipped-intent tooltip uses. Writers may change the
+## words; the codes come from the core. tests/client checks that no code is missing.
+const SKIP_REASONS := {
+	"grossed_out": "Grossed Out",
+	"fallen": "fell over",
+	"armless": "Armless",
+}
+
 ## [added, task 041] Card types (core/schema/card_def.gd TYPES) -> the label on a card face, in the
 ## GDD "Card types and keywords" terms. tests/client checks that no type is missing.
 const CARD_TYPES := {

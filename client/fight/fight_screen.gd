@@ -5,14 +5,17 @@
 ## game state itself (CLAUDE.md "The rules core is pure"): solo uses the same request-and-events
 ## path co-op will.
 ##
-## Layout (task 028): Dudes on the left and enemies on the right, each a client/visual/
-## combatant_view.gd (sprite, HP bar, Guard, statuses, intent) that is clicked to target it; below
-## them the last event lines, the hand, the action buttons and the message bar. Task 041: the hand
-## is a fan of card faces (client/visual/hand_view.gd holding client/visual/card_view.gd), with the
-## action buttons in a column to its right; a card the core would refuse right now is dimmed.
-## Events play through client/visual/event_player.gd. Behind it all, the fight's room
-## (client/visual/backgrounds.gd), darkened so text stays readable. Placeholder art
-## (assets/placeholder/). Run it with
+## Layout (tasks 028, 041 and 057): the Dudes and enemies stand on the room's floor, Dudes on the
+## left and enemies on the right (client/visual/floor_layout.gd), each a client/visual/
+## combatant_view.gd (intent icon over its head, sprite, HP bar, a row of icon badges) that is
+## clicked to target it. The top strip holds the turn label, the message and the last event lines.
+## The bottom HAND_SHARE of the screen holds the hand, a fan of card faces (client/visual/
+## hand_view.gd holding client/visual/card_view.gd; a card the core would refuse right now is
+## dimmed); Hype as an orb left of it with the draw pile under it in the bottom-left corner; and on
+## the right the Bro Meter bar, the action buttons, and the discard and Tapped piles in the
+## bottom-right corner. Icons come from client/visual/icons.gd. Events play through
+## client/visual/event_player.gd. Behind it all, the fight's room (client/visual/backgrounds.gd),
+## slightly darkened. Placeholder art (assets/placeholder/). Run it with
 ##   "$(tools/install_godot.sh)" --path . res://client/fight/fight_screen.tscn
 ## With no setup() call it starts a fight on the real data (client/dev/dev_fight.gd).
 extends Control
@@ -28,20 +31,66 @@ const EventPlayer := preload("res://client/visual/event_player.gd")
 const Backgrounds := preload("res://client/visual/backgrounds.gd")
 const CardView := preload("res://client/visual/card_view.gd")
 const HandView := preload("res://client/visual/hand_view.gd")
+const FloorLayout := preload("res://client/visual/floor_layout.gd")
+const StatBadge := preload("res://client/visual/stat_badge.gd")
+const Icons := preload("res://client/visual/icons.gd")
 ## The rules gateway: the real rules core (task 007), apply(ruleset, state, request). Co-op will
 ## swap in a network gateway with the same apply() here.
 const Gateway := preload("res://core/core.gd")
 ## [added, task upgraded-card-display] The core's reader of a card copy's effective definition.
 const Upgrades := preload("res://core/combat/upgrades.gd")
-## How many of the latest event lines the log under the fight shows, 1 or more. Changed only by
+## How many of the latest event lines the log in the top strip shows, 1 or more. Changed only by
 ## the client lane.
 const LOG_LINES: int = 4
-## Height kept for each log line, in pixels, so the hand below does not move as the log fills.
-## Changed only by the client lane.
-const LOG_LINE_PIXELS: int = 26
+## Height of each log line, in pixels. [changed, task 057: 26 -> 17, as the log moved to the top
+## strip in a smaller font (LOG_FONT_SIZE).] Changed only by the client lane.
+const LOG_LINE_PIXELS: int = 17
+## [added, task 057] Font size of the event log, in pixels. Changed only by the client lane.
+const LOG_FONT_SIZE: int = 12
 ## Dark layer laid over the room background so white text and the views stay readable; its alpha
-## (0..1) is how much the room is darkened. Changed only by the client lane.
-const SHADE_COLOR := Color(0, 0, 0, 0.5)
+## (0..1) is how much the room is darkened. [changed, task 057: 0.5 -> 0.3, as the characters now
+## stand in the room with no panels.] Changed only by the client lane.
+const SHADE_COLOR := Color(0, 0, 0, 0.3)
+## [added, task 057] Share of the screen's height, from the bottom, kept for the hand, the Hype orb,
+## the piles and the buttons (0..1). The characters' HP bars and badges always end above it. Changed
+## only by the client lane.
+const HAND_SHARE: float = 0.3
+## [added, task 057] Height of the top strip (turn label, message, event log), in pixels; the
+## characters' intent icons never reach into it. Changed only by the client lane.
+const TOP_PIXELS: float = 96.0
+## [added, task 057] Font size of the turn label, in pixels. Changed only by the client lane.
+const HEADER_FONT_SIZE: int = 13
+## [added, task 057] Font size of the message (a prompt such as "Pick an enemy.", a reject or the
+## latest event), in pixels. Changed only by the client lane.
+const MESSAGE_FONT_SIZE: int = 18
+## [added, task 057] Side of the Hype orb beside the hand, in pixels. Changed only by the client lane.
+const HYPE_PIXELS: int = 60
+## [added, task 057] Font size of the Hype number on the orb, in pixels. Changed only by the client
+## lane.
+const HYPE_FONT_SIZE: int = 24
+## [added, task 057] Side of a pile icon in the bottom corners, in pixels. Changed only by the client
+## lane.
+const PILE_PIXELS: int = 44
+## [added, task 057] Font size of a pile's card count, in pixels. Changed only by the client lane.
+const PILE_FONT_SIZE: int = 18
+## [added, task 057] Width of the column left of the hand (Hype orb, draw pile), in pixels. Changed
+## only by the client lane.
+const LEFT_COLUMN_PIXELS: float = 90.0
+## [added, task 057] Width of the column right of the hand (Bro Meter, buttons, discard and Tapped
+## piles), in pixels. Changed only by the client lane.
+const RIGHT_COLUMN_PIXELS: float = 150.0
+## [added, task 057] Space kept between the bottom strip and the screen's left, right and bottom
+## edges, in pixels, so the pile icons in the corners are not cut off. Changed only by the client lane.
+const TABLE_MARGIN_PIXELS: float = 8.0
+## [added, task 057] Size of the Bro Meter bar, in pixels. Changed only by the client lane.
+const BRO_BAR_SIZE := Vector2(110, 16)
+## [added, task 057] Fill of the Bro Meter bar while it charges. Changed only by the client lane.
+const BRO_FILL_COLOR := Color(0.85, 0.55, 0.25)
+## [added, task 057] Fill of the Bro Meter bar once it is full (the Bro Move is ready). Changed only by
+## the client lane.
+const BRO_READY_COLOR := Color(1.0, 0.85, 0.25)
+## [added, task 057] Background of the Bro Meter bar. Changed only by the client lane.
+const BRO_BACK_COLOR := Color(0.1, 0.1, 0.1, 0.85)
 ## Translucent panel behind the event log and the message bar, so their text reads over the room.
 ## Changed only by the client lane.
 const TEXT_PANEL_COLOR := Color(0.06, 0.06, 0.08, 0.6)
@@ -93,16 +142,31 @@ var _busy: bool = false
 var _player := EventPlayer.new()
 ## player_id or enemy uid -> its combatant_view.gd, as last drawn. Rebuilt by every redraw.
 var _views: Dictionary = {}
-## Containers rebuilt on every redraw: header text, Dudes (left), enemies (right), hand, buttons,
+## Widgets refilled on every redraw: the turn label, the floor the views stand on, hand, buttons,
 ## message; and the event log, rewritten on every event line. Task 041: the hand is a
 ## client/visual/hand_view.gd of card_view.gd faces, and the buttons are a column right of it.
-var _header: Label
-var _dudes_box: HBoxContainer  # The Dudes' views, left.
-var _enemies_box: HBoxContainer  # The enemies' views, right.
+## Task 057: the views stand on _arena (floor_layout.gd), which replaced the Dude and enemy boxes.
+var _header: Label  # The turn label, "Turn 1 - player phase".
+var _arena: Container  # [added, task 057] The floor: a floor_layout.gd holding every combatant view.
 var _hand_box: Container  # The hand: a hand_view.gd of card_view.gd faces (task 041).
 var _actions_box: VBoxContainer  # Brew, Bro Move and Ready buttons, right of the hand (task 041).
-var _message_label: Label  # The message bar.
-var _log_label: Label  # The last LOG_LINES event lines.
+var _message_label: Label  # The message line in the top strip.
+var _log_label: Label  # The last LOG_LINES event lines, under the turn label.
+## [added, task 057] The local Dude's Hype: an orb with the number on it, left of the hand.
+var _hype_badge: HBoxContainer
+## [added, task 057] The local Dude's draw pile count, bottom-left corner.
+var _draw_badge: HBoxContainer
+## [added, task 057] The local Dude's discard pile count, bottom-right corner.
+var _discard_badge: HBoxContainer
+## [added, task 057] The local Dude's Tapped pile count, bottom-right corner.
+var _tapped_badge: HBoxContainer
+## [added, task 057] The Bro Meter: an icon and a small bar (0..BRO_METER_MAX) with "4 / 10" inside,
+## above the action buttons. Its tooltip names it.
+var _bro_box: HBoxContainer
+## [added, task 057] The Bro Meter's bar, inside _bro_box.
+var _bro_bar: ProgressBar
+## [added, task 057] The Bro Meter's "4 / 10", inside its bar.
+var _bro_label: Label
 ## The room picture, filling the screen (cropped to keep its aspect); no texture when the room has
 ## no file.
 var _background: TextureRect
@@ -142,41 +206,15 @@ func _ready() -> void:
 		layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 		layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(layer)
-	# root: everything, top to bottom.
-	var root := VBoxContainer.new()
-	root.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(root)
-	_header = Label.new()
-	# arena: Dudes on the left, a gap, enemies on the right.
-	var arena := HBoxContainer.new()
-	_dudes_box = HBoxContainer.new()
-	_enemies_box = HBoxContainer.new()
-	# gap: pushes the enemies to the right edge.
-	var gap := Control.new()
-	gap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	for node: Control in [_dudes_box, gap, _enemies_box]:
-		arena.add_child(node)
-	_log_label = Label.new()
-	_log_label.modulate = Color(1, 1, 1, 0.7)
-	_log_label.custom_minimum_size = Vector2(0, LOG_LINES * LOG_LINE_PIXELS)
-	_hand_box = HandView.new()
-	_hand_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_actions_box = VBoxContainer.new()
-	_actions_box.alignment = BoxContainer.ALIGNMENT_END
-	# table: the hand, taking the height left over, with the action buttons to its right (task 041).
-	var table := HBoxContainer.new()
-	table.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	table.add_child(_hand_box)
-	table.add_child(_actions_box)
-	_message_label = Label.new()
-	for label: Label in [_log_label, _message_label]:
-		# panel: the label's translucent background.
-		var panel := StyleBoxFlat.new()
-		panel.bg_color = TEXT_PANEL_COLOR
-		panel.content_margin_left = 6
-		label.add_theme_stylebox_override("normal", panel)
-	for node: Control in [_header, arena, _log_label, table, _message_label]:
-		root.add_child(node)
+	# Task 057: the floor the Dudes and enemies stand on, covering the screen; clicks reach the views.
+	_arena = FloorLayout.new()
+	_arena.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_arena.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_arena.hand_top = 1.0 - HAND_SHARE
+	_arena.top_pixels = TOP_PIXELS
+	add_child(_arena)
+	_build_top()
+	_build_table()
 	if _ruleset.is_empty():
 		# started: a placeholder fight on the real data.
 		var started: Dictionary = DevFight.start()
@@ -185,6 +223,131 @@ func _ready() -> void:
 			return
 		setup(Gateway.new(), started["ruleset"], started["state"], started["player_id"])
 	_redraw()
+
+
+## [added, task 057] Builds the top strip: the turn label and, right of it, the message; under them
+## the event log. It lets clicks through and ends within TOP_PIXELS.
+func _build_top() -> void:
+	# top: the strip, top to bottom.
+	var top := VBoxContainer.new()
+	top.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top.add_theme_constant_override("separation", 2)
+	add_child(top)
+	# line: the turn label, then the message taking the rest of the width.
+	var line := HBoxContainer.new()
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top.add_child(line)
+	_header = Label.new()
+	_header.add_theme_font_size_override("font_size", HEADER_FONT_SIZE)
+	_message_label = Label.new()
+	_message_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_message_label.add_theme_font_size_override("font_size", MESSAGE_FONT_SIZE)
+	_message_label.add_theme_constant_override("outline_size", 5)
+	_message_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	line.add_child(_header)
+	line.add_child(_message_label)
+	_log_label = Label.new()
+	_log_label.modulate = Color(1, 1, 1, 0.75)
+	_log_label.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_log_label.add_theme_font_size_override("font_size", LOG_FONT_SIZE)
+	_log_label.add_theme_constant_override("line_spacing", LOG_LINE_PIXELS - LOG_FONT_SIZE - 3)
+	_log_label.visible = false
+	top.add_child(_log_label)
+	for label: Label in [_header, _log_label]:
+		# panel: the label's translucent background.
+		var panel := StyleBoxFlat.new()
+		panel.bg_color = TEXT_PANEL_COLOR
+		panel.content_margin_left = 6
+		panel.content_margin_right = 6
+		label.add_theme_stylebox_override("normal", panel)
+		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_message_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+
+## [added, task 057] Builds the bottom HAND_SHARE of the screen, left to right: a column with the
+## Hype orb and the draw pile (bottom-left corner), the hand, and a column with the Bro Meter, the
+## action buttons and the discard and Tapped piles (bottom-right corner).
+func _build_table() -> void:
+	# table: the bottom strip.
+	var table := HBoxContainer.new()
+	table.anchor_left = 0.0
+	table.anchor_right = 1.0
+	table.anchor_top = 1.0 - HAND_SHARE
+	table.anchor_bottom = 1.0
+	table.offset_left = TABLE_MARGIN_PIXELS
+	table.offset_right = -TABLE_MARGIN_PIXELS
+	table.offset_bottom = -TABLE_MARGIN_PIXELS
+	add_child(table)
+	# left: the Hype orb on top, the draw pile at the bottom.
+	var left := VBoxContainer.new()
+	left.custom_minimum_size = Vector2(LEFT_COLUMN_PIXELS, 0)
+	_hype_badge = StatBadge.new()
+	_draw_badge = StatBadge.new()
+	left.add_child(_hype_badge)
+	left.add_child(_spacer())
+	left.add_child(_draw_badge)
+	_hand_box = HandView.new()
+	_hand_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# right: the Bro Meter and the buttons on top, the discard and Tapped piles at the bottom.
+	var right := VBoxContainer.new()
+	right.custom_minimum_size = Vector2(RIGHT_COLUMN_PIXELS, 0)
+	_build_bro_meter()
+	right.add_child(_bro_box)
+	_actions_box = VBoxContainer.new()
+	right.add_child(_actions_box)
+	right.add_child(_spacer())
+	# piles: the discard and Tapped piles, side by side at the right edge.
+	var piles := HBoxContainer.new()
+	piles.alignment = BoxContainer.ALIGNMENT_END
+	_discard_badge = StatBadge.new()
+	_tapped_badge = StatBadge.new()
+	piles.add_child(_discard_badge)
+	piles.add_child(_tapped_badge)
+	right.add_child(piles)
+	for node: Control in [left, _hand_box, right]:
+		table.add_child(node)
+
+
+## [added, task 057] Builds the Bro Meter: its icon and a small bar with "now / max" inside.
+func _build_bro_meter() -> void:
+	_bro_box = HBoxContainer.new()
+	_bro_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	_bro_box.mouse_filter = Control.MOUSE_FILTER_PASS
+	# icon: the Bro Meter's icon, or its short text when the icon is missing.
+	var icon: HBoxContainer = StatBadge.new()
+	icon.show_value("bro_meter", "", "", StatBadge.ICON_PIXELS + 4)
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bro_bar = ProgressBar.new()
+	_bro_bar.show_percentage = false
+	_bro_bar.custom_minimum_size = BRO_BAR_SIZE
+	_bro_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_bro_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# back: the bar's background.
+	var back := StyleBoxFlat.new()
+	back.bg_color = BRO_BACK_COLOR
+	back.set_corner_radius_all(3)
+	_bro_bar.add_theme_stylebox_override("background", back)
+	_bro_label = Label.new()
+	_bro_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_bro_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_bro_label.add_theme_font_size_override("font_size", CombatantView.BAR_FONT_SIZE)
+	_bro_label.add_theme_constant_override("outline_size", CombatantView.TEXT_OUTLINE)
+	_bro_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	_bro_bar.add_child(_bro_label)
+	_bro_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_bro_box.add_child(icon)
+	_bro_box.add_child(_bro_bar)
+
+
+## [added, task 057] Returns an empty control that takes up the spare height of a column.
+func _spacer() -> Control:
+	# spacer: the new filler.
+	var spacer := Control.new()
+	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return spacer
 
 
 ## The player clicked a card in hand: play it, or ask for a target first. Task ally-pick: an "ally"
@@ -329,35 +492,60 @@ func _redraw() -> void:
 	# model: what to show.
 	var model: Dictionary = FightModel.build(_ruleset, _state, _player_id)
 	_background.texture = Backgrounds.texture_for_room(room)
-	_header.text = "Turn %d - %s phase - Bro Meter %s" % [model["turn"], model["phase"], model["bro_meter"]]
-	for box: Container in [_enemies_box, _dudes_box, _hand_box, _actions_box]:
+	_header.text = "Turn %d - %s phase" % [model["turn"], model["phase"]]
+	_arena.floor_line = Backgrounds.floor_line(room)
+	for box: Container in [_arena, _hand_box, _actions_box]:
 		for child: Node in box.get_children():
 			box.remove_child(child)
 			child.queue_free()
 	_views = {}
-	for enemy: Dictionary in model["enemies"]:
-		_add_view(_enemies_box, enemy, true, press_enemy.bind(enemy["uid"]))
+	# Task 057: Dudes first, then enemies, each in state order; floor_layout.gd stands Dudes on the
+	# left and enemies on the right.
 	for dude: Dictionary in model["dudes"]:
-		_add_view(_dudes_box, dude, false, press_dude.bind(dude["player_id"]))
+		_add_view(dude, false, press_dude.bind(dude["player_id"]), model["party_size"])
 		if dude["local"]:
+			_draw_turn_info(dude)
 			for slot: int in dude["brew_ids"].size():
 				_add_button(_actions_box, "Brew: " + dude["brew_ids"][slot], press_brew.bind(slot), false)
+	for enemy: Dictionary in model["enemies"]:
+		_add_view(enemy, true, press_enemy.bind(enemy["uid"]), model["party_size"])
 	for card: Dictionary in model["hand"]:
 		_add_card(card)
 	_add_button(_actions_box, "Bro Move", press_bro_move, not model["bro_ready"])
 	_add_button(_actions_box, "Ready", press_ready, false)
+	_bro_bar.max_value = maxi(1, model["bro_meter_max"])
+	_bro_bar.value = model["bro_meter_now"]
+	_bro_label.text = model["bro_meter"]
+	_bro_box.tooltip_text = "%s: %s" % [Icons.look("bro_meter")["name"], model["bro_meter"]]
+	# fill: the bar's fill, gold once the Bro Move is ready.
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = BRO_READY_COLOR if model["bro_ready"] else BRO_FILL_COLOR
+	fill.set_corner_radius_all(3)
+	_bro_bar.add_theme_stylebox_override("fill", fill)
 	_message_label.text = message
 
 
-## Adds one combatant view to a container and remembers it in _views.
-## box: the container. entry: a Dude or enemy entry of the fight model. enemy: true for an enemy.
+## [added, task 057] Shows the local Dude's turn info off the characters: Hype on the orb beside the
+## hand ("now", tooltip "now / per turn") and the three pile counts in the bottom corners.
+## dude: the local Dude's entry of FightModel.build().
+func _draw_turn_info(dude: Dictionary) -> void:
+	_hype_badge.show_value("hype", str(dude["hype"]), "%d / %d" % [dude["hype"], dude["hype_per_turn"]], HYPE_PIXELS, HYPE_FONT_SIZE, true)
+	_draw_badge.show_value("draw_pile", str(dude["draw"]), "", PILE_PIXELS, PILE_FONT_SIZE)
+	_discard_badge.show_value("discard_pile", str(dude["discard"]), "", PILE_PIXELS, PILE_FONT_SIZE)
+	_tapped_badge.show_value("tapped_pile", str(dude["tapped"]), "", PILE_PIXELS, PILE_FONT_SIZE)
+
+
+## Adds one combatant view to the floor (_arena, which places it) and remembers it in _views.
+## [changed, task 057: the views stand on one floor_layout.gd instead of two boxes.]
+## entry: a Dude or enemy entry of the fight model. enemy: true for an enemy.
 ## on_press: called when it is clicked (enabled only while the Dude is up or the enemy alive).
-func _add_view(box: Container, entry: Dictionary, enemy: bool, on_press: Callable) -> void:
+## party_size: Dudes in the fight (model "party_size"), for the target markers.
+func _add_view(entry: Dictionary, enemy: bool, on_press: Callable, party_size: int) -> void:
 	# view: the new view.
 	var view: Button = CombatantView.new()
-	view.render(entry, enemy)
+	view.render(entry, enemy, party_size)
 	view.pressed.connect(on_press)
-	box.add_child(view)
+	_arena.add_child(view)
 	_views[view.id] = view
 
 
@@ -424,6 +612,7 @@ func _log_event(line: String) -> void:
 	event_lines.append(line)
 	if _log_label != null:
 		_log_label.text = "\n".join(event_lines.slice(-LOG_LINES))
+		_log_label.visible = true
 
 
 ## Adds one button to a container.

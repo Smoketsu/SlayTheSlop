@@ -45,6 +45,47 @@ Fight-room backgrounds, 1672 × 941 px (about 16:9). They are kept as the WebP f
 
 Each boss background is named by the boss's content id, matching `characters/`. A screen can use `backgrounds/<boss id>.webp` when the fight has that boss and fall back to `backgrounds/basement.webp` otherwise.
 
+## Icons (`icons/`)
+
+Small stat, status, intent and pile icons for the fight screen (task 057). **Made for this repository** by Agent B on 2026-10-11: each is a 64 × 64 SVG drawn from plain circles, rectangles and paths by `source/make_icons.py`; nothing is copied from other art, and no brand or logo is used. The client looks them up by file name through `client/visual/icons.gd` (`ICONS`), so a replacement icon sheet only has to keep the same file names. Godot imports SVG directly; the `.import` files are committed like the other art's.
+
+| File | Shows | Used for (icons.gd key) |
+| --- | --- | --- |
+| `heart.svg` | A red heart | `hp` (left end of the HP bar) |
+| `shield.svg` | A blue shield | `guard`, and the `defend` intent |
+| `flex.svg` | A flexed arm | `swole` |
+| `snowflake.svg` | A snowflake | `chill` |
+| `crown.svg` | A gold crown | `clout` |
+| `hype_orb.svg` | An orange orb with a faint bolt | `hype` (the orb beside the hand) |
+| `bullseye.svg` | A red and white target | `exposed` |
+| `noodle.svg` | Two limp noodles | `noodle_arms` |
+| `queasy.svg` | A queasy green face | `hungover` |
+| `cloud.svg` | A grey cloud | `foggy` |
+| `ghost.svg` | A pale ghost | `faded` |
+| `broken_bone.svg` | A bone snapped in two | `broken_arms` (status `broken_arm`) |
+| `stink.svg` | Green stink lines | `ick` |
+| `sword.svg` | A sword | the `attack` intent |
+| `arrow_up.svg` | A green up arrow | the `buff` intent |
+| `arrow_down.svg` | A purple down arrow | the `debuff` intent |
+| `summon.svg` | A plus in a circle | the `summon` intent |
+| `hourglass.svg` | An hourglass | the `charge` intent |
+| `flee.svg` | An arrow leaving a doorway | the `flee` intent |
+| `question.svg` | A question mark | the `unknown` intent |
+| `zzz.svg` | Zzz | `skipped` (an enemy that will skip its move) |
+| `aim.svg` | A white chevron, tinted per Dude by the client | `target` (attack marker) and `seat` (marker over a Dude in co-op) |
+| `fist_bump.svg` | Two fists bumping | `bro_meter` |
+| `draw_pile.svg` | A stack of blue card backs | `draw_pile` |
+| `discard_pile.svg` | Fanned red card faces | `discard_pile` |
+| `tapped_pile.svg` | A grey card crossed out | `tapped_pile` |
+
+To redraw them, edit `source/make_icons.py` and run, from the repository root:
+
+```
+python3 -I assets/placeholder/source/make_icons.py assets/placeholder/icons
+```
+
+It needs only the Python standard library.
+
 ## Re-cutting
 
 ```
