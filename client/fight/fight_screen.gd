@@ -74,6 +74,10 @@ var _player_id: String = ""
 var _requests: RequestMaker
 ## The card_uid waiting for the player to pick a target, or "" when none.
 var _pending_card: String = ""
+## [added, task ally-pick] What _pending_card waits for: Targeting.ENEMY (an enemy click sends it) or
+## Targeting.DUDE (a click on a Dude who is not Passed Out sends it); "" when no card waits. Set with
+## _pending_card by press_card() and by a bad_target reject; read by press_enemy() and press_dude().
+var _pending_pick: String = ""
 ## True while the Bro Move waits for the player to pick an enemy (G33: Chest Bump needs a target).
 var _pending_bro: bool = false
 ## True while events are animating; input is ignored meanwhile.
@@ -168,26 +172,29 @@ func _ready() -> void:
 	_redraw()
 
 
-## The player clicked a card in hand: play it, or ask for a target first.
+## The player clicked a card in hand: play it, or ask for a target first. Task ally-pick: an "ally"
+## card (Bro Hug) goes straight to the local player's own Dude when only one Dude can be targeted
+## (solo), and asks "Pick a Dude." when several can (co-op; Targeting.mode_in_state()).
 ## card_uid: the card copy.
 func press_card(card_uid: String) -> void:
 	if _busy:
 		return
-	# card: the card's definition.
-	var card: Dictionary = _ruleset["cards"][_local()["cards"][card_uid]["def_id"]]
 	# pick: what the player has to choose.
-	var pick: String = Targeting.mode(card, _state["party_size"])
+	var pick: String = _pick_for(card_uid)
 	if pick == Targeting.NONE:
 		_pending_card = ""
+		_pending_pick = ""
 		_pending_bro = false
-		_send(_requests.play_card(card_uid, Targeting.auto_target(card, _player_id, _state["party_size"])))
+		_send(_requests.play_card(card_uid, Targeting.auto_target_in_state(_card_def(card_uid), _player_id)))
 		return
 	_pending_card = card_uid
+	_pending_pick = pick
 	_pending_bro = false
 	_show_message("Pick an enemy." if pick == Targeting.ENEMY else "Pick a Dude.")
 
 
-## The player clicked an enemy: the target for a pending card, otherwise nothing.
+## The player clicked an enemy: the target for a pending card, otherwise nothing. A card waiting for
+## a Dude (task ally-pick) ignores enemy clicks and keeps waiting.
 ## enemy_uid: the enemy.
 func press_enemy(enemy_uid: String) -> void:
 	if _busy:
@@ -196,7 +203,7 @@ func press_enemy(enemy_uid: String) -> void:
 		_pending_bro = false
 		_send(_requests.use_bro_move(enemy_uid))
 		return
-	if _pending_card == "":
+	if _pending_card == "" or _pending_pick != Targeting.ENEMY:
 		return
 	# card_uid: the card being aimed.
 	var card_uid: String = _pending_card
@@ -204,14 +211,20 @@ func press_enemy(enemy_uid: String) -> void:
 	_send(_requests.play_card(card_uid, enemy_uid))
 
 
-## The player clicked a Dude: the target for a pending ally card, otherwise nothing.
+## The player clicked a Dude: the target for a pending ally card, otherwise nothing. Task ally-pick:
+## only while a card waits for a Dude, and only a Dude who is not Passed Out (Targeting.
+## pickable_dudes(); the view of a Passed Out Dude is also disabled); any other click is ignored and
+## the card keeps waiting.
 ## player_id: the Dude's player.
 func press_dude(player_id: String) -> void:
-	if _busy or _pending_card == "":
+	if _busy or _pending_card == "" or _pending_pick != Targeting.DUDE:
+		return
+	if not Targeting.pickable_dudes(_state).has(player_id):
 		return
 	# card_uid: the card being aimed.
 	var card_uid: String = _pending_card
 	_pending_card = ""
+	_pending_pick = ""
 	_send(_requests.play_card(card_uid, player_id))
 
 
@@ -268,7 +281,11 @@ func _send(request: Dictionary) -> void:
 	if result["reject"] != "":
 		_show_message(Messages.reject(result["reject"]))
 		if result["reject"] == "bad_target" and request["type"] == "play_card":
-			_pending_card = request["card_uid"]
+			# pick: what the refused card should wait for now (task ally-pick: an enemy or a Dude).
+			var pick: String = _pick_for(request["card_uid"])
+			if pick != Targeting.NONE:
+				_pending_card = request["card_uid"]
+				_pending_pick = pick
 		elif result["reject"] == "bad_target" and request["type"] == "use_bro_move":
 			_pending_bro = true
 		return
@@ -380,6 +397,19 @@ func _describe(event: Dictionary) -> String:
 	for key: String in keys:
 		parts.append("%s=%s" % [key, event[key]])
 	return "%s %s" % [event["type"], " ".join(parts)]
+
+
+## [added, task ally-pick] Returns the definition of a card copy in the local player's hand.
+## card_uid: the card copy.
+func _card_def(card_uid: String) -> Dictionary:
+	return _ruleset["cards"][_local()["cards"][card_uid]["def_id"]]
+
+
+## [added, task ally-pick] Returns what the player must pick before a card copy is sent, in the
+## current state: Targeting.NONE, ENEMY or DUDE (Targeting.mode_in_state()).
+## card_uid: the card copy.
+func _pick_for(card_uid: String) -> String:
+	return Targeting.mode_in_state(_card_def(card_uid), _state)
 
 
 ## Returns the local player's Dude in the current state.
