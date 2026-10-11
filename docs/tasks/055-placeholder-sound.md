@@ -3,8 +3,8 @@ id: 055
 title: Placeholder sound effects and a volume setting
 lane: client
 owner: B
-status: open
-branch:
+status: in_progress
+branch: b/055-placeholder-sound
 depends_on: [028]
 blocked_on: []
 files:
@@ -40,3 +40,4 @@ free sounds and record the source); `assets/placeholder/README.md`; `client/visu
 ## Log
 
 - 2026-10-11 A: Written for Agent B at Smoketsu's request (polish backlog). Unclaimed.
+- 2026-10-11 B: Claimed. Work starts once 041 (#112) and 049 (#111) merge, since it builds on the card faces and the client settings store.
