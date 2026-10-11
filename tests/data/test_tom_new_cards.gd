@@ -1,9 +1,9 @@
-## Tom's new cards as data (task 030): the 13 of the 16 cards accepted in
-## docs/proposals/tom-slice-cards.md (decision log row "Task 012: Tom's 16 new cards", #91) whose ops
-## the core already has. Lane: tools (Agent B).
+## Tom's new cards as data (task 030): the 15 of the 16 cards accepted in
+## docs/proposals/tom-slice-cards.md (decision log row "Task 012: Tom's 16 new cards", #91) whose
+## rules the core already has. Lane: tools (Agent B).
 ## Each file is checked against the accepted proposal, the schema, the op catalogue, the real ruleset
 ## and Tom's card pool; a few cards are played through Core.apply on the real data, and a fixed-seed
-## fight plays a deck holding all 13.
+## fight plays a deck holding all 15.
 extends "res://tests/framework/test_case.gd"
 
 const Check := preload("res://tests/data/content_check.gd")
@@ -16,7 +16,7 @@ const Fight := preload("res://core/combat/fight.gd")
 const Snapshot := preload("res://core/run/save/snapshot.gd")
 const RunState := preload("res://core/schema/run_state.gd")
 
-## The 13 new cards exactly as accepted in tom-slice-cards.md ("New cards"), card id -> definition.
+## The 15 new cards exactly as accepted in tom-slice-cards.md ("New cards"), card id -> definition.
 ## Numbers, text, rarity, target and keywords are the proposal's. "upgrade" is {} because the
 ## proposal's upgrade tables are not accepted yet (only the 16 cards are). Changed only when a person
 ## changes a card in the proposal or the decision log.
@@ -48,6 +48,10 @@ const ACCEPTED := {
 		"cost": 1, "target": "enemy",
 		"effects": [{"op": "damage", "amount": 5, "hits": 2}, {"op": "self_damage", "amount": 2}],
 		"keywords": [], "crunch": null, "upgrade": {}, "text": "Deal 5 damage twice. Tom takes 2 damage"},
+	# Common Assist, General: the picked Dude gains 7 Guard (ally targets from task 035, #96).
+	"tom_bro_hug": {"id": "tom_bro_hug", "name": "Bro Hug", "owner": "tom", "type": "skill", "rarity": "common",
+		"cost": 1, "target": "ally", "effects": [{"op": "guard", "amount": 7}],
+		"keywords": ["assist"], "crunch": null, "upgrade": {}, "text": "Target Dude gains 7 Guard"},
 	# Uncommon, Orthopedic Surgeon: Break 1 arm. Apply 2 Exposed.
 	"tom_dislocate": {"id": "tom_dislocate", "name": "Dislocate", "owner": "tom", "type": "skill", "rarity": "uncommon",
 		"cost": 1, "target": "enemy",
@@ -92,21 +96,24 @@ const ACCEPTED := {
 		"power_triggers": [{"when": "enemy_grossed_out", "target": "subject",
 			"effects": [{"op": "apply_status", "status": "broken_arm", "stacks": 1}]}],
 		"keywords": [], "crunch": null, "upgrade": {}, "text": "Whenever an enemy is Grossed Out, break 1 of its arms"},
+	# Rare, Head First: damage equal to Tom's missing HP, at most 30, Tapped (op from task 039, #93).
+	"tom_nothing_to_lose": {"id": "tom_nothing_to_lose", "name": "Nothing to Lose", "owner": "tom", "type": "attack",
+		"rarity": "rare", "cost": 2, "target": "enemy", "effects": [{"op": "damage_from_missing_hp", "cap": 30}],
+		"keywords": ["tapped"], "crunch": null, "upgrade": {},
+		"text": "Deal damage equal to the HP Tom is missing, up to 30. Tapped"},
 }
 
 ## Accepted cards that wait for a rule from Agent A, so have no data file yet: card id -> the core
 ## task that builds the rule. When one of those tasks merges, the card's own content task removes it
 ## here and adds it to ACCEPTED.
 const WAITING := {
-	"tom_bro_hug": "035 (ally targets)",
 	"tom_tough_skull": "037 (self_damaged Power trigger)",
-	"tom_nothing_to_lose": "039 (op damage_from_missing_hp)",
 }
 
-## Tom's card pool (core/run/pools.gd card_pool) with the 13 new cards: rarity -> number of cards.
-## GDD cards: 4 common, 4 uncommon, 2 rare. New: 5 common, 5 uncommon, 3 rare (the proposal's 6, 6
-## and 4, minus Bro Hug, Tough Skull and Nothing to Lose).
-const POOL_SIZES := {"common": 9, "uncommon": 9, "rare": 5}
+## Tom's card pool (core/run/pools.gd card_pool) with the 15 new cards: rarity -> number of cards.
+## GDD cards: 4 common, 4 uncommon, 2 rare. New: 6 common, 5 uncommon, 4 rare (the proposal's 6, 6
+## and 4, minus Tough Skull).
+const POOL_SIZES := {"common": 10, "uncommon": 9, "rare": 6}
 
 ## The enemy of the single-card checks: 28 HP, 2 arms (GDD floor 1 table).
 const TEST_FOE: String = "goblin_bouncer"
@@ -122,16 +129,20 @@ const MAX_REQUESTS: int = 300
 ## Recorded outcome of the fixed-seed fight on Godot 4.7.2-stable with the data as merged in task 030:
 ## [result, final turn, applied requests, Tom's final HP]. If a data or rules change alters this
 ## fight on purpose, re-record it and say why in the PR.
-const RECORDED: Array = ["won", 6, 21, 71]
-## Recorded: the new card ids the fixed-seed fight played at least once, sorted (11 of the 13; Full
-## Nelson and Headbutt were not played before the fight was won). Same rule as RECORDED.
-const RECORDED_PLAYED: Array = ["tom_compound_fracture", "tom_dislocate", "tom_gym_selfie", "tom_headlock",
-	"tom_hot_take", "tom_main_character_energy", "tom_noggin_knock", "tom_noogie", "tom_stare_down",
-	"tom_story_time", "tom_three_hour_podcast"]
+## Re-recorded when Bro Hug and Nothing to Lose joined the deck (15 new cards; was
+## ["won", 6, 21, 71] with 13): the two extra cards change the shuffle and the plays, and the policy
+## may now aim an ally card at Tom.
+const RECORDED: Array = ["won", 6, 20, 69]
+## Recorded: the new card ids the fixed-seed fight played at least once, sorted (10 of the 15; Full
+## Nelson, Hot Take, Main Character Energy, Nothing to Lose and Story Time were not played before
+## the fight was won). Same rule as RECORDED; re-recorded with RECORDED.
+const RECORDED_PLAYED: Array = ["tom_bro_hug", "tom_compound_fracture", "tom_dislocate", "tom_gym_selfie",
+	"tom_headbutt", "tom_headlock", "tom_noggin_knock", "tom_noogie", "tom_stare_down",
+	"tom_three_hour_podcast"]
 
 
-## data/cards holds exactly the 13 accepted files whose ops exist, each equal to the proposal, and
-## none of the three waiting cards.
+## data/cards holds exactly the 15 accepted files whose rules exist, each equal to the proposal, and
+## not the waiting card.
 func test_new_cards_match_the_proposal() -> void:
 	# ids: every card file name.
 	var ids: Array[String] = Check.ids_in("data/cards")
@@ -140,7 +151,7 @@ func test_new_cards_match_the_proposal() -> void:
 		assert_eq(Check.load_file("data/cards/%s.json" % id), Check.as_data(ACCEPTED[id]), id)
 	for id: String in WAITING:
 		assert_false(ids.has(id), "%s waits for task %s" % [id, WAITING[id]])
-	assert_eq(ACCEPTED.size(), 13, "13 of the 16 accepted cards")
+	assert_eq(ACCEPTED.size(), 15, "15 of the 16 accepted cards")
 
 
 ## Every new card passes the card schema, the op catalogue (effects and Power trigger effects) and
@@ -233,6 +244,52 @@ func test_main_character_energy_breaks_an_arm_on_gross_out() -> void:
 	assert_true(types.has("power_triggered"), "Main Character Energy fires")
 	assert_eq(played["state"]["combat"]["enemies"][0]["broken_arms"], 1, "the Power breaks 1 arm")
 	assert_true(played["state"]["dudes"][0]["tapped_pile"].has(podcast), "the Podcast is Tapped")
+
+
+## Nothing to Lose on a fresh Goblin Bouncer (no Swole, Exposed or Guard): Tom at 60 of 80 HP hits
+## for his 20 missing HP; at 30 of 80 the 50 missing HP is capped at 30. The card goes to the Tapped
+## pile (checked by its card_moved event: the 30 hit kills the 28 HP Bouncer and ends the fight).
+func test_nothing_to_lose_hits_for_missing_hp_up_to_30() -> void:
+	# cases: [Tom's HP before the play, the damage the hit should deal].
+	var cases: Array = [[60, 20], [30, 30]]
+	for c: Array in cases:
+		# setup: a fight with Nothing to Lose in hand and Tom at c[0] HP.
+		var setup: Dictionary = _fight_with_hand(["tom_nothing_to_lose"])
+		if setup.is_empty():
+			return
+		setup["state"]["dudes"][0]["hp"] = c[0]
+		# foe: the enemy's uid. card: the copy's uid. played: the result after the play.
+		var foe: String = setup["state"]["combat"]["enemies"][0]["uid"]
+		var card: String = setup["uids"][0]
+		var played: Dictionary = _play_all(setup, foe)
+		if played.is_empty():
+			return
+		assert_eq(_damage_to(played["events"], foe), [c[1]], "Tom at %d/80 HP hits for %d" % c)
+		assert_true(played["events"].any(func(e: Dictionary) -> bool:
+			return e["type"] == "card_moved" and e["card_uid"] == card and e["to"] == "tapped_pile"),
+			"Nothing to Lose is Tapped")
+
+
+## Bro Hug in solo, aimed at the player's own player_id: Tom (no Chill) gains 7 Guard.
+func test_bro_hug_in_solo_guards_tom() -> void:
+	# setup: a fight with Bro Hug in hand.
+	var setup: Dictionary = _fight_with_hand(["tom_bro_hug"])
+	if setup.is_empty():
+		return
+	# state: the fight. dude: Tom. seq: the next seq.
+	var state: Dictionary = setup["state"]
+	var dude: Dictionary = state["dudes"][0]
+	assert_eq(dude["chill"], 0, "Tom starts with no Chill")
+	assert_eq(dude["guard"], 0, "Tom starts with no Guard")
+	var seq: int = dude["last_seq"] + 1
+	# request: the play aimed at Tom's own player. result: the core's answer.
+	var request: Dictionary = {"type": "play_card", "player_id": dude["player_id"], "seq": seq,
+		"card_uid": setup["uids"][0], "target_id": dude["player_id"], "crunch": false}
+	var result: Dictionary = Core.apply(setup["rules"], state, request)
+	assert_eq(result["reject"], "", "Bro Hug is played on Tom")
+	if result["reject"] != "":
+		return
+	assert_eq(result["state"]["dudes"][0]["guard"], 7, "Tom gains 7 Guard")
 
 
 ## Tom fights a Goblin Pledge and a Goblin Bouncer on the real data with his starter deck plus one
@@ -383,7 +440,7 @@ func _replay() -> Dictionary:
 
 ## Returns the policy's next request: the Bro Move at the first enemy when legal, else the first new
 ## card in hand the core accepts, else the first other card it accepts (each aimed at the first
-## enemy, or no target), else Ready.
+## enemy, else no target, else Tom himself for an ally card), else Ready.
 ## rules: the ruleset. state: the state, in the player phase.
 func _next_request(rules: Dictionary, state: Dictionary) -> Dictionary:
 	# seq: the next seq. first: the leftmost enemy's uid. dude: Tom.
@@ -398,7 +455,7 @@ func _next_request(rules: Dictionary, state: Dictionary) -> Dictionary:
 		for uid: String in dude["hand"]:
 			if ACCEPTED.has(dude["cards"][uid]["def_id"]) != new_first:
 				continue
-			for target_id: String in [first, ""]:
+			for target_id: String in [first, "", dude["player_id"]]:
 				# play: one candidate.
 				var play: Dictionary = {"type": "play_card", "player_id": "p1", "seq": seq, "card_uid": uid, "target_id": target_id, "crunch": false}
 				if Core.validate(rules, state, play) == "":
