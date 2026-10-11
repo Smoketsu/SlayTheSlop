@@ -1,0 +1,26 @@
+{
+  "id": "tom_tough_skull",
+  "name": "Tough Skull",
+  "owner": "tom",
+  "type": "power",
+  "rarity": "uncommon",
+  "cost": 1,
+  "target": "none",
+  "effects": [],
+  "power_triggers": [
+    {
+      "when": "self_damaged",
+      "target": "self",
+      "effects": [
+        {
+          "op": "guard",
+          "amount": 3
+        }
+      ]
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Whenever Tom takes damage from his own card, gain 3 Guard"
+}
