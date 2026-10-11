@@ -34,6 +34,10 @@ const HandView := preload("res://client/visual/hand_view.gd")
 const FloorLayout := preload("res://client/visual/floor_layout.gd")
 const StatBadge := preload("res://client/visual/stat_badge.gd")
 const Icons := preload("res://client/visual/icons.gd")
+## [added, task 045] Every tooltip's words, and the Button whose tooltip wraps.
+const TooltipText := preload("res://client/help/tooltip_text.gd")
+const TipButton := preload("res://client/visual/tip_button.gd")
+const TipBox := preload("res://client/visual/tip_box.gd")
 ## The rules gateway: the real rules core (task 007), apply(ruleset, state, request). Co-op will
 ## swap in a network gateway with the same apply() here.
 const Gateway := preload("res://core/core.gd")
@@ -172,6 +176,9 @@ var _bro_label: Label
 var _background: TextureRect
 ## Plain FALLBACK_COLOR behind the room picture, seen only when the room has no file.
 var _backdrop: ColorRect
+## [added, task 045] icons.gd key -> what it does (client/help/tooltip_text.gd all()), filled from the
+## ruleset on every redraw and handed to each combatant view and the turn info badges.
+var _tooltips: Dictionary = {}
 
 
 ## Gives the screen its gateway, content, starting state and local player. Call before or after
@@ -312,7 +319,7 @@ func _build_table() -> void:
 
 ## [added, task 057] Builds the Bro Meter: its icon and a small bar with "now / max" inside.
 func _build_bro_meter() -> void:
-	_bro_box = HBoxContainer.new()
+	_bro_box = TipBox.new()
 	_bro_box.alignment = BoxContainer.ALIGNMENT_CENTER
 	_bro_box.mouse_filter = Control.MOUSE_FILTER_PASS
 	# icon: the Bro Meter's icon, or its short text when the icon is missing.
@@ -491,6 +498,7 @@ func _redraw() -> void:
 		return
 	# model: what to show.
 	var model: Dictionary = FightModel.build(_ruleset, _state, _player_id)
+	_tooltips = TooltipText.all(_ruleset)
 	_background.texture = Backgrounds.texture_for_room(room)
 	_header.text = "Turn %d - %s phase" % [model["turn"], model["phase"]]
 	_arena.floor_line = Backgrounds.floor_line(room)
@@ -506,7 +514,8 @@ func _redraw() -> void:
 		if dude["local"]:
 			_draw_turn_info(dude)
 			for slot: int in dude["brew_ids"].size():
-				_add_button(_actions_box, "Brew: " + dude["brew_ids"][slot], press_brew.bind(slot), false)
+				_add_button(_actions_box, "Brew: " + _brew_name(dude["brew_ids"][slot]), press_brew.bind(slot), false,
+					TooltipText.brew(_ruleset, dude["brew_ids"][slot], false))
 	for enemy: Dictionary in model["enemies"]:
 		_add_view(enemy, true, press_enemy.bind(enemy["uid"]), model["party_size"])
 	for card: Dictionary in model["hand"]:
@@ -516,7 +525,7 @@ func _redraw() -> void:
 	_bro_bar.max_value = maxi(1, model["bro_meter_max"])
 	_bro_bar.value = model["bro_meter_now"]
 	_bro_label.text = model["bro_meter"]
-	_bro_box.tooltip_text = "%s: %s" % [Icons.look("bro_meter")["name"], model["bro_meter"]]
+	_bro_box.tooltip_text = TooltipText.badge(Icons.look("bro_meter")["name"], model["bro_meter"], _tooltips.get("bro_meter", ""))
 	# fill: the bar's fill, gold once the Bro Move is ready.
 	var fill := StyleBoxFlat.new()
 	fill.bg_color = BRO_READY_COLOR if model["bro_ready"] else BRO_FILL_COLOR
@@ -526,13 +535,15 @@ func _redraw() -> void:
 
 
 ## [added, task 057] Shows the local Dude's turn info off the characters: Hype on the orb beside the
-## hand ("now", tooltip "now / per turn") and the three pile counts in the bottom corners.
+## hand ("now", tooltip "now / per turn") and the three pile counts in the bottom corners. Task 045:
+## each tooltip also says what it is (_tooltips).
 ## dude: the local Dude's entry of FightModel.build().
 func _draw_turn_info(dude: Dictionary) -> void:
-	_hype_badge.show_value("hype", str(dude["hype"]), "%d / %d" % [dude["hype"], dude["hype_per_turn"]], HYPE_PIXELS, HYPE_FONT_SIZE, true)
-	_draw_badge.show_value("draw_pile", str(dude["draw"]), "", PILE_PIXELS, PILE_FONT_SIZE)
-	_discard_badge.show_value("discard_pile", str(dude["discard"]), "", PILE_PIXELS, PILE_FONT_SIZE)
-	_tapped_badge.show_value("tapped_pile", str(dude["tapped"]), "", PILE_PIXELS, PILE_FONT_SIZE)
+	_hype_badge.show_value("hype", str(dude["hype"]), "%d / %d" % [dude["hype"], dude["hype_per_turn"]], HYPE_PIXELS, HYPE_FONT_SIZE, true,
+		_tooltips.get("hype", ""))
+	_draw_badge.show_value("draw_pile", str(dude["draw"]), "", PILE_PIXELS, PILE_FONT_SIZE, false, _tooltips.get("draw_pile", ""))
+	_discard_badge.show_value("discard_pile", str(dude["discard"]), "", PILE_PIXELS, PILE_FONT_SIZE, false, _tooltips.get("discard_pile", ""))
+	_tapped_badge.show_value("tapped_pile", str(dude["tapped"]), "", PILE_PIXELS, PILE_FONT_SIZE, false, _tooltips.get("tapped_pile", ""))
 
 
 ## Adds one combatant view to the floor (_arena, which places it) and remembers it in _views.
@@ -543,6 +554,7 @@ func _draw_turn_info(dude: Dictionary) -> void:
 func _add_view(entry: Dictionary, enemy: bool, on_press: Callable, party_size: int) -> void:
 	# view: the new view.
 	var view: Button = CombatantView.new()
+	view.tooltips = _tooltips
 	view.render(entry, enemy, party_size)
 	view.pressed.connect(on_press)
 	_arena.add_child(view)
@@ -592,6 +604,7 @@ func _add_card(card: Dictionary) -> void:
 	var view: Button = CardView.new()
 	view.hover_seconds = CardView.HOVER_SECONDS if animation_seconds > 0.0 else 0.0
 	view.render(_card_def(card["card_uid"]), card["upgraded"], card_playable(card["card_uid"]), card["name"])
+	view.tooltip_text = TooltipText.card(_ruleset, _card_def(card["card_uid"]))
 	view.pressed.connect(press_card.bind(card["card_uid"]))
 	_hand_box.add_child(view)
 
@@ -615,12 +628,14 @@ func _log_event(line: String) -> void:
 		_log_label.visible = true
 
 
-## Adds one button to a container.
+## Adds one button to a container. Task 045: a client/visual/tip_button.gd, so a tooltip wraps.
 ## box: the container. text: the button's label. on_press: called when pressed. disabled: greyed out.
-func _add_button(box: Container, text: String, on_press: Callable, disabled: bool) -> void:
+## tooltip: [added, task 045] its hover text (client/help/tooltip_text.gd), "" for none.
+func _add_button(box: Container, text: String, on_press: Callable, disabled: bool, tooltip: String = "") -> void:
 	# button: the new button.
-	var button := Button.new()
+	var button: Button = TipButton.new()
 	button.text = text
+	button.tooltip_text = tooltip
 	button.disabled = disabled
 	button.pressed.connect(on_press)
 	box.add_child(button)
@@ -664,6 +679,13 @@ func _card_def(card_uid: String) -> Dictionary:
 ## card_uid: the card copy.
 func _pick_for(card_uid: String) -> String:
 	return Targeting.mode_in_state(_card_def(card_uid), _state)
+
+
+## [added, task 045] Returns a Brew's display name from the ruleset, or its id when the ruleset lacks
+## it. The fight never takes place at Baileys, so it is always a Brew here, never a Shake.
+## brew_id: a Brew id (data/brews/).
+func _brew_name(brew_id: String) -> String:
+	return _ruleset.get("brews", {}).get(brew_id, {}).get("name", brew_id)
 
 
 ## Returns the local player's Dude in the current state.

@@ -17,6 +17,8 @@ const Sprites := preload("res://client/visual/sprites.gd")
 const StatBadge := preload("res://client/visual/stat_badge.gd")
 const Icons := preload("res://client/visual/icons.gd")
 const Messages := preload("res://client/fight/messages.gd")
+## [added, task 045] Builds a tooltip from a name, a value and what the thing does.
+const TooltipText := preload("res://client/help/tooltip_text.gd")
 
 ## Widest a view gets, in pixels: a slot on the floor is never wider. Changed only by the client lane.
 const VIEW_WIDTH: float = 180.0
@@ -107,6 +109,10 @@ var hp_value: int = 0
 var guard_value: int = 0
 ## Height of the sprite's box in pixels, feet to top; set by arrange(), SPRITE_HEIGHT until then.
 var sprite_height: float = SPRITE_HEIGHT
+## [added, task 045] icons.gd key -> what it does (client/help/tooltip_text.gd all()), shown on the
+## second line of each badge's and the HP bar's tooltip. Set by whoever draws the view (the fight
+## screen), before render(); {} shows the name and value only.
+var tooltips: Dictionary = {}
 
 ## The fight model entry last drawn ({} before render()). Read only.
 var _entry: Dictionary = {}
@@ -475,13 +481,14 @@ func _draw_intent() -> void:
 		marker.modulate = SEAT_COLORS[seat % SEAT_COLORS.size()]
 
 
-## Adds one badge to a row and returns it.
+## Adds one badge to a row and returns it. Task 045: its tooltip also says what the key does
+## (tooltips).
 ## row: the row. key: its icons.gd key. value: the number as text, "" for none. tooltip: what its
 ## tooltip says after the name. icon_pixels: the icon's side in pixels. font_size: the number's size.
 func _add_badge(row: HBoxContainer, key: String, value: String, tooltip: String, icon_pixels: int, font_size: int) -> Control:
 	# badge: the new badge.
 	var badge: HBoxContainer = StatBadge.new()
-	badge.show_value(key, value, tooltip, icon_pixels, font_size)
+	badge.show_value(key, value, tooltip, icon_pixels, font_size, false, tooltips.get(Icons.look(key)["key"], ""))
 	row.add_child(badge)
 	return badge
 
@@ -496,7 +503,7 @@ func _show_hp(hp: int) -> void:
 	hp_value = clampi(hp, 0, _hp_max)
 	_hp_bar.value = hp_value
 	_hp_label.text = "%d / %d" % [hp_value, _hp_max]
-	_hp_bar.tooltip_text = "%s: %d / %d" % [Icons.look("hp")["name"], hp_value, _hp_max]
+	_hp_bar.tooltip_text = TooltipText.badge(Icons.look("hp")["name"], "%d / %d" % [hp_value, _hp_max], tooltips.get("hp", ""))
 
 
 ## Sets the Guard badge. guard: Guard to show, 0 or more (0 hides the badge).

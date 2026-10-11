@@ -19,6 +19,9 @@ extends Button
 
 const Messages := preload("res://client/fight/messages.gd")
 const RunText := preload("res://client/run/run_text.gd")
+## [added, task 045] Draws the wrapped tooltip (the fight screen sets tooltip_text to the card's
+## keyword lines from client/help/tooltip_text.gd card()).
+const TooltipView := preload("res://client/visual/tooltip_view.gd")
 
 ## Size of one card face at rest, in pixels, before the hand scales it to fit. Changed only by the
 ## client lane.
@@ -245,6 +248,13 @@ func drawn_text() -> String:
 		if label.text != "":
 			lines.append(label.text)
 	return "\n".join(lines)
+
+
+## [added, task 045] Godot asks for the tooltip control when the mouse rests on the card: its
+## keyword lines, wrapped (client/visual/tooltip_view.gd); none when tooltip_text is "".
+## for_text: the card's tooltip_text.
+func _make_custom_tooltip(for_text: String) -> Object:
+	return TooltipView.make(for_text)
 
 
 ## Returns the face's scale on screen relative to CARD_SIZE (the hand's scale times the hover's), for

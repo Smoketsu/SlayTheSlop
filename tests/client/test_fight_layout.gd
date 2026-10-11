@@ -225,7 +225,8 @@ func test_coop_target_markers() -> void:
 
 ## Hype, the piles and the Bro Meter are off the characters: an orb beside the hand, pile icons in the
 ## bottom corners and a small bar, each with the state's values and a tooltip naming it; the turn label
-## no longer carries the Bro Meter.
+## no longer carries the Bro Meter. Task 045 adds what each one does on the tooltip's second line, so
+## the first line is checked here (tests/client/test_tooltips.gd checks the rest).
 func test_turn_info_off_the_characters() -> void:
 	# frame, screen: the dev fight, with the Bro Meter part full on a test copy.
 	var started: Dictionary = DevFight.start()
@@ -235,14 +236,14 @@ func test_turn_info_off_the_characters() -> void:
 	# dude: the local Dude.
 	var dude: Dictionary = screen._state["dudes"][0]
 	assert_eq(screen._hype_badge.value_text, str(dude["hype"]))
-	assert_eq(screen._hype_badge.tooltip_text, "Hype: %d / %d" % [dude["hype"], dude["hype_per_turn"]])
+	assert_eq(screen._hype_badge.tooltip_text.get_slice("\n", 0), "Hype: %d / %d" % [dude["hype"], dude["hype_per_turn"]])
 	assert_eq(screen._draw_badge.value_text, str(dude["draw_pile"].size()))
 	assert_eq(screen._discard_badge.value_text, str(dude["discard_pile"].size()))
 	assert_eq(screen._tapped_badge.value_text, str(dude["tapped_pile"].size()))
-	assert_eq(screen._draw_badge.tooltip_text, "Draw pile: %d" % dude["draw_pile"].size())
-	assert_eq(screen._tapped_badge.tooltip_text, "Tapped: %d" % dude["tapped_pile"].size())
+	assert_eq(screen._draw_badge.tooltip_text.get_slice("\n", 0), "Draw pile: %d" % dude["draw_pile"].size())
+	assert_eq(screen._tapped_badge.tooltip_text.get_slice("\n", 0), "Tapped: %d" % dude["tapped_pile"].size())
 	assert_eq(screen._bro_bar.value, 4.0)
-	assert_eq(screen._bro_box.tooltip_text, "Bro Meter: 4 / %d" % started["ruleset"]["constants"]["BRO_METER_MAX"])
+	assert_eq(screen._bro_box.tooltip_text.get_slice("\n", 0), "Bro Meter: 4 / %d" % started["ruleset"]["constants"]["BRO_METER_MAX"])
 	assert_eq(screen._header.text, "Turn 1 - player phase")
 	# hand: the hand's rectangle on screen.
 	var hand: Rect2 = screen._hand_box.get_global_rect()
