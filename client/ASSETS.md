@@ -19,3 +19,10 @@ The room behind a fight is `res://assets/placeholder/backgrounds/<room>.webp`, p
 `client/visual/backgrounds.gd`: a boss's own room when an enemy on the field has one (named by its
 def_id), otherwise the floor's room (floor 1: `basement`). Source and terms are in
 `assets/placeholder/README.md` "Backgrounds". A room with no file is drawn as a plain colour.
+
+## Sounds read from outside `client/`
+
+Task 055: the sound effects are `res://assets/placeholder/sounds/<kind>.wav`, looked up by
+`client/audio/sounds.gd` `FILES`. They were synthesized for this repository by
+`assets/placeholder/source/make_sounds.py`; source and licence are in `assets/placeholder/README.md`
+"Sounds". A kind with no file is silent.
