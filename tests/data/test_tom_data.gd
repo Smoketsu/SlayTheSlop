@@ -6,7 +6,7 @@ const Check := preload("res://tests/data/content_check.gd")
 const TomFixtures := preload("res://tests/core/ops/tom_fixtures.gd")
 
 ## The GDD's example card definition, exactly ("Example card definition"). The data file may add
-## only "text".
+## only "text", and "text" in its upgrade (task 032: the upgraded wording, "Deal 11 damage...").
 const GDD_ARM_BAR := {
 	"id": "tom_arm_bar", "name": "Arm Bar", "owner": "tom", "type": "attack", "rarity": "starter",
 	"cost": 2, "target": "enemy",
@@ -26,17 +26,21 @@ func test_tom_dude_file() -> void:
 	assert_eq(tom.get("bro_move"), "tom_chest_bump")
 
 
-## Arm Bar matches the GDD's example card exactly, plus its text.
+## Arm Bar matches the GDD's example card exactly, plus its text and its upgraded text (task 032).
 func test_arm_bar_is_the_gdd_example() -> void:
-	# card: the data file without its display text.
+	# card: the data file without its display text and upgraded display text.
 	var card: Dictionary = Check.load_file("data/cards/tom_arm_bar.json")
 	assert_eq(card.get("text", ""), "Deal 8 damage. Break 1 arm")
+	assert_eq(card.get("upgrade", {}).get("text", ""), "Deal 11 damage. Break 1 arm")
 	card.erase("text")
+	card.get("upgrade", {}).erase("text")
 	assert_eq(card, Check.as_data(GDD_ARM_BAR))
 
 
 ## Every Tom card is exactly the fixture the core's Tom tests play, with ids renamed from
 ## tom_test_* to tom_*, and Chest Bump's rarity "special" (G17: Bro Moves are never offered).
+## "upgrade" is set aside: the fixtures keep the upgrades as they were before task 032, and
+## tests/data/test_tom_upgrades.gd checks each card's accepted upgrade.
 func test_tom_cards_match_the_core_fixtures() -> void:
 	# ids: the 15 Tom card ids in the fixtures (14 GDD cards and Chest Bump).
 	var ids: Array[String] = []
@@ -48,12 +52,24 @@ func test_tom_cards_match_the_core_fixtures() -> void:
 		if expected["id"] == "tom_chest_bump":
 			expected["rarity"] = "special"
 		ids.append(expected["id"])
-		assert_eq(Check.load_file("data/cards/%s.json" % expected["id"]), expected, expected["id"])
+		# card: the data file.
+		var card: Dictionary = Check.load_file("data/cards/%s.json" % expected["id"])
+		card.erase("upgrade")
+		expected.erase("upgrade")
+		assert_eq(card, expected, expected["id"])
 	assert_eq(ids.size(), 15, "14 GDD cards and Chest Bump")
 
 
-## Only Arm Bar has an upgrade until task 012's proposal is answered (G15).
-func test_only_arm_bar_upgrades() -> void:
+## Every Tom card has an upgrade except Chest Bump, the Bro Move (task 032; G15 and Q1 in
+## tom-slice-cards.md, decision log row "Task 012: upgrades, Q1 and Q2"). The values are checked in
+## tests/data/test_tom_upgrades.gd.
+func test_every_tom_card_but_chest_bump_upgrades() -> void:
 	for id: String in Check.ids_in("data/cards"):
-		if id.begins_with("tom_") and id != "tom_arm_bar":
-			assert_eq(Check.load_file("data/cards/%s.json" % id).get("upgrade"), {}, id)
+		if not id.begins_with("tom_"):
+			continue
+		# upgrade: the card's upgrade field.
+		var upgrade: Dictionary = Check.load_file("data/cards/%s.json" % id).get("upgrade", {})
+		if id == "tom_chest_bump":
+			assert_eq(upgrade, {}, "Chest Bump has no upgrade (Q1)")
+		else:
+			assert_false(upgrade.is_empty(), "%s has an upgrade" % id)

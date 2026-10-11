@@ -19,6 +19,9 @@
   ],
   "keywords": [],
   "crunch": null,
-  "upgrade": {},
+  "upgrade": {
+    "effects[0].stacks": 6,
+    "text": "Apply 6 Ick to all enemies. Tom takes 3 damage from the response"
+  },
   "text": "Apply 4 Ick to all enemies. Tom takes 3 damage from the response"
 }

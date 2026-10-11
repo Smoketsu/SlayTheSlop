@@ -18,6 +18,9 @@
   ],
   "keywords": [],
   "crunch": null,
-  "upgrade": {},
+  "upgrade": {
+    "effects[0].amount": 10,
+    "text": "Gain 10 Guard. This turn, enemies that hit Tom take 3 damage from the glare"
+  },
   "text": "Gain 7 Guard. This turn, enemies that hit Tom take 3 damage from the glare"
 }

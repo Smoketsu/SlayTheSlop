@@ -16,6 +16,9 @@
     "assist"
   ],
   "crunch": null,
-  "upgrade": {},
+  "upgrade": {
+    "effects[0].amount": 10,
+    "text": "Target Dude gains 10 Guard"
+  },
   "text": "Target Dude gains 7 Guard"
 }

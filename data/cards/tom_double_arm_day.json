@@ -28,6 +28,10 @@
   ],
   "keywords": [],
   "crunch": null,
-  "upgrade": {},
+  "upgrade": {
+    "effects[0].amount": 12,
+    "effects[2].amount": 12,
+    "text": "Deal 12 damage twice. Each hit breaks 1 arm"
+  },
   "text": "Deal 9 damage twice. Each hit breaks 1 arm"
 }

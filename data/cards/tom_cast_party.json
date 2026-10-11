@@ -14,6 +14,9 @@
   ],
   "keywords": [],
   "crunch": null,
-  "upgrade": {},
+  "upgrade": {
+    "effects[0].amount": 6,
+    "text": "Gain 6 Guard for every Broken Arm on all enemies"
+  },
   "text": "Gain 4 Guard for every Broken Arm on all enemies"
 }

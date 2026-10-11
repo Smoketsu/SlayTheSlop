@@ -16,6 +16,8 @@
     "tapped"
   ],
   "crunch": null,
-  "upgrade": {},
+  "upgrade": {
+    "cost": 1
+  },
   "text": "Deal damage equal to the HP Tom is missing, up to 30. Tapped"
 }

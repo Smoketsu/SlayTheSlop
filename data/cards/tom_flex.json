@@ -14,6 +14,9 @@
   ],
   "keywords": [],
   "crunch": null,
-  "upgrade": {},
+  "upgrade": {
+    "effects[0].amount": 8,
+    "text": "Gain 8 Guard"
+  },
   "text": "Gain 5 Guard"
 }

@@ -19,6 +19,9 @@
   ],
   "keywords": [],
   "crunch": null,
-  "upgrade": {},
+  "upgrade": {
+    "effects[0].amount": 15,
+    "text": "Deal 15 damage. Break 2 arms"
+  },
   "text": "Deal 10 damage. Break 2 arms"
 }

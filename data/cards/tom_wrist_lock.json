@@ -19,6 +19,9 @@
   ],
   "keywords": [],
   "crunch": null,
-  "upgrade": {},
+  "upgrade": {
+    "effects[0].amount": 8,
+    "text": "Deal 8 damage. If the target has a Broken Arm, draw 1 card"
+  },
   "text": "Deal 5 damage. If the target has a Broken Arm, draw 1 card"
 }

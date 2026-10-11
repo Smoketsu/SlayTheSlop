@@ -20,6 +20,9 @@
   ],
   "keywords": [],
   "crunch": null,
-  "upgrade": {},
+  "upgrade": {
+    "effects[0].stacks": 5,
+    "text": "Apply 5 Ick and 1 Noodle Arms"
+  },
   "text": "Apply 3 Ick and 1 Noodle Arms"
 }

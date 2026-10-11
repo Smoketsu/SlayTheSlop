@@ -20,6 +20,8 @@
   ],
   "keywords": [],
   "crunch": null,
-  "upgrade": {},
+  "upgrade": {
+    "cost": 0
+  },
   "text": "Break 1 arm. Apply 2 Exposed"
 }

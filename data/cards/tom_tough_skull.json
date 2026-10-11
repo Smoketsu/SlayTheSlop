@@ -21,6 +21,9 @@
   ],
   "keywords": [],
   "crunch": null,
-  "upgrade": {},
+  "upgrade": {
+    "power_triggers[0].effects[0].amount": 5,
+    "text": "Whenever Tom takes damage from his own card, gain 5 Guard"
+  },
   "text": "Whenever Tom takes damage from his own card, gain 3 Guard"
 }

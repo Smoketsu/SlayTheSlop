@@ -19,6 +19,10 @@
   ],
   "keywords": [],
   "crunch": null,
-  "upgrade": {},
+  "upgrade": {
+    "effects[0].amount": 6,
+    "effects[1].stacks": 2,
+    "text": "Deal 6 damage. Apply 2 Ick"
+  },
   "text": "Deal 4 damage. Apply 1 Ick"
 }

@@ -44,20 +44,24 @@ const START_DOLLA_BILLS: int = 50
 ## The first seed loses every chance roll and the second wins every one, so both branches of each
 ## chance are played. If a data or rules change alters an outcome on purpose, re-record it and say
 ## why in the PR.
+## Re-recorded in task 032 for The Unlabeled Brownie (upgrade 2 random cards): it upgraded only Arm Bar
+## (the one Tom card with an upgrade) and now picks 2 of the 10 starter cards, all upgradable since
+## the accepted upgrades joined the data. Was ["tom_arm_bar"] at both seeds; now ["tom_punch",
+## "tom_flex"] at 20261016 and ["tom_arm_bar", "tom_flex"] at 1. No other outcome changed.
 const RECORDED := {
 	20261016: {
 		"beer_pong_table": [40, 0, ["junk_hangover"], [], ["tom_unused_gym_membership"], {}, 1, [false]],
 		"gas_station_sushi": [65, 50, [], [], ["tom_unused_gym_membership"], {}, 1, [false]],
 		"three_am_tattoo": [40, 50, ["junk_regret"], [], ["tom_unused_gym_membership", "lucky_lighter"], {}, 1, []],
 		"free_couch_on_the_curb": [80, 50, [], [], ["tom_unused_gym_membership"], {}, 1, [false]],
-		"unlabeled_brownie": [40, 50, [], ["tom_arm_bar"], ["tom_unused_gym_membership"], {"foggy": 2}, 1, []],
+		"unlabeled_brownie": [40, 50, [], ["tom_punch", "tom_flex"], ["tom_unused_gym_membership"], {"foggy": 2}, 1, []],
 	},
 	1: {
 		"beer_pong_table": [40, 100, [], [], ["tom_unused_gym_membership"], {}, 1, [true]],
 		"gas_station_sushi": [65, 50, [], [], ["tom_unused_gym_membership"], {"hungover": 3}, 1, [true]],
 		"three_am_tattoo": [40, 50, ["junk_regret"], [], ["tom_unused_gym_membership", "lucky_lighter"], {}, 1, []],
 		"free_couch_on_the_curb": [80, 50, ["junk_bedbugs"], [], ["tom_unused_gym_membership"], {}, 1, [true]],
-		"unlabeled_brownie": [40, 50, [], ["tom_arm_bar"], ["tom_unused_gym_membership"], {"foggy": 2}, 1, []],
+		"unlabeled_brownie": [40, 50, [], ["tom_arm_bar", "tom_flex"], ["tom_unused_gym_membership"], {"foggy": 2}, 1, []],
 	},
 }
 

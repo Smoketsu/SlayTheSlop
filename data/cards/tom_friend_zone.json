@@ -33,6 +33,8 @@
   ],
   "keywords": [],
   "crunch": null,
-  "upgrade": {},
+  "upgrade": {
+    "cost": 1
+  },
   "text": "At the start of each turn, apply 1 Ick to all enemies. Grossed Out enemies also become Exposed for 2 turns"
 }
