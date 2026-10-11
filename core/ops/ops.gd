@@ -92,6 +92,15 @@ const GENERIC_FIELDS := {
 	"target": TYPE_STRING,
 }
 
+## Task 037: the op context key that is true for the effects of a card a Dude played
+## (core/combat/play.gd sets it); missing or false for enemy moves, Junk triggers (Burn, Bedbugs),
+## Gear, Brews, the Bro Move and Power trigger effects. A self_damage effect with it fires its actor's
+## "self_damaged" Powers (core/combat/powers.gd, Tough Skull). Only the core lane changes this name.
+const PLAYED_CARD_KEY: String = "played_card"
+
+## Task 037: the op whose damage on its actor sets off "self_damaged" Powers when PLAYED_CARD_KEY holds.
+const SELF_DAMAGE_OP: String = "self_damage"
+
 ## Task 031: the op context key holding the trigger depth (see the file header), an int 0 or more.
 ## make_context() sets it; fire_power_triggers_in_place() raises it by 1 for a trigger's effects.
 ## Only the core lane changes this name.
@@ -188,7 +197,8 @@ static func needs_target(effects: Array) -> bool:
 ##                      tag, task 017); without it no Power trigger fires;
 ##           "cards": ruleset.cards, read-only, card id -> definition, for add_card (task 015);
 ##           "trigger_depth": int, 0 or more, how deeply these effects are nested inside Power
-##                            triggers (DEPTH_KEY, task 031); a context without it counts as 0}.
+##                            triggers (DEPTH_KEY, task 031); a context without it counts as 0;
+##           "played_card": bool, optional, true for a played card's effects (PLAYED_CARD_KEY, task 037)}.
 ## make_context() builds one. events: the event list, appended to.
 static func run(state: Dictionary, effect: Dictionary, context: Dictionary, events: Array) -> void:
 	# here: the context for this effect, with the effect's own target when it has one.
@@ -204,9 +214,11 @@ static func run(state: Dictionary, effect: Dictionary, context: Dictionary, even
 	# ruleset: the content, for the triggers.
 	var ruleset: Dictionary = context.get("ruleset", {})
 	# Task 031: a nesting op's events were already reacted to inside it (NESTING_OPS).
+	# self_damaged_id: task 037, the actor when this is a played card's self_damage, else "".
+	var self_damaged_id: String = here["actor_id"] if effect["op"] == SELF_DAMAGE_OP and here.get(PLAYED_CARD_KEY, false) else ""
 	if not ruleset.is_empty() and not NESTING_OPS.has(effect["op"]):
-		fire_power_triggers_in_place(ruleset, state, Powers.reactions(ruleset, state, events, start), events,
-			here.get(DEPTH_KEY, 0))
+		fire_power_triggers_in_place(ruleset, state, Powers.reactions(ruleset, state, events, start, self_damaged_id),
+			events, here.get(DEPTH_KEY, 0))
 
 
 ## Task 013: fires Power triggers, in order (records from core/combat/powers.gd reactions() or

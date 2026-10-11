@@ -15,6 +15,12 @@
 ##                        positive delta on an enemy, or a stat_changed raising an enemy's Swole
 ##                        (task 017's gain_swole, task 021's gain_stat; BUFF_EVENTS, BUFF_STATS).
 ##   "enemy_grossed_out": an enemy was Grossed Out (a grossed_out event).
+##   "self_damaged":      task 037 (Tough Skull). A Dude took damage from a self_damage effect of a
+##                        card they played (Skull Bash, Pickup Line): a damage_dealt event with no
+##                        source and that Dude as the target, above 0 even if Guard took all of it.
+##                        core/ops/ops.gd passes that Dude's id only for a played card's
+##                        self_damage (Ops.PLAYED_CARD_KEY), so enemies, Burn, Bedbugs, Gear and
+##                        Power effects never fire it. Only that Dude's own Powers fire.
 ## Order: by the events in the order they happened; for each, Dudes in seat order, each Dude's
 ## Powers oldest first, each Power's triggers in definition order. Two copies of one Power both
 ## fire. A Passed Out Dude's Powers do not fire.
@@ -48,6 +54,9 @@ const WHEN_ENEMY_BUFFED: String = "enemy_buffed"
 ## See WHEN_TURN_START.
 const WHEN_ENEMY_GROSSED_OUT: String = "enemy_grossed_out"
 
+## See WHEN_TURN_START. Task 037.
+const WHEN_SELF_DAMAGED: String = "self_damaged"
+
 
 ## Returns the triggers that fire because of the events from index from on, in order (see the
 ## file header). Each is a record for core/ops/ops.gd fire_power_triggers_in_place:
@@ -55,7 +64,10 @@ const WHEN_ENEMY_GROSSED_OUT: String = "enemy_grossed_out"
 ##  "subject_id": the enemy uid it is about, "target": the trigger's target, "effects": its effects}.
 ## ruleset: the read-only content. state: the run state, in a fight. events: the event list.
 ## from: index of the first event to look at, 0..events.size().
-static func reactions(ruleset: Dictionary, state: Dictionary, events: Array, from: int) -> Array:
+## self_damaged_id: task 037, the player_id of the Dude whose played card's self_damage effect emitted
+## these events, so a damage_dealt with no source on that Dude fires their "self_damaged" Powers; ""
+## (the default) for every other effect, which never fires them.
+static func reactions(ruleset: Dictionary, state: Dictionary, events: Array, from: int, self_damaged_id: String = "") -> Array:
 	# records: the result.
 	var records: Array = []
 	for i: int in range(from, events.size()):
@@ -67,18 +79,24 @@ static func reactions(ruleset: Dictionary, state: Dictionary, events: Array, fro
 			records.append_array(matching(ruleset, state, WHEN_ENEMY_BUFFED, event[BUFF_EVENTS[event["type"]]]))
 		elif event["type"] == "grossed_out":
 			records.append_array(matching(ruleset, state, WHEN_ENEMY_GROSSED_OUT, event["enemy_uid"]))
+		elif self_damaged_id != "" and event["type"] == "damage_dealt" and event["source_id"] == "" \
+				and event["target_id"] == self_damaged_id and event["amount"] > 0:
+			records.append_array(matching(ruleset, state, WHEN_SELF_DAMAGED, "", self_damaged_id))
 	return records
 
 
 ## Returns the records (see reactions()) of every active Power trigger with this when, for Dudes
 ## that are not Passed Out, in the order in the file header.
 ## ruleset: the read-only content. state: the run state. when: one of card_def.gd POWER_WHENS.
-## subject_id: the enemy uid the trigger is about, "" for turn_start.
-static func matching(ruleset: Dictionary, state: Dictionary, when: String, subject_id: String) -> Array:
+## subject_id: the enemy uid the trigger is about, "" for turn_start and self_damaged.
+## only_player_id: task 037, a player_id to look at that Dude's Powers only (self_damaged); "" (the
+## default) looks at every Dude's.
+static func matching(ruleset: Dictionary, state: Dictionary, when: String, subject_id: String,
+		only_player_id: String = "") -> Array:
 	# records: the result.
 	var records: Array = []
 	for dude: Dictionary in state["dudes"]:
-		if dude["passed_out"]:
+		if dude["passed_out"] or (only_player_id != "" and dude["player_id"] != only_player_id):
 			continue
 		for uid: String in dude["powers"]:
 			# definition: the Power card's definition, or {} if the ruleset lacks it. Task 025: upgraded when Lifted.
