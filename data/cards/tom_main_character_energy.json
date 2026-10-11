@@ -22,6 +22,8 @@
   ],
   "keywords": [],
   "crunch": null,
-  "upgrade": {},
+  "upgrade": {
+    "cost": 1
+  },
   "text": "Whenever an enemy is Grossed Out, break 1 of its arms"
 }

@@ -18,6 +18,9 @@
   ],
   "keywords": [],
   "crunch": null,
-  "upgrade": {},
+  "upgrade": {
+    "effects[0].amount": 14,
+    "text": "Deal 14 damage. Tom takes 2 damage"
+  },
   "text": "Deal 10 damage. Tom takes 2 damage"
 }

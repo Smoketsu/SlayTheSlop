@@ -22,6 +22,9 @@
   ],
   "keywords": [],
   "crunch": null,
-  "upgrade": {},
+  "upgrade": {
+    "power_triggers[0].effects[0].stacks": 3,
+    "text": "Whenever an enemy gains a buff, apply 3 Ick to it"
+  },
   "text": "Whenever an enemy gains a buff, apply 2 Ick to it"
 }

@@ -16,96 +16,97 @@ const Snapshot := preload("res://core/run/save/snapshot.gd")
 const RunState := preload("res://core/schema/run_state.gd")
 
 ## The 16 new cards exactly as accepted in tom-slice-cards.md ("New cards"), card id -> definition.
-## Numbers, text, rarity, target and keywords are the proposal's. "upgrade" is {} because the
-## proposal's upgrade tables are not accepted yet (only the 16 cards are). Changed only when a person
-## changes a card in the proposal or the decision log.
+## Numbers, text, rarity, target and keywords are the proposal's. "upgrade" is the proposal's accepted
+## upgrade (decision log row "Task 012: upgrades, Q1 and Q2", #103), plus the upgraded "text" when the
+## upgrade changes a number in the text (task 032; tests/data/test_tom_upgrades.gd checks each one).
+## Changed only when a person changes a card or an upgrade in the proposal or the decision log.
 const ACCEPTED := {
 	# Common, Repellent: Deal 4 damage. Apply 1 Ick.
 	"tom_noogie": {"id": "tom_noogie", "name": "Noogie", "owner": "tom", "type": "attack", "rarity": "common",
 		"cost": 0, "target": "enemy",
 		"effects": [{"op": "damage", "amount": 4}, {"op": "apply_status", "status": "ick", "stacks": 1}],
-		"keywords": [], "crunch": null, "upgrade": {}, "text": "Deal 4 damage. Apply 1 Ick"},
+		"keywords": [], "crunch": null, "upgrade": {"effects[0].amount": 6, "effects[1].stacks": 2, "text": "Deal 6 damage. Apply 2 Ick"}, "text": "Deal 4 damage. Apply 1 Ick"},
 	# Common, Orthopedic Surgeon: Deal 7 damage; 1 Noodle Arms if the target has a Broken Arm.
 	"tom_headlock": {"id": "tom_headlock", "name": "Headlock", "owner": "tom", "type": "attack", "rarity": "common",
 		"cost": 1, "target": "enemy",
 		"effects": [{"op": "damage", "amount": 7},
 			{"op": "apply_status", "status": "noodle_arms", "stacks": 1, "if": "target_has_broken_arm"}],
-		"keywords": [], "crunch": null, "upgrade": {},
+		"keywords": [], "crunch": null, "upgrade": {"effects[0].amount": 10, "text": "Deal 10 damage. If the target has a Broken Arm, apply 1 Noodle Arms"},
 		"text": "Deal 7 damage. If the target has a Broken Arm, apply 1 Noodle Arms"},
 	# Common, Repellent: Apply 3 Ick. Draw 1 card.
 	"tom_hot_take": {"id": "tom_hot_take", "name": "Hot Take", "owner": "tom", "type": "skill", "rarity": "common",
 		"cost": 1, "target": "enemy",
 		"effects": [{"op": "apply_status", "status": "ick", "stacks": 3}, {"op": "draw", "amount": 1}],
-		"keywords": [], "crunch": null, "upgrade": {}, "text": "Apply 3 Ick. Draw 1 card"},
+		"keywords": [], "crunch": null, "upgrade": {"effects[0].stacks": 5, "text": "Apply 5 Ick. Draw 1 card"}, "text": "Apply 3 Ick. Draw 1 card"},
 	# Common, Repellent: Gain 5 Guard (on Tom, the actor). Apply 2 Ick.
 	"tom_stare_down": {"id": "tom_stare_down", "name": "Stare Down", "owner": "tom", "type": "skill", "rarity": "common",
 		"cost": 1, "target": "enemy",
 		"effects": [{"op": "guard", "amount": 5}, {"op": "apply_status", "status": "ick", "stacks": 2}],
-		"keywords": [], "crunch": null, "upgrade": {}, "text": "Gain 5 Guard. Apply 2 Ick"},
+		"keywords": [], "crunch": null, "upgrade": {"effects[0].amount": 8, "text": "Gain 8 Guard. Apply 2 Ick"}, "text": "Gain 5 Guard. Apply 2 Ick"},
 	# Common, Head First: Deal 5 damage twice. Tom takes 2 damage.
 	"tom_noggin_knock": {"id": "tom_noggin_knock", "name": "Noggin Knock", "owner": "tom", "type": "attack", "rarity": "common",
 		"cost": 1, "target": "enemy",
 		"effects": [{"op": "damage", "amount": 5, "hits": 2}, {"op": "self_damage", "amount": 2}],
-		"keywords": [], "crunch": null, "upgrade": {}, "text": "Deal 5 damage twice. Tom takes 2 damage"},
+		"keywords": [], "crunch": null, "upgrade": {"effects[0].amount": 7, "text": "Deal 7 damage twice. Tom takes 2 damage"}, "text": "Deal 5 damage twice. Tom takes 2 damage"},
 	# Common Assist, General: the picked Dude gains 7 Guard (ally targets from task 035, #96).
 	"tom_bro_hug": {"id": "tom_bro_hug", "name": "Bro Hug", "owner": "tom", "type": "skill", "rarity": "common",
 		"cost": 1, "target": "ally", "effects": [{"op": "guard", "amount": 7}],
-		"keywords": ["assist"], "crunch": null, "upgrade": {}, "text": "Target Dude gains 7 Guard"},
+		"keywords": ["assist"], "crunch": null, "upgrade": {"effects[0].amount": 10, "text": "Target Dude gains 10 Guard"}, "text": "Target Dude gains 7 Guard"},
 	# Uncommon, Orthopedic Surgeon: Break 1 arm. Apply 2 Exposed.
 	"tom_dislocate": {"id": "tom_dislocate", "name": "Dislocate", "owner": "tom", "type": "skill", "rarity": "uncommon",
 		"cost": 1, "target": "enemy",
 		"effects": [{"op": "apply_status", "status": "broken_arm", "stacks": 1},
 			{"op": "apply_status", "status": "exposed", "stacks": 2}],
-		"keywords": [], "crunch": null, "upgrade": {}, "text": "Break 1 arm. Apply 2 Exposed"},
+		"keywords": [], "crunch": null, "upgrade": {"cost": 0}, "text": "Break 1 arm. Apply 2 Exposed"},
 	# Uncommon, Orthopedic Surgeon: 6 damage, 6 more on a Broken Arm, 6 more on an Armless target.
 	"tom_compound_fracture": {"id": "tom_compound_fracture", "name": "Compound Fracture", "owner": "tom", "type": "attack",
 		"rarity": "uncommon", "cost": 2, "target": "enemy",
 		"effects": [{"op": "damage", "amount": 6}, {"op": "damage", "amount": 6, "if": "target_has_broken_arm"},
 			{"op": "damage", "amount": 6, "if": "target_now_armless"}],
-		"keywords": [], "crunch": null, "upgrade": {},
+		"keywords": [], "crunch": null, "upgrade": {"effects[0].amount": 9, "text": "Deal 9 damage. If the target has a Broken Arm, deal 6 more. If it is Armless, deal 6 more"},
 		"text": "Deal 6 damage. If the target has a Broken Arm, deal 6 more. If it is Armless, deal 6 more"},
 	# Uncommon, Repellent: Apply 7 Ick.
 	"tom_story_time": {"id": "tom_story_time", "name": "Story Time", "owner": "tom", "type": "skill", "rarity": "uncommon",
 		"cost": 2, "target": "enemy", "effects": [{"op": "apply_status", "status": "ick", "stacks": 7}],
-		"keywords": [], "crunch": null, "upgrade": {}, "text": "Apply 7 Ick"},
+		"keywords": [], "crunch": null, "upgrade": {"effects[0].stacks": 10, "text": "Apply 10 Ick"}, "text": "Apply 7 Ick"},
 	# Uncommon, General: 2 Swole for this fight, 1 Ick to every enemy, Tapped.
 	"tom_gym_selfie": {"id": "tom_gym_selfie", "name": "Gym Selfie", "owner": "tom", "type": "skill", "rarity": "uncommon",
 		"cost": 1, "target": "self",
 		"effects": [{"op": "gain_stat", "stat": "swole", "amount": 2, "duration": "fight"},
 			{"op": "apply_status", "status": "ick", "stacks": 1, "target": "all_enemies"}],
-		"keywords": ["tapped"], "crunch": null, "upgrade": {},
+		"keywords": ["tapped"], "crunch": null, "upgrade": {"effects[0].amount": 3, "text": "Gain 3 Swole for this fight. Apply 1 Ick to all enemies. Tapped"},
 		"text": "Gain 2 Swole for this fight. Apply 1 Ick to all enemies. Tapped"},
 	# Uncommon, Head First: Deal 18 damage. Tom takes 4 damage.
 	"tom_headbutt": {"id": "tom_headbutt", "name": "Headbutt", "owner": "tom", "type": "attack", "rarity": "uncommon",
 		"cost": 2, "target": "enemy",
 		"effects": [{"op": "damage", "amount": 18}, {"op": "self_damage", "amount": 4}],
-		"keywords": [], "crunch": null, "upgrade": {}, "text": "Deal 18 damage. Tom takes 4 damage"},
+		"keywords": [], "crunch": null, "upgrade": {"effects[0].amount": 23, "text": "Deal 23 damage. Tom takes 4 damage"}, "text": "Deal 18 damage. Tom takes 4 damage"},
 	# Uncommon Power, Head First: whenever Tom takes damage from his own card's self_damage, he gains
 	# 3 Guard (self_damaged Power trigger from task 037, #97).
 	"tom_tough_skull": {"id": "tom_tough_skull", "name": "Tough Skull", "owner": "tom", "type": "power",
 		"rarity": "uncommon", "cost": 1, "target": "none", "effects": [],
 		"power_triggers": [{"when": "self_damaged", "target": "self", "effects": [{"op": "guard", "amount": 3}]}],
-		"keywords": [], "crunch": null, "upgrade": {},
+		"keywords": [], "crunch": null, "upgrade": {"power_triggers[0].effects[0].amount": 5, "text": "Whenever Tom takes damage from his own card, gain 5 Guard"},
 		"text": "Whenever Tom takes damage from his own card, gain 3 Guard"},
 	# Rare, Orthopedic Surgeon: Deal 10 damage. Break 2 arms (capped at the enemy's arm_count).
 	"tom_full_nelson": {"id": "tom_full_nelson", "name": "Full Nelson", "owner": "tom", "type": "attack", "rarity": "rare",
 		"cost": 3, "target": "enemy",
 		"effects": [{"op": "damage", "amount": 10}, {"op": "apply_status", "status": "broken_arm", "stacks": 2}],
-		"keywords": [], "crunch": null, "upgrade": {}, "text": "Deal 10 damage. Break 2 arms"},
+		"keywords": [], "crunch": null, "upgrade": {"effects[0].amount": 15, "text": "Deal 15 damage. Break 2 arms"}, "text": "Deal 10 damage. Break 2 arms"},
 	# Rare, Repellent: Apply 12 Ick. Tapped.
 	"tom_three_hour_podcast": {"id": "tom_three_hour_podcast", "name": "Three-Hour Podcast", "owner": "tom", "type": "skill",
 		"rarity": "rare", "cost": 2, "target": "enemy", "effects": [{"op": "apply_status", "status": "ick", "stacks": 12}],
-		"keywords": ["tapped"], "crunch": null, "upgrade": {}, "text": "Apply 12 Ick. Tapped"},
+		"keywords": ["tapped"], "crunch": null, "upgrade": {"cost": 1}, "text": "Apply 12 Ick. Tapped"},
 	# Rare Power, Orthopedic Surgeon and Repellent: whenever an enemy is Grossed Out, break 1 of its arms.
 	"tom_main_character_energy": {"id": "tom_main_character_energy", "name": "Main Character Energy", "owner": "tom",
 		"type": "power", "rarity": "rare", "cost": 2, "target": "none", "effects": [],
 		"power_triggers": [{"when": "enemy_grossed_out", "target": "subject",
 			"effects": [{"op": "apply_status", "status": "broken_arm", "stacks": 1}]}],
-		"keywords": [], "crunch": null, "upgrade": {}, "text": "Whenever an enemy is Grossed Out, break 1 of its arms"},
+		"keywords": [], "crunch": null, "upgrade": {"cost": 1}, "text": "Whenever an enemy is Grossed Out, break 1 of its arms"},
 	# Rare, Head First: damage equal to Tom's missing HP, at most 30, Tapped (op from task 039, #93).
 	"tom_nothing_to_lose": {"id": "tom_nothing_to_lose", "name": "Nothing to Lose", "owner": "tom", "type": "attack",
 		"rarity": "rare", "cost": 2, "target": "enemy", "effects": [{"op": "damage_from_missing_hp", "cap": 30}],
-		"keywords": ["tapped"], "crunch": null, "upgrade": {},
+		"keywords": ["tapped"], "crunch": null, "upgrade": {"cost": 1},
 		"text": "Deal damage equal to the HP Tom is missing, up to 30. Tapped"},
 }
 

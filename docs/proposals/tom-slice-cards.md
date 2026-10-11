@@ -61,7 +61,7 @@ Effects are written as data, in the format of `core/ops/README.md`. "Joke" says 
 - Effects: `damage` 4; `apply_status` `ick` 1
 - Joke: Tom, who thinks a noogie is a love language.
 
-Answer:
+Answer: accept (Smoketsu, Person A, and steamjgrube, Person B, 2026-10-11; #91 for the cards, #103 for upgrades and Q1/Q2)
 
 #### `tom_headlock`: Headlock
 - Attack · cost 1 · common · target `enemy` · Orthopedic Surgeon
@@ -69,7 +69,7 @@ Answer:
 - Effects: `damage` 7; `{"op": "apply_status", "status": "noodle_arms", "stacks": 1, "if": "target_has_broken_arm"}`
 - Joke: the monster, held at an angle no chiropractor approves of.
 
-Answer:
+Answer: accept (Smoketsu, Person A, and steamjgrube, Person B, 2026-10-11; #91 for the cards, #103 for upgrades and Q1/Q2)
 
 #### `tom_hot_take`: Hot Take
 - Skill · cost 1 · common · target `enemy` · Repellent
@@ -77,7 +77,7 @@ Answer:
 - Effects: `apply_status` `ick` 3; `draw` 1
 - Joke: Tom, sharing an opinion nobody in the dungeon asked for.
 
-Answer:
+Answer: accept (Smoketsu, Person A, and steamjgrube, Person B, 2026-10-11; #91 for the cards, #103 for upgrades and Q1/Q2)
 
 #### `tom_stare_down`: Stare Down
 - Skill · cost 1 · common · target `enemy` · Repellent
@@ -85,7 +85,7 @@ Answer:
 - Effects: `guard` 5 (always lands on Tom); `apply_status` `ick` 2
 - Joke: Tom, who blinks less than is comfortable.
 
-Answer:
+Answer: accept (Smoketsu, Person A, and steamjgrube, Person B, 2026-10-11; #91 for the cards, #103 for upgrades and Q1/Q2)
 
 #### `tom_noggin_knock`: Noggin Knock
 - Attack · cost 1 · common · target `enemy` · Head First
@@ -93,7 +93,7 @@ Answer:
 - Effects: `{"op": "damage", "amount": 5, "hits": 2}`; `self_damage` 2
 - Joke: Tom's bald head, which is load-bearing.
 
-Answer:
+Answer: accept (Smoketsu, Person A, and steamjgrube, Person B, 2026-10-11; #91 for the cards, #103 for upgrades and Q1/Q2)
 
 #### `tom_bro_hug`: Bro Hug
 - Skill, Assist · cost 1 · common · target `ally` · keywords `assist` · General
@@ -102,7 +102,7 @@ Answer:
   (see "Ops this needs from Agent A", item 1).
 - Joke: Tom, whose hugs last two beats too long.
 
-Answer:
+Answer: accept (Smoketsu, Person A, and steamjgrube, Person B, 2026-10-11; #91 for the cards, #103 for upgrades and Q1/Q2)
 
 ### Uncommon
 
@@ -112,7 +112,7 @@ Answer:
 - Effects: `apply_status` `broken_arm` 1; `apply_status` `exposed` 2
 - Joke: the monster, now holding its own elbow.
 
-Answer:
+Answer: accept (Smoketsu, Person A, and steamjgrube, Person B, 2026-10-11; #91 for the cards, #103 for upgrades and Q1/Q2)
 
 #### `tom_compound_fracture`: Compound Fracture
 - Attack · cost 2 · uncommon · target `enemy` · Orthopedic Surgeon
@@ -121,7 +121,7 @@ Answer:
   `{"op": "damage", "amount": 6, "if": "target_now_armless"}`
 - Joke: the monster, whose healthcare plan does not cover this.
 
-Answer:
+Answer: accept (Smoketsu, Person A, and steamjgrube, Person B, 2026-10-11; #91 for the cards, #103 for upgrades and Q1/Q2)
 
 #### `tom_story_time`: Story Time
 - Skill · cost 2 · uncommon · target `enemy` · Repellent
@@ -129,7 +129,7 @@ Answer:
 - Effects: `apply_status` `ick` 7
 - Joke: Tom, forty minutes into a story about his own protein intake.
 
-Answer:
+Answer: accept (Smoketsu, Person A, and steamjgrube, Person B, 2026-10-11; #91 for the cards, #103 for upgrades and Q1/Q2)
 
 #### `tom_gym_selfie`: Gym Selfie
 - Skill · cost 1 · uncommon · target `self` · keywords `tapped` · General
@@ -138,7 +138,7 @@ Answer:
   `{"op": "apply_status", "status": "ick", "stacks": 1, "target": "all_enemies"}`
 - Joke: Tom, posing mid-fight.
 
-Answer:
+Answer: accept (Smoketsu, Person A, and steamjgrube, Person B, 2026-10-11; #91 for the cards, #103 for upgrades and Q1/Q2)
 
 #### `tom_headbutt`: Headbutt
 - Attack · cost 2 · uncommon · target `enemy` · Head First
@@ -146,7 +146,7 @@ Answer:
 - Effects: `damage` 18; `self_damage` 4
 - Joke: Tom, solving a problem the only way he knows.
 
-Answer:
+Answer: accept (Smoketsu, Person A, and steamjgrube, Person B, 2026-10-11; #91 for the cards, #103 for upgrades and Q1/Q2)
 
 #### `tom_tough_skull`: Tough Skull
 - Power · cost 1 · uncommon · target `none` · Head First
@@ -155,7 +155,7 @@ Answer:
   **Needs Agent A:** a new trigger, `self_damaged` (item 2).
 - Joke: Tom, who has learned nothing.
 
-Answer:
+Answer: accept (Smoketsu, Person A, and steamjgrube, Person B, 2026-10-11; #91 for the cards, #103 for upgrades and Q1/Q2)
 
 ### Rare
 
@@ -166,7 +166,7 @@ Answer:
   leaves most floor 1 enemies Armless)
 - Joke: the monster, folded like a lawn chair.
 
-Answer:
+Answer: accept (Smoketsu, Person A, and steamjgrube, Person B, 2026-10-11; #91 for the cards, #103 for upgrades and Q1/Q2)
 
 #### `tom_three_hour_podcast`: Three-Hour Podcast
 - Skill · cost 2 · rare · target `enemy` · keywords `tapped` · Repellent
@@ -175,7 +175,7 @@ Answer:
   at its starting threshold; co-op thresholds scale up)
 - Joke: Tom's podcast, whose one listener is a smart speaker he forgot to turn off.
 
-Answer:
+Answer: accept (Smoketsu, Person A, and steamjgrube, Person B, 2026-10-11; #91 for the cards, #103 for upgrades and Q1/Q2)
 
 #### `tom_nothing_to_lose`: Nothing to Lose
 - Attack · cost 2 · rare · target `enemy` · keywords `tapped` · Head First
@@ -183,7 +183,7 @@ Answer:
 - Effects: **needs Agent A:** a new op, `damage_from_missing_hp` (item 3).
 - Joke: Tom, who confuses being hurt with being right.
 
-Answer:
+Answer: accept (Smoketsu, Person A, and steamjgrube, Person B, 2026-10-11; #91 for the cards, #103 for upgrades and Q1/Q2)
 
 #### `tom_main_character_energy`: Main Character Energy
 - Power · cost 2 · rare · target `none` · Orthopedic Surgeon and Repellent
@@ -191,7 +191,7 @@ Answer:
 - Effects: `[]`; `power_triggers: [{"when": "enemy_grossed_out", "target": "subject", "effects": [apply_status broken_arm 1]}]`
 - Joke: Tom, narrating his own victory to people who are trying to leave.
 
-Answer:
+Answer: accept (Smoketsu, Person A, and steamjgrube, Person B, 2026-10-11; #91 for the cards, #103 for upgrades and Q1/Q2)
 
 ## Upgrades
 
@@ -217,7 +217,7 @@ GDD's: 8 to 11 damage. Pattern: about +3 damage, +3 Guard, +1 to +2 Ick, or −1
 | Double Arm Day | `{"effects[0].amount": 12, "effects[2].amount": 12}` | 9 → 12 per hit |
 | Friend Zone | `{"cost": 1}` | cost 2 → 1 |
 
-Answer:
+Answer: accept (Smoketsu, Person A, and steamjgrube, Person B, 2026-10-11; #91 for the cards, #103 for upgrades and Q1/Q2)
 
 ### New cards
 
@@ -240,7 +240,7 @@ Answer:
 | Nothing to Lose | `{"cost": 1}` | cost 2 → 1 |
 | Main Character Energy | `{"cost": 1}` | cost 2 → 1 |
 
-Answer:
+Answer: accept (Smoketsu, Person A, and steamjgrube, Person B, 2026-10-11; #91 for the cards, #103 for upgrades and Q1/Q2)
 
 ## Ops this needs from Agent A
 
@@ -261,8 +261,8 @@ Each becomes a core task request (odd id) only if the card is accepted.
 - **Q1. Chest Bump's upgrade.** G15 doesn't cover the Bro Move, and it is never Lifted at a Tailgate
   because it's not in the deck. Suggested: no upgrade.
 
-  Answer:
+  Answer: accept (Smoketsu, Person A, and steamjgrube, Person B, 2026-10-11; #91 for the cards, #103 for upgrades and Q1/Q2)
 
 - **Q2. Assist cards.** 1 of 30 (Bro Hug). Suggested: fine for the solo slice; revisit with co-op.
 
-  Answer:
+  Answer: accept (Smoketsu, Person A, and steamjgrube, Person B, 2026-10-11; #91 for the cards, #103 for upgrades and Q1/Q2)

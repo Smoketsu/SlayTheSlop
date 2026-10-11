@@ -24,6 +24,9 @@
     "tapped"
   ],
   "crunch": null,
-  "upgrade": {},
+  "upgrade": {
+    "effects[0].amount": 3,
+    "text": "Gain 3 Swole for this fight. Apply 1 Ick to all enemies. Tapped"
+  },
   "text": "Gain 2 Swole for this fight. Apply 1 Ick to all enemies. Tapped"
 }

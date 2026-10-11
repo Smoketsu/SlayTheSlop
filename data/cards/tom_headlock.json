@@ -20,6 +20,9 @@
   ],
   "keywords": [],
   "crunch": null,
-  "upgrade": {},
+  "upgrade": {
+    "effects[0].amount": 10,
+    "text": "Deal 10 damage. If the target has a Broken Arm, apply 1 Noodle Arms"
+  },
   "text": "Deal 7 damage. If the target has a Broken Arm, apply 1 Noodle Arms"
 }

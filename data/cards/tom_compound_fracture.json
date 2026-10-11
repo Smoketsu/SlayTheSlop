@@ -24,6 +24,9 @@
   ],
   "keywords": [],
   "crunch": null,
-  "upgrade": {},
+  "upgrade": {
+    "effects[0].amount": 9,
+    "text": "Deal 9 damage. If the target has a Broken Arm, deal 6 more. If it is Armless, deal 6 more"
+  },
   "text": "Deal 6 damage. If the target has a Broken Arm, deal 6 more. If it is Armless, deal 6 more"
 }

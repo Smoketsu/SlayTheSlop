@@ -24,6 +24,9 @@
   ],
   "keywords": [],
   "crunch": null,
-  "upgrade": {},
+  "upgrade": {
+    "effects[0].amount": 18,
+    "text": "Deal 18 damage. Break 1 arm. If the target is now Armless, gain 1 Hype"
+  },
   "text": "Deal 14 damage. Break 1 arm. If the target is now Armless, gain 1 Hype"
 }

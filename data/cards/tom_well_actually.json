@@ -15,6 +15,9 @@
   ],
   "keywords": [],
   "crunch": null,
-  "upgrade": {},
+  "upgrade": {
+    "effects[0].stacks": 3,
+    "text": "Apply 3 Ick"
+  },
   "text": "Apply 2 Ick"
 }
