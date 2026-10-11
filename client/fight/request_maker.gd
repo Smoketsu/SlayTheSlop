@@ -25,6 +25,14 @@ func play_card(card_uid: String, target_id: String) -> Dictionary:
 	return _next("play_card", {"card_uid": card_uid, "target_id": target_id, "crunch": false})
 
 
+## [added, task 041] Returns the play_card request play_card() would make next, without raising the
+## counter, so the screen can ask the core whether it would be accepted (Core.validate()) and never
+## send it. crunch is false, as in play_card().
+## card_uid: the card copy in hand. target_id: the target to ask about, or "".
+func probe_play_card(card_uid: String, target_id: String) -> Dictionary:
+	return _build("play_card", {"card_uid": card_uid, "target_id": target_id, "crunch": false})
+
+
 ## Returns a set_ready request.
 ## ready: true to end the turn.
 func set_ready(ready: bool) -> Dictionary:
@@ -48,9 +56,18 @@ func use_bro_move(target_id: String = "") -> Dictionary:
 ## type: the request type. fields: that type's own fields.
 func _next(type: String, fields: Dictionary) -> Dictionary:
 	# request: the result.
+	var request: Dictionary = _build(type, fields)
+	next_seq += 1
+	return request
+
+
+## [added, task 041] Returns a request with the common fields and the current next_seq, without
+## raising the counter. _next() and probe_play_card() share it so both build the same shape.
+## type: the request type. fields: that type's own fields; not changed.
+func _build(type: String, fields: Dictionary) -> Dictionary:
+	# request: the result.
 	var request: Dictionary = fields.duplicate()
 	request["type"] = type
 	request["player_id"] = player_id
 	request["seq"] = next_seq
-	next_seq += 1
 	return request
