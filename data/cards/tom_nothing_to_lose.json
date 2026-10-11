@@ -1,0 +1,21 @@
+{
+  "id": "tom_nothing_to_lose",
+  "name": "Nothing to Lose",
+  "owner": "tom",
+  "type": "attack",
+  "rarity": "rare",
+  "cost": 2,
+  "target": "enemy",
+  "effects": [
+    {
+      "op": "damage_from_missing_hp",
+      "cap": 30
+    }
+  ],
+  "keywords": [
+    "tapped"
+  ],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Deal damage equal to the HP Tom is missing, up to 30. Tapped"
+}

@@ -1,0 +1,21 @@
+{
+  "id": "tom_bro_hug",
+  "name": "Bro Hug",
+  "owner": "tom",
+  "type": "skill",
+  "rarity": "common",
+  "cost": 1,
+  "target": "ally",
+  "effects": [
+    {
+      "op": "guard",
+      "amount": 7
+    }
+  ],
+  "keywords": [
+    "assist"
+  ],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Target Dude gains 7 Guard"
+}

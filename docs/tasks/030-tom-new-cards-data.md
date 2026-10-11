@@ -4,7 +4,7 @@ title: Tom's new cards as data (the 13 whose ops exist)
 lane: content
 owner: B
 status: in_review
-branch: b/030-tom-new-cards
+branch: b/030-tom-new-cards (PR #95, merged), then b/030-nothing-to-lose
 depends_on: [012, 013]
 blocked_on: []
 files:
@@ -79,3 +79,16 @@ common, uncommon or rare, `core/run/pools.gd`) and can be offered as rewards and
   broke. `tests/data/test_tom_data.gd` `test_only_arm_bar_upgrades` covers the new files too.
   Verified: `tools/test.sh` -> 475 passed, 0 failed. Not done: Bro Hug, Tough Skull and Nothing to
   Lose (tasks 035, 037, 039); upgrade values (the upgrade tables are not accepted).
+- 2026-10-11 B: #95 merged with 13 cards. On `b/030-nothing-to-lose` (from main after #93 and #96):
+  added `tom_nothing_to_lose` (op `damage_from_missing_hp`, `cap` 30, task 039) and `tom_bro_hug`
+  (`target: "ally"`, keyword `assist`, task 035), each exactly as the proposal, `"upgrade": {}`.
+  15 of 16 now; Tough Skull still waits for task 037. `tests/data/test_tom_new_cards.gd`: both in
+  `ACCEPTED`, `WAITING` holds only Tough Skull, `POOL_SIZES` common 10, uncommon 9, rare 6; new
+  checks through `Core.apply` on the real data: Nothing to Lose deals 20 to a Goblin Bouncer with
+  Tom at 60/80 and is capped at 30 at 30/80 (and goes to the Tapped pile); Bro Hug aimed at Tom's
+  own `player_id` gives him 7 Guard (no Chill). The fight policy may now also aim a card at Tom's
+  own `player_id` (for ally cards). The fixed-seed fight deck is built from `ACCEPTED`, so it was
+  re-recorded: `RECORDED` ["won", 6, 21, 71] -> ["won", 6, 20, 69]; `RECORDED_PLAYED` 11 of 13 ->
+  10 of 15 (adds Bro Hug and Headbutt; drops Hot Take, Story Time and Main Character Energy).
+  Verified: `tools/test.sh` -> 488 passed, 0 failed. Not done: Tough Skull (task 037); upgrade
+  values.
