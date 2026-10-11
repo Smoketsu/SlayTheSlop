@@ -1,0 +1,24 @@
+{
+  "id": "tom_hot_take",
+  "name": "Hot Take",
+  "owner": "tom",
+  "type": "skill",
+  "rarity": "common",
+  "cost": 1,
+  "target": "enemy",
+  "effects": [
+    {
+      "op": "apply_status",
+      "status": "ick",
+      "stacks": 3
+    },
+    {
+      "op": "draw",
+      "amount": 1
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Apply 3 Ick. Draw 1 card"
+}

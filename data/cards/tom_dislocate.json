@@ -1,0 +1,25 @@
+{
+  "id": "tom_dislocate",
+  "name": "Dislocate",
+  "owner": "tom",
+  "type": "skill",
+  "rarity": "uncommon",
+  "cost": 1,
+  "target": "enemy",
+  "effects": [
+    {
+      "op": "apply_status",
+      "status": "broken_arm",
+      "stacks": 1
+    },
+    {
+      "op": "apply_status",
+      "status": "exposed",
+      "stacks": 2
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Break 1 arm. Apply 2 Exposed"
+}

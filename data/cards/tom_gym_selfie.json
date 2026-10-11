@@ -1,0 +1,29 @@
+{
+  "id": "tom_gym_selfie",
+  "name": "Gym Selfie",
+  "owner": "tom",
+  "type": "skill",
+  "rarity": "uncommon",
+  "cost": 1,
+  "target": "self",
+  "effects": [
+    {
+      "op": "gain_stat",
+      "stat": "swole",
+      "amount": 2,
+      "duration": "fight"
+    },
+    {
+      "op": "apply_status",
+      "status": "ick",
+      "stacks": 1,
+      "target": "all_enemies"
+    }
+  ],
+  "keywords": [
+    "tapped"
+  ],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Gain 2 Swole for this fight. Apply 1 Ick to all enemies. Tapped"
+}

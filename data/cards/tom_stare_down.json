@@ -1,0 +1,24 @@
+{
+  "id": "tom_stare_down",
+  "name": "Stare Down",
+  "owner": "tom",
+  "type": "skill",
+  "rarity": "common",
+  "cost": 1,
+  "target": "enemy",
+  "effects": [
+    {
+      "op": "guard",
+      "amount": 5
+    },
+    {
+      "op": "apply_status",
+      "status": "ick",
+      "stacks": 2
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Gain 5 Guard. Apply 2 Ick"
+}

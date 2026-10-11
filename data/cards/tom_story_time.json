@@ -1,0 +1,20 @@
+{
+  "id": "tom_story_time",
+  "name": "Story Time",
+  "owner": "tom",
+  "type": "skill",
+  "rarity": "uncommon",
+  "cost": 2,
+  "target": "enemy",
+  "effects": [
+    {
+      "op": "apply_status",
+      "status": "ick",
+      "stacks": 7
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Apply 7 Ick"
+}

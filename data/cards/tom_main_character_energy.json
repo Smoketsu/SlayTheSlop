@@ -1,0 +1,27 @@
+{
+  "id": "tom_main_character_energy",
+  "name": "Main Character Energy",
+  "owner": "tom",
+  "type": "power",
+  "rarity": "rare",
+  "cost": 2,
+  "target": "none",
+  "effects": [],
+  "power_triggers": [
+    {
+      "when": "enemy_grossed_out",
+      "target": "subject",
+      "effects": [
+        {
+          "op": "apply_status",
+          "status": "broken_arm",
+          "stacks": 1
+        }
+      ]
+    }
+  ],
+  "keywords": [],
+  "crunch": null,
+  "upgrade": {},
+  "text": "Whenever an enemy is Grossed Out, break 1 of its arms"
+}
