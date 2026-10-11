@@ -8,6 +8,9 @@
 ## Writers may change any word here; keys are codes from core/schema/ and must not change.
 extends RefCounted
 
+## [added, task upgraded-card-display] The core's reader of a card copy's effective definition.
+const Upgrades := preload("res://core/combat/upgrades.gd")
+
 ## Map node types (core/schema/run_state.gd map node "type") -> the label on the map. Changed only
 ## by the client lane. A type missing here shows as the code itself.
 const NODE_LABELS := {
@@ -184,14 +187,19 @@ static func shake_text(ruleset: Dictionary, brew_id: String) -> String:
 
 
 ## Returns the display name of one of a Dude's card copies, with UPGRADED_MARK when it is Lifted.
+## Task upgraded-card-display: the name comes from the copy's effective definition (core/combat/
+## upgrades.gd definition_of(), upgraded for a Lifted copy), falling back to the base definition's
+## name, then the def_id, so it matches the fight screen's hand (client/fight/fight_model.gd).
 ## ruleset: the read-only content. dude: the Dude holding it. card_uid: a key of dude["cards"].
 static func card_copy_name(ruleset: Dictionary, dude: Dictionary, card_uid: String) -> String:
 	# copy: the card instance, or {} for an unknown uid.
 	var copy: Dictionary = dude["cards"].get(card_uid, {})
 	# def_id: its definition id, or the uid when unknown.
 	var def_id: String = copy.get("def_id", card_uid)
-	# name: the definition's name.
-	var name: String = ruleset.get("cards", {}).get(def_id, {}).get("name", def_id)
+	# base_name: the base definition's name, or the def_id.
+	var base_name: String = ruleset.get("cards", {}).get(def_id, {}).get("name", def_id)
+	# name: the effective definition's name, or base_name when the copy has no usable definition.
+	var name: String = base_name if copy.is_empty() else Upgrades.definition_of(ruleset, dude, card_uid).get("name", base_name)
 	return name + (UPGRADED_MARK if copy.get("upgraded", false) else "")
 
 

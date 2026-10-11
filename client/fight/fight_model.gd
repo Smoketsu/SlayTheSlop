@@ -6,6 +6,10 @@
 extends RefCounted
 
 const Messages := preload("res://client/fight/messages.gd")
+## [added, task upgraded-card-display] The core's reader of a card copy's effective definition.
+const Upgrades := preload("res://core/combat/upgrades.gd")
+## [added, task upgraded-card-display] Holds UPGRADED_MARK, the "+" shown after a Lifted copy's name.
+const RunText := preload("res://client/run/run_text.gd")
 
 
 ## Returns the display model of the fight:
@@ -65,22 +69,29 @@ static func _dude(ruleset: Dictionary, dude: Dictionary, player_id: String) -> D
 	}
 
 
-## One card in hand: {"card_uid", "def_id", "name", "cost": "1" / "X" / "-", "text", "target"}.
+## One card in hand: {"card_uid", "def_id", "name", "cost": "1" / "X" / "-", "text", "target",
+## "upgraded"}. Task upgraded-card-display: name, cost, text and target come from the copy's effective
+## definition (core/combat/upgrades.gd definition_of(): the upgraded definition for a Lifted copy),
+## and a Lifted copy's name ends with RunText.UPGRADED_MARK, as in the run screens' card lists.
 ## ruleset: content. dude: the card's owner. uid: the card copy.
 static func _card(ruleset: Dictionary, dude: Dictionary, uid: String) -> Dictionary:
 	# def_id: which card this copy is.
 	var def_id: String = dude["cards"][uid]["def_id"]
-	# card: its definition, or {} if the ruleset lacks it.
-	var card: Dictionary = ruleset["cards"].get(def_id, {})
+	# upgraded: true when this copy is Lifted (dude_state cards[uid].upgraded, set by the core only).
+	var upgraded: bool = dude["cards"][uid].get("upgraded", false)
+	# card: the copy's effective definition, or {} if the ruleset lacks it or a Lifted copy's upgrade
+	# does not apply (the core then refuses the card as unplayable).
+	var card: Dictionary = Upgrades.definition_of(ruleset, dude, uid)
 	# cost: the raw cost.
 	var cost: Variant = card.get("cost", -1)
 	return {
 		"card_uid": uid,
 		"def_id": def_id,
-		"name": card.get("name", def_id),
+		"name": card.get("name", def_id) + (RunText.UPGRADED_MARK if upgraded else ""),
 		"cost": "X" if typeof(cost) == TYPE_STRING else ("-" if cost < 0 else str(cost)),
 		"text": card.get("text", ""),
 		"target": card.get("target", "none"),
+		"upgraded": upgraded,
 	}
 
 
