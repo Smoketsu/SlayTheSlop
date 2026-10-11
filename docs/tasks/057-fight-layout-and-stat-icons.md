@@ -3,8 +3,8 @@ id: 057
 title: Fight layout - characters stand on the floor, stats as icons instead of text
 lane: client
 owner: B
-status: open
-branch:
+status: in_progress
+branch: b/057-fight-layout
 depends_on: [028]
 blocked_on: []
 files:
@@ -92,3 +92,4 @@ GDD "Turn flow", "Stats", "Statuses", "Enemies" (intents), "Bro Meter"; `client/
 
 - 2026-10-11 A: Written for Agent B from Smoketsu's feedback on the fight screen screenshot.
   Unclaimed.
+- 2026-10-11 B: Claimed. Work starts once 041 (#112) merges, since both rework `fight_screen.gd`.
