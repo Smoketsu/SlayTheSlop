@@ -449,6 +449,24 @@ The release of a charge (Goblin King Chad's Keg Stand). File: `core/ops/charged_
 
 Example: `{ "op": "charged_hit", "amount": 30, "cut_per_helper_lost": 10 }`.
 
+### `damage_from_missing_hp`
+
+A hit whose base damage is the actor's missing HP (Nothing to Lose). File:
+`core/ops/damage_from_missing_hp.gd`. Task 039.
+
+| Field | Type | Meaning |
+| --- | --- | --- |
+| `cap` | int, 0 or more | The most base damage the hit can have (Nothing to Lose: 30). Data on the card, not a constant |
+
+- **Base damage:** the actor's `max_hp − hp` when the effect runs (after the card's earlier
+  effects), capped at `cap`, never below 0. An actor at full HP hits with a base of 0.
+- **Lands on:** `targets`, as one `damage` hit of that base, so on an Attack card it is attack damage
+  (G3): Swole, Noodle Arms and Exposed apply in the damage order, and Guard absorbs it. A Swole Dude
+  at full HP still deals their Swole. Events as for `damage`.
+- **Enemy intents:** needs a target. No enemy uses it.
+
+Example: `{ "op": "damage_from_missing_hp", "cap": 30 }` (Nothing to Lose).
+
 ## Powers (task 013)
 
 A card of `type: "power"` is played like any card (cost, `card_played`, its `effects` if any),
