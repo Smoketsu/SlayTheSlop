@@ -27,7 +27,7 @@
     "meaning": "Guard multiplier for a Hungover Dude, applied to Guard gained from cards."
   },
   "BROKEN_ARM_MAX_REDUCTION": {
-    "value": 0.4,
+    "value": 0.3,
     "unit": "fraction of attack damage",
     "meaning": "Attack reduction when every arm is broken. With k of n arms broken an enemy's attack damage is multiplied by 1 - BROKEN_ARM_MAX_REDUCTION * k / n (step 3 of the damage order)."
   },

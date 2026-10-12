@@ -23,7 +23,9 @@ const SCRIPT_CHAD_MOVES: Array = ["keg_stand", "keg_stand", "keg_stand_chug", "p
 ## lead when stacked on tasks 013, 015 and 021 (their state fields and the solo Bro Meter change the
 ## bytes); the result, move sequence and hits asserted above were unchanged.
 ## Re-recorded by task 025 (SCHEMA_VERSION 8, the run-flow fields); everything asserted above unchanged.
-const SCRIPT_HASH: String = "49845798a92a24fe925a600ee0671d1755f047d2f7c4aa499d67ca52a997cfba"
+## Re-recorded on 2026-10-12 for BROKEN_ARM_MAX_REDUCTION 0.4 -> 0.3 (Smoketsu): Chad's hits are now
+## [17, 10, 8, 4 x6] (asserted above); result, move sequence and RECORDED unchanged.
+const SCRIPT_HASH: String = "2753707ec7638ddc2d16730679fcd4f3426cdd48b855e8d199aa5286ba2a20b8"
 
 
 ## Returns a solo fight against Chad (and his 2 Pledges) with a sturdy Dude.
@@ -90,7 +92,7 @@ func test_keg_stand_full_hit() -> void:
 
 
 ## Each Pledge killed during the charge removes 10, and Broken Arm reduces the rest (2 arms, 1
-## broken: x 0.8): (30 - 10) x 0.8 = 16.
+## broken: x 0.85 with BROKEN_ARM_MAX_REDUCTION 0.3): (30 - 10) x 0.85 = 17.
 func test_keg_stand_cut_and_broken_arm() -> void:
 	# rules: the enemy test ruleset.
 	var rules: Dictionary = EnemyFixtures.ruleset()
@@ -112,7 +114,7 @@ func test_keg_stand_cut_and_broken_arm() -> void:
 	assert_eq(_move(result["state"], chad), "keg_stand_chug")
 	result = ready(rules, result["state"], 6)
 	assert_eq(of_type(result["events"], "damage_dealt").filter(func(e: Dictionary) -> bool: return e["source_id"] == chad)
-		.map(func(e: Dictionary) -> int: return e["amount"]), [16])
+		.map(func(e: Dictionary) -> int: return e["amount"]), [17])
 	assert_eq(_move(result["state"], chad), "paddle_swat", "turn 4: one Pledge, so no new Keg Stand")
 
 
@@ -213,7 +215,7 @@ func test_scripted_fight() -> void:
 	for event: Dictionary in of_type(first["events"], "damage_dealt"):
 		if event["source_id"] == first["chad"]:
 			chad_hits.append(event["amount"])
-	assert_eq(chad_hits, [16, 9, 7, 3, 3, 3, 3, 3, 3], "Keg Stand (30 - 10) x 0.8, Swats 12 x 0.8 and x 0.6, Rage Cages 6 x 0.6")
+	assert_eq(chad_hits, [17, 10, 8, 4, 4, 4, 4, 4, 4], "Keg Stand (30 - 10) x 0.85, Swats 12 x 0.85 and x 0.7, Rage Cages 6 x 0.7")
 	assert_true(first["events"].has(Event.make("enemy_skipped", {"enemy_uid": first["chad"], "reason": "fallen"})))
 	for move: String in ["keg_stand", "keg_stand_chug", "rush", "rage_cage"]:
 		assert_true(first["chad_moves"].has(move), "uses %s" % move)

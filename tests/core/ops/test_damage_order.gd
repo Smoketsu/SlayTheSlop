@@ -2,8 +2,9 @@
 ## combination of Noodle Arms, Broken Arm k of 2 and Exposed, with Swole and Guard, exact integers,
 ## rounding once, and G3 (only attack damage is multiplied). Lane: core (Agent A).
 ##
-## The expected numbers are worked out by hand from the GDD 0.5 constants (SLICE_VALUES). Each test
-## first checks that data/constants.json still holds those values, so a tuning change fails with a
+## The expected numbers are worked out by hand from the tuned constants (SLICE_VALUES: GDD 0.5, except
+## BROKEN_ARM_MAX_REDUCTION 0.3, set by Smoketsu on 2026-10-12). Each test first checks that
+## data/constants.json still holds those values, so a tuning change fails with a
 ## clear message ("update the table") instead of a puzzling number.
 extends "res://tests/framework/test_case.gd"
 
@@ -17,26 +18,27 @@ const RunState := preload("res://core/schema/run_state.gd")
 ## Seed for every fight in this file. Any value works; fixed so every run is the same.
 const SEED: int = 909
 
-## The constant values the hand-worked tables below assume (GDD 0.5 "Tuning constants").
-const SLICE_VALUES := {"NOODLE_MULT": 0.75, "EXPOSED_MULT": 1.5, "BROKEN_ARM_MAX_REDUCTION": 0.4}
+## The constant values the hand-worked tables below assume (GDD 0.5 "Tuning constants", with
+## BROKEN_ARM_MAX_REDUCTION retuned from 0.4 to 0.3 on 2026-10-12).
+const SLICE_VALUES := {"NOODLE_MULT": 0.75, "EXPOSED_MULT": 1.5, "BROKEN_ARM_MAX_REDUCTION": 0.3}
 
 ## Enemy attacker table: Hitter (10 damage, 2 arms) with 2 Swole -> 12 before multipliers, hitting
 ## a Dude with 3 Guard. Rows: [Noodle Arms on the enemy, arms broken k of 2, Dude Exposed,
 ## expected damage after rounding, damage if each step were rounded down separately].
-## Factors: Noodle 3/4; Broken Arm 1, 4/5, 3/5 for k = 0, 1, 2; Exposed 3/2.
+## Factors: Noodle 3/4; Broken Arm 1, 17/20, 7/10 for k = 0, 1, 2; Exposed 3/2.
 const ENEMY_TABLE: Array = [
 	[false, 0, false, 12, 12],
 	[false, 0, true, 18, 18],
-	[false, 1, false, 9, 9],
-	[false, 1, true, 14, 13],
-	[false, 2, false, 7, 7],
-	[false, 2, true, 10, 10],
+	[false, 1, false, 10, 10],
+	[false, 1, true, 15, 15],
+	[false, 2, false, 8, 8],
+	[false, 2, true, 12, 12],
 	[true, 0, false, 9, 9],
 	[true, 0, true, 13, 13],
 	[true, 1, false, 7, 7],
-	[true, 1, true, 10, 10],
-	[true, 2, false, 5, 5],
-	[true, 2, true, 8, 7],
+	[true, 1, true, 11, 10],
+	[true, 2, false, 6, 6],
+	[true, 2, true, 9, 9],
 ]
 
 ## Dude attacker table: Jab (6) with 1 Swole -> 7, at a Dummy with 2 broken arms (which must not
@@ -102,8 +104,9 @@ func test_enemy_attack_table() -> void:
 		assert_no_errors(RunState.check(result["state"]), "state for row %s" % str(row))
 
 
-## The same table through hit_amount() directly, plus proof that rounding happens once: in two rows
-## rounding after every step would give a smaller number.
+## The same table through hit_amount() directly, plus proof that rounding happens once: in one row
+## (Noodle, 1 arm broken, Exposed: 12 x 3/4 x 17/20 x 3/2 = 11.475) rounding after every step would
+## give a smaller number (9, then 7, then 10).
 func test_rounding_happens_once() -> void:
 	# rules: the test ruleset.
 	var rules: Dictionary = Fixtures.ruleset()
@@ -119,7 +122,7 @@ func test_rounding_happens_once() -> void:
 		assert_eq(Damage.hit_amount(rules["constants"], attacker, target, 10, true), row[3], "row %s" % str(row))
 		if row[3] != row[4]:
 			differing += 1
-	assert_eq(differing, 2, "the table includes cases that catch per-step rounding")
+	assert_eq(differing, 1, "the table includes a case that catches per-step rounding")
 	# Poke (5) from a Noodle Dude at an Exposed enemy: 5 x 3/4 x 3/2 = 5.625 -> 5. Per step: 3, then 4.
 	assert_eq(Damage.hit_amount(rules["constants"], {"swole": 0, "statuses": {"noodle_arms": 1}},
 		{"statuses": {"exposed": 1}}, 5, true), 5)
@@ -202,10 +205,10 @@ func test_every_product_rounds_exactly() -> void:
 	for noodle: bool in [false, true]:
 		for k: int in [0, 1, 2]:
 			for exposed: bool in [false, true]:
-				# num: the product's numerator: Noodle 3/4, Broken Arm (10 - 2k)/10, Exposed 3/2.
-				var num: int = (3 if noodle else 1) * (10 - 2 * k) * (3 if exposed else 1)
+				# num: the product's numerator: Noodle 3/4, Broken Arm (20 - 3k)/20, Exposed 3/2.
+				var num: int = (3 if noodle else 1) * (20 - 3 * k) * (3 if exposed else 1)
 				# den: the product's denominator.
-				var den: int = (4 if noodle else 1) * 10 * (2 if exposed else 1)
+				var den: int = (4 if noodle else 1) * 20 * (2 if exposed else 1)
 				combos.append([noodle, k, exposed, num, den])
 	for combo: Array in combos:
 		# attacker: a hand-made enemy state.

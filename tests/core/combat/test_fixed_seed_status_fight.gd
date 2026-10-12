@@ -33,7 +33,9 @@ const RECORDED: Array = ["won", 8, 32]
 ## unchanged). RECORDED still holds.
 ## Re-recorded again by task 021 (SCHEMA_VERSION 5, two new combat fields; same fight).
 ## Re-recorded by task 025 (SCHEMA_VERSION 8, the run-flow fields; same fight, RECORDED still holds).
-const FINAL_HASH: String = "5bb160a65346f8402a2281b26ecf2a2cb22e7579c905a5e04c5eaa4506a3d2eb"
+## Re-recorded on 2026-10-12 for BROKEN_ARM_MAX_REDUCTION 0.4 -> 0.3 (Smoketsu): enemy hits after
+## Broken Arm are larger, so HP differs; RECORDED still holds.
+const FINAL_HASH: String = "6eef7ed2918e33c0d242fd1f1860949b1fe12463aa0e3ca3a4f3f96eabcffba6"
 
 
 ## Returns the bot's next request for p1 in this state (see the file header).
