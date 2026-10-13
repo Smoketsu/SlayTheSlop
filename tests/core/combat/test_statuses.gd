@@ -192,7 +192,7 @@ func test_armless_once_per_fight() -> void:
 	assert_true(result["state"]["combat"]["enemies"][0]["armless_used"])
 	result = _ok(rules, result["state"], Fixtures.set_ready("p1", 2))
 	assert_eq(_of_types(result["events"], ["armless", "enemy_skipped"]), [], "only once per fight")
-	assert_eq(_of_types(result["events"], ["damage_dealt"])[0]["amount"], 6, "10 x (1 - 0.4) = 6")
+	assert_eq(_of_types(result["events"], ["damage_dealt"])[0]["amount"], 7, "10 x (1 - 0.3) = 7")
 
 
 ## G7: a move that deals no damage still happens while Armless is waiting; the skip waits for the
