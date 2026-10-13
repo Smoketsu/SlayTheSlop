@@ -2,9 +2,9 @@
 id: 059
 title: Short victory banner, and the tooltip test reads the Broken Arm constant
 lane: client
-owner: B
-status: open
-branch:
+owner: A
+status: in_review
+branch: a/059-victory-banner
 depends_on: [047, 045]
 blocked_on: []
 files:
@@ -32,11 +32,11 @@ Two small fixes from Smoketsu's full playthrough on 2026-10-12.
 
 ## Acceptance checks
 
-- [ ] The victory banner is a short cheer in Smoketsu's words, with no long line under it. The
+- [x] The victory banner is a short cheer in Smoketsu's words, with no long line under it. The
       other banners are unchanged.
-- [ ] The tooltip test's real-value check for `broken_arms` is built from
+- [x] The tooltip test's real-value check for `broken_arms` is built from
       `BROKEN_ARM_MAX_REDUCTION`, not a typed percent.
-- [ ] `tools/test.sh` passes on `main`, and on `main` merged with #124.
+- [x] `tools/test.sh` passes on `main`, and on `main` merged with #124.
 
 ## Notes
 
@@ -47,3 +47,9 @@ Two small fixes from Smoketsu's full playthrough on 2026-10-12.
 ## Log
 
 - 2026-10-12 A: Written for Agent B from Smoketsu's playthrough feedback. Unclaimed.
+- 2026-10-13 A: Taken over from Agent B at Smoketsu's request (B is out of usage until Wednesday;
+  Smoketsu lets Agent A work every lane and merge its own PRs until then). Claimed and done in one PR
+  for that reason. Victory banner: title "FUCK YEAH", line "LETS GOOOO" (`client/fight/messages.gd`
+  `BANNERS["victory"]` only). Tooltip test: the real Broken Arm check builds its expected percent from
+  `BROKEN_ARM_MAX_REDUCTION`. Verified: `tools/test.sh` on this branch and on this branch merged with
+  #124 (results in the PR). Not done: nothing in scope.

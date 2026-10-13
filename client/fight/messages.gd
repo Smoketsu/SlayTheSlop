@@ -41,11 +41,13 @@ const SKIP_REASONS := {
 
 ## [added, task 047] Banner kinds (client/visual/event_player.gd BANNERS) -> {"title": the big word,
 ## "line": a smaller line under it, "" for none}. Writers may change the words; the kinds are the
-## client's. tests/client checks that no kind is missing.
+## client's. tests/client checks that no kind is missing. [changed, task 059] The victory banner is a
+## short cheer in Smoketsu's words; the profanity lives only here, so it is one line to change if the
+## GDD's open rating question goes the other way.
 const BANNERS := {
 	"your_turn": {"title": "Your turn", "line": ""},
 	"enemy_turn": {"title": "Enemy turn", "line": ""},
-	"victory": {"title": "Victory", "line": "The Dudes win. Nobody is more surprised than the Dudes."},
+	"victory": {"title": "FUCK YEAH", "line": "LETS GOOOO"},
 	"passed_out": {"title": "Passed Out", "line": "Lights out, bro."},
 }
 
