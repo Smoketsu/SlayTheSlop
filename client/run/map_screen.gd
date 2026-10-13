@@ -13,9 +13,9 @@
 ## header on a dark strip, each node an icon by type (its name and state in the hover tooltip, the
 ## Boss bigger with the boss's portrait), links drawn as a dashed trail with the walked path solid and
 ## the links you can take now pulsing, a Dude token standing on the party's node that slides to the next
-## one, reachable nodes lifting on hover, and in co-op one seat-coloured marker per player's vote. The
-## board fits 1280x720 for the slice's map size, and otherwise scrolls with the party's node kept in
-## view. Clicking is unchanged: only vote_node is ever sent.
+## one, reachable nodes lifting on hover, and in co-op one seat-coloured marker per player's vote.
+## Task 067: the nodes sit inside the backdrop's open area (client/visual/map_art.gd PLAY_AREAS) at any
+## window size, so they never cover the drawn rooms. Clicking is unchanged: only vote_node is ever sent.
 extends Control
 
 const RunText := preload("res://client/run/run_text.gd")
@@ -35,14 +35,22 @@ const NODE_SIZE := Vector2(58, 58)
 ## [added, task 061] Size of the Boss node's button, in pixels: bigger than the others. Changed only
 ## by the client lane.
 const BOSS_SIZE := Vector2(96, 96)
-## Distance between the centres of two neighbouring nodes in a row, in pixels. Changed only by the
-## client lane.
+## Most distance between the centres of two neighbouring nodes in a row, in pixels. [changed, task
+## 067] Nodes spread across the backdrop's open area (client/visual/map_art.gd PLAY_AREAS), closer when
+## it is narrow. Changed only by the client lane.
 const COLUMN_GAP: float = 150.0
-## Distance between the centres of two neighbouring rows, in pixels. Changed only by the client lane.
-const ROW_GAP: float = 60.0
-## Empty space kept around the nodes on the board, in pixels, on every side. Changed only by the
-## client lane.
+## Most distance between the centres of two neighbouring rows, in pixels. [changed, task 067] Rows
+## spread over the open area's height, closer when it is short. Changed only by the client lane.
+const ROW_GAP: float = 90.0
+## Empty space kept around the nodes, in pixels, when the backdrop has no measured open area. Changed
+## only by the client lane.
 const BOARD_MARGIN: float = 20.0
+## [added, task 067] Height of the header strip, in pixels: the area for nodes starts below it when
+## the backdrop has no measured open area. Changed only by the client lane.
+const HEADER_HEIGHT: float = 80.0
+## [added, task 067] Screen size assumed while the screen has no size yet (not in a window), in
+## pixels: the project's window size. Changed only by the client lane.
+const DESIGN_SIZE := Vector2(1280, 720)
 ## Colour and width (pixels) of a link line the party cannot take now. Changed only by the client lane.
 const LINK_COLOR := Color(0.18, 0.12, 0.08, 0.75)
 ## See LINK_COLOR.
@@ -104,6 +112,9 @@ var prompt_text: String = ""
 var node_buttons: Dictionary = {}
 ## Every link line drawn, as [from node id, to node id], in map order. Read by tests.
 var drawn_links: Array = []
+## [added, task 067] Where the nodes go, in screen pixels: the backdrop's open area as drawn on this
+## screen, or the screen below the header. Read by tests.
+var play_rect: Rect2 = Rect2()
 ## [added, task 061] The node id the Dude token stands on (the party's node), or "" with no map. Read
 ## by tests.
 var token_node_id: String = ""
@@ -133,10 +144,8 @@ var _board: Control
 var _backdrop: TextureRect
 ## [added, task 061] Drawn instead of a missing backdrop. Built once in _init().
 var _backdrop_fallback: ColorRect
-## [added, task 061] Lets the board scroll when it does not fit. Built once in _init().
-var _scroll: ScrollContainer
-## [added, task 061] Holds the board and, above it, the token and vote markers; sized to the board.
-## Built once in _init().
+## [added, task 061] Holds the board and, above it, the token and vote markers. [changed, task 067]
+## Placed over the backdrop's open area (play_rect). Built once in _init().
 var _canvas: Control
 ## [added, task 061] Holds the Dude token and the vote markers, over the buttons; ignores the mouse.
 ## Built once in _init().
@@ -166,9 +175,10 @@ func _init() -> void:
 	_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_backdrop.modulate = BACKDROP_TINT
 	add_child(_backdrop)
-	# column: everything, top to bottom.
+	# column: the header, top to bottom.
 	var column := VBoxContainer.new()
 	column.set_anchors_preset(Control.PRESET_FULL_RECT)
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(column)
 	# header: the dark strip the three header lines sit on.
 	var header := PanelContainer.new()
@@ -191,15 +201,13 @@ func _init() -> void:
 	_prompt = Label.new()
 	_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	header_lines.add_child(_prompt)
-	_scroll = ScrollContainer.new()
-	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	column.add_child(_scroll)
 	_canvas = Control.new()
-	_canvas.size_flags_horizontal = Control.SIZE_EXPAND | Control.SIZE_SHRINK_CENTER
-	_canvas.size_flags_vertical = Control.SIZE_EXPAND | Control.SIZE_SHRINK_CENTER
-	_scroll.add_child(_canvas)
+	_canvas.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_canvas)
+	resized.connect(_on_resized)
 	_board = Control.new()
 	_board.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_board.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_board.draw.connect(_draw_links)
 	_canvas.add_child(_board)
 	_overlay = Control.new()
@@ -278,7 +286,6 @@ func show_state(ruleset: Dictionary, state: Dictionary, player_id: String) -> vo
 	_add_vote_markers(state)
 	_show_labels()
 	_board.queue_redraw()
-	_keep_in_view.call_deferred(here["id"])
 
 
 ## Votes for a node, exactly as clicking its button does: emits vote_node when the node can be
@@ -335,18 +342,27 @@ func _layout(nodes: Array) -> void:
 	var widest: int = 1
 	for row: int in per_row:
 		widest = maxi(widest, per_row[row])
-	# top_half: room above the top row's centre (the boss row holds the bigger Boss node).
-	var top_half: float = BOSS_SIZE.y / 2.0
-	# board_size: room for the widest row and every row, plus the margins.
-	var board_size := Vector2(COLUMN_GAP * (widest - 1) + maxf(NODE_SIZE.x, BOSS_SIZE.x),
-		top_half + ROW_GAP * top_row + NODE_SIZE.y / 2.0 + TOKEN_SIZE.y / 2.0) + Vector2.ONE * BOARD_MARGIN * 2
-	_canvas.custom_minimum_size = board_size
-	_board.custom_minimum_size = board_size
+	play_rect = _play_rect(int(_state.get("floor", 1)))
+	_canvas.position = play_rect.position
+	_canvas.size = play_rect.size
+	# column_gap: the gap between columns, so the widest row's nodes stay inside the area.
+	var column_gap: float = COLUMN_GAP
+	if widest > 1:
+		column_gap = minf(COLUMN_GAP, (play_rect.size.x - NODE_SIZE.x) / (widest - 1))
+	# top_y, bottom_y: the boss row's centre and the entrance row's centre, inside the area.
+	var top_y: float = BOSS_SIZE.y / 2.0
+	var bottom_y: float = play_rect.size.y - NODE_SIZE.y / 2.0
+	# row_gap: rows spread over the area's height, never more than ROW_GAP apart.
+	var row_gap: float = ROW_GAP
+	if top_row > 0:
+		row_gap = minf(ROW_GAP, (bottom_y - top_y) / top_row)
+	# middle_y: the vertical centre the rows are spread around when they do not fill the area.
+	var middle_y: float = (top_y + bottom_y) / 2.0
 	for node: Dictionary in nodes:
 		# offset: how far this node sits from its row's middle, in columns.
 		var offset: float = node["column"] - (per_row[node["row"]] - 1) / 2.0
-		_centres[node["id"]] = Vector2(board_size.x / 2.0 + offset * COLUMN_GAP,
-			BOARD_MARGIN + top_half + (top_row - node["row"]) * ROW_GAP)
+		_centres[node["id"]] = Vector2(play_rect.size.x / 2.0 + offset * column_gap,
+			middle_y + (top_row / 2.0 - node["row"]) * row_gap)
 
 
 ## Adds one node's button to the board.
@@ -474,11 +490,31 @@ func _add_vote_markers(state: Dictionary) -> void:
 		seat += 1
 
 
-## [added, task 061] Scrolls the board so a node is in view (when the board is bigger than the screen).
-## node_id: the node to keep in view.
-func _keep_in_view(node_id: String) -> void:
-	if node_buttons.has(node_id) and is_instance_valid(node_buttons[node_id]) and node_buttons[node_id].is_inside_tree():
-		_scroll.ensure_control_visible(node_buttons[node_id])
+## [added, task 067] The screen changed size (window resize, or first layout): redraws the last state
+## so the nodes follow the backdrop's open area.
+func _on_resized() -> void:
+	if not _state.is_empty():
+		show_state(_ruleset_cache, _state, _player_id)
+
+
+## [added, task 067] Returns where the nodes go, in screen pixels: the floor's open area
+## (MapArt.play_area) mapped onto the backdrop as it is drawn (it covers the screen keeping its aspect,
+## centred), or, with no backdrop or no measured area, the screen below the header less BOARD_MARGIN.
+## floor_number: run_state.floor.
+func _play_rect(floor_number: int) -> Rect2:
+	# screen: the screen size (DESIGN_SIZE while the screen has none yet).
+	var screen: Vector2 = size if size.x > 0.0 and size.y > 0.0 else DESIGN_SIZE
+	# area: the open area as fractions of the picture. picture: the backdrop.
+	var area: Rect2 = MapArt.play_area(floor_number)
+	var picture: Texture2D = _backdrop.texture
+	if picture == null or area.size == Vector2.ZERO:
+		return Rect2(BOARD_MARGIN, HEADER_HEIGHT, screen.x - BOARD_MARGIN * 2.0, screen.y - HEADER_HEIGHT - BOARD_MARGIN)
+	# scale: how much the picture is scaled to cover the screen. shown: its size on screen.
+	var scale: float = maxf(screen.x / picture.get_width(), screen.y / picture.get_height())
+	var shown: Vector2 = Vector2(picture.get_width(), picture.get_height()) * scale
+	# corner: where the picture's top-left corner lands (off screen when it is cropped).
+	var corner: Vector2 = (screen - shown) / 2.0
+	return Rect2(corner + area.position * shown, area.size * shown)
 
 
 ## Copies the drawn texts into the labels.

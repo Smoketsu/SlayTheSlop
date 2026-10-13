@@ -28,6 +28,15 @@ const NODE_ICONS := {
 	"loot": "node_loot",
 	"boss": "node_boss",
 }
+## [added, task 067] Backdrop -> the open area of its picture where the map's nodes go, as fractions of
+## the picture's width and height (x, y, width, height; 0..1), so nodes never sit on the drawn rooms.
+## Measured on the picture with a pixel grid:
+##   basement (1536 x 1024): the big open room between the walls, x 625..1015, y 275..915.
+## A backdrop with no entry lets the nodes use the whole screen below the header. Changed only by the
+## client lane, after measuring a new or replaced picture.
+const PLAY_AREAS := {
+	"basement": Rect2(625.0 / 1536.0, 275.0 / 1024.0, 390.0 / 1536.0, 640.0 / 1024.0),
+}
 ## Colour drawn behind the map when its floor has no backdrop. Changed only by the client lane.
 const FALLBACK_COLOR := Color(0.14, 0.12, 0.11)
 
@@ -36,6 +45,13 @@ const FALLBACK_COLOR := Color(0.14, 0.12, 0.11)
 ## floor_number: run_state.floor, 1 or more.
 static func backdrop_for(floor_number: int) -> Texture2D:
 	return _load(str(FLOOR_BACKDROPS.get(floor_number, "")), ".webp")
+
+
+## [added, task 067] Returns a floor's open area for nodes (PLAY_AREAS, fractions of its backdrop), or
+## an empty Rect2 when the floor has no backdrop or no measured area.
+## floor_number: run_state.floor, 1 or more.
+static func play_area(floor_number: int) -> Rect2:
+	return PLAY_AREAS.get(str(FLOOR_BACKDROPS.get(floor_number, "")), Rect2())
 
 
 ## Returns a node type's icon texture, or null when it has none (the screen then shows its name).

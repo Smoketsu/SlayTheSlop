@@ -2,6 +2,8 @@
 ## on real states from a fixed-seed run (tests/client/run_choices_drive.gd). Lane: tools/client (taken
 ## over by Agent A from Agent B, 2026-10-13). The map's clicks and requests are tested in
 ## test_map_screen.gd and are unchanged.
+## Task 067: the nodes stay inside the backdrop's measured open area (client/visual/map_art.gd
+## PLAY_AREAS), at 1280x720 and at another window size.
 ## Acceptance checks: a floor backdrop; every node type has an icon or a text fallback, its name in the
 ## tooltip; the Boss is bigger with the boss's portrait; a Dude token on the party's node that slides
 ## when the party moves; visited nodes dimmed; co-op vote markers in seat order; the floor fits 1280x720.
@@ -27,6 +29,35 @@ func test_every_node_type_has_an_icon() -> void:
 	assert_true(MapArt.icon_for("no_such_type") == null, "an unknown type has no icon")
 	assert_true(MapArt.icon_for("../secret") == null, "a bad name never becomes a path")
 	assert_true(MapArt.backdrop_for(99) == null, "a floor with no backdrop has none")
+
+
+## Task 067: the open area follows the backdrop as drawn: at 1280x720 the Basement's area is where it
+## was measured on the picture, and at a taller window (more of the picture cropped at the sides) every
+## node still sits inside it.
+func test_nodes_stay_in_the_open_area_at_any_size() -> void:
+	# begun: a new run.
+	var begun: Dictionary = Drive.start()
+	if begun.is_empty():
+		fail("the run starts")
+		return
+	for window: Vector2 in [WINDOW, Vector2(1024, 768), Vector2(1920, 1080)]:
+		# frame, screen: a window of that size and the map screen in it.
+		var frame := Control.new()
+		frame.size = window
+		(Engine.get_main_loop() as SceneTree).root.add_child(frame)
+		var screen: Control = MapScreen.new()  # the map screen, filling frame
+		frame.add_child(screen)
+		screen.show_state(begun["rules"], begun["state"], begun["state"]["dudes"][0]["player_id"])
+		# picture: the backdrop. scale: how it is scaled to cover the window.
+		var picture: Texture2D = MapArt.backdrop_for(1)
+		var scale: float = maxf(window.x / picture.get_width(), window.y / picture.get_height())
+		# expected: the measured area (x 625..1015, y 275..915 of the picture) on screen.
+		var corner: Vector2 = (window - Vector2(picture.get_width(), picture.get_height()) * scale) / 2.0  # picture's top-left on screen
+		var expected := Rect2(corner + Vector2(625, 275) * scale, Vector2(390, 640) * scale)
+		assert_true(screen.play_rect.is_equal_approx(expected), "%s: area %s, expected %s" % [window, screen.play_rect, expected])
+		for button: Button in screen.node_buttons.values():
+			assert_true(screen.play_rect.grow(0.5).encloses(button.get_global_rect()), "%s: a node inside the open area: %s" % [window, button.get_global_rect()])
+		frame.free()
 
 
 ## A node type with no icon is drawn as its name, so nothing is ever blank.
@@ -80,11 +111,13 @@ func test_map_states_look_right_at_1280x720() -> void:
 			assert_eq(button.text, "", "%s shows no text on the button" % node["id"])
 			assert_true(button.tooltip_text.begins_with(RunText.node_label(node["type"])), "%s is named on hover" % node["id"])
 			assert_true(Rect2(Vector2.ZERO, WINDOW).encloses(button.get_global_rect()), "%s fits the window: %s" % [node["id"], button.get_global_rect()])
+			# Task 067: every node sits in the backdrop's open area, never on the drawn rooms.
+			assert_true(screen.play_rect.grow(0.5).encloses(button.get_global_rect()), "%s inside the open area %s: %s" % [node["id"], screen.play_rect, button.get_global_rect()])
 			if node["type"] == "boss":
-				assert_eq(button.size, MapScreen.BOSS_SIZE, "the Boss is bigger")
+				assert_true(button.size.is_equal_approx(MapScreen.BOSS_SIZE), "the Boss is bigger: %s" % button.size)
 				assert_true(button.tooltip_text.contains(played["rules"]["enemies"][boss_id]["name"]), "the Boss names the boss")
 			else:
-				assert_eq(button.size, MapScreen.NODE_SIZE)
+				assert_true(button.size.is_equal_approx(MapScreen.NODE_SIZE), "%s size %s" % [node["id"], button.size])
 			if node["id"] != here and state["path"].has(node["id"]):
 				assert_eq(button.modulate, MapScreen.VISITED_TINT, "%s dimmed as visited" % node["id"])
 		frame.free()
