@@ -100,7 +100,10 @@ func test_numbers_come_from_the_constants() -> void:
 	# real: the real values, as the GDD has them.
 	assert_true(TooltipText.describe(ruleset, "exposed").contains("50% more"), TooltipText.describe(ruleset, "exposed"))
 	assert_true(TooltipText.describe(ruleset, "noodle_arms").contains("25% less"), TooltipText.describe(ruleset, "noodle_arms"))
-	assert_true(TooltipText.describe(ruleset, "broken_arms").contains("40% less"), TooltipText.describe(ruleset, "broken_arms"))
+	# broken_percent: the real Broken Arm cap as a whole percent, read from the constant (task 059), so
+	# retuning BROKEN_ARM_MAX_REDUCTION never breaks this check.
+	var broken_percent: int = roundi(float(ruleset["constants"]["BROKEN_ARM_MAX_REDUCTION"]) * 100.0)
+	assert_true(TooltipText.describe(ruleset, "broken_arms").contains("%d%% less" % broken_percent), TooltipText.describe(ruleset, "broken_arms"))
 	assert_eq(TooltipText.fill({}, "at {NO_SUCH_CONSTANT}"), "at {NO_SUCH_CONSTANT}", "a missing constant is left as written")
 
 
