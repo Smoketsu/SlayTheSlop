@@ -2,9 +2,9 @@
 id: 063
 title: Art style guide, and splash screens for Side Quests and Baileys
 lane: client
-owner: B
-status: open
-branch:
+owner: A
+status: in_review
+branch: a/063-style-guide-splashes
 depends_on: []
 blocked_on: []
 files:
@@ -51,16 +51,16 @@ CLAUDE.md "Writing and content rules" (the Baileys rule, no brands, record sourc
 
 ## Acceptance checks
 
-- [ ] `assets/STYLE_GUIDE.md` covers palette, sizes, the floor line, poses, animation frame
+- [x] `assets/STYLE_GUIDE.md` covers palette, sizes, the floor line, poses, animation frame
       conventions, the prompt template and how sources are recorded.
-- [ ] A splash lookup by node type and Side Quest id (like `backgrounds.gd`), with a visible fallback
+- [x] A splash lookup by node type and Side Quest id (like `backgrounds.gd`), with a visible fallback
       for anything without art. No id is hard-coded except in that table.
-- [ ] Splash art for the 5 Side Quests, Baileys and The Tailgate. Each image's source and terms are
+- [x] Splash art for the 5 Side Quests, Baileys and The Tailgate. Each image's source and terms are
       recorded in `assets/placeholder/README.md`.
-- [ ] **Baileys:** everything for sale reads as weed or Shake. No beer, bottles or drink branding.
-- [ ] The offer screen shows the splash behind its choices. Buttons still work, and nothing is
+- [x] **Baileys:** everything for sale reads as weed or Shake. No beer, bottles or drink branding.
+- [x] The offer screen shows the splash behind its choices. Buttons still work, and nothing is
       unreadable at 1280x720.
-- [ ] `tools/test.sh` passes. Post screenshots in the PR.
+- [x] `tools/test.sh` passes. Post screenshots in the PR.
 
 ## Notes
 
@@ -79,3 +79,21 @@ CLAUDE.md "Writing and content rules" (the Baileys rule, no brands, record sourc
 ## Log
 
 - 2026-10-12 A: Written for Agent B from Smoketsu's playthrough feedback. Unclaimed.
+- 2026-10-13 A: Taken over from Agent B at Smoketsu's request (B is out of usage until Wednesday;
+  Smoketsu lets Agent A work every lane and merge its own PRs until then). Claimed and done in one PR.
+  - **Who makes the images:** the OpenAI image API on Smoketsu's account (`gpt-image-2.5-sunburst`,
+    medium), with the character sheet and the Basement as style references. Smoketsu approved three test
+    images first. Every prompt is in `assets/placeholder/source/generate_art.py`, which also converts the
+    raw PNGs; sources are in `assets/placeholder/README.md` "Splashes".
+  - **Guide:** `assets/STYLE_GUIDE.md` (look and palette, sizes and the floor line, splash safe area,
+    poses, naming, proposed animation conventions, the prompt template, sources and rules).
+  - **Lookup:** `client/visual/splashes.gd` (Side Quest id or offer kind; `SPLASH_KINDS`; fallback colour
+    and words for a missing picture). `client/run/offer_screen.gd` shows the splash full-screen and puts the
+    title, text and choices on a dark panel below `SAFE_TOP` (0.5). Card rewards and the Boss Gear pick
+    keep the old layout.
+  - **Verified:** `tools/test.sh` (results in the PR); new `tests/client/test_splashes.gd` (every Side
+    Quest plus The Tailgate and Baileys has a picture; keys; bad keys; the fallback; on a real run every
+    button sits below the clear top half and inside 1280x720). Screenshots of every splash offer at
+    1280x720 via xvfb were checked by eye.
+  - **Not done:** character animations (a later task, as the Notes say). The Baileys picture shows Tom;
+    in co-op another Dude may be shopping. That is fine for a placeholder, but noted.

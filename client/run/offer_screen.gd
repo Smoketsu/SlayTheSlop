@@ -13,12 +13,18 @@
 ## Baileys sells weed, not drinks: a Brew there reads "Shake: <Brew name> — <effect>" (G29).
 ## Task 045: each option also has a hover tooltip from client/help/tooltip_text.gd option_tooltip()
 ## (a card's keywords, a Gear's data text, a Shake's line).
+## Task 063: a Side Quest, The Tailgate and Baileys show their splash picture
+## (client/visual/splashes.gd) filling the screen, and everything above sits on a dark panel in the
+## lower part of the screen (below Splashes.SAFE_TOP), so the picture's top half stays clear. Other
+## offers keep the full-screen layout with no picture.
 extends Control
 
 const RunText := preload("res://client/run/run_text.gd")
 ## [added, task 045] Option tooltips, and the Button whose tooltip wraps.
 const TooltipText := preload("res://client/help/tooltip_text.gd")
 const TipButton := preload("res://client/visual/tip_button.gd")
+## [added, task 063] The splash lookup.
+const Splashes := preload("res://client/visual/splashes.gd")
 
 ## Emitted with {"type": "choose_reward", "reward_id": <offer id>, "choice_index": <index or -1>}
 ## and, for a Lift or a removal, "card_uid". The run screen adds player_id and seq.
@@ -54,6 +60,15 @@ var pick_buttons: Array[Button] = []
 ## The card names in the open card list, in the same order as pick_buttons. Read by tests.
 var pick_texts: Array[String] = []
 
+## [added, task 063] The splash key of the offer as last drawn (Splashes.key_for), or "" when the
+## offer shows no splash. Read by tests.
+var splash_key: String = ""
+## [added, task 063] True when the last drawn offer shows its own splash picture; false when it
+## shows the fallback or no splash. Read by tests.
+var splash_has_picture: bool = false
+## [added, task 063] True when the last drawn offer shows the missing-picture fallback. Read by tests.
+var splash_fallback_shown: bool = false
+
 ## The ruleset from the last show_state(); read only.
 var _ruleset: Dictionary = {}
 ## The local Dude from the last show_state() (a part of the state; read only), or {}.
@@ -72,16 +87,51 @@ var _options_box: VBoxContainer
 var _pick_box: VBoxContainer
 ## Holds the Skip / Leave button. Built once in _init().
 var _skip_box: VBoxContainer
+## [added, task 063] The splash picture, filling the screen behind everything. Built once in _init().
+var _splash: TextureRect
+## [added, task 063] Drawn instead of a missing splash picture. Built once in _init().
+var _fallback: ColorRect
+## [added, task 063] The panel the title, prompt and choices sit on. Built once in _init(); its top
+## anchor is Splashes.SAFE_TOP over a splash, 0 otherwise.
+var _panel: PanelContainer
 
 
 ## Builds the fixed layout once: title, prompt, Dolla Bills, options, card list and skip, top to bottom.
 func _init() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
+	_fallback = ColorRect.new()
+	_fallback.color = Splashes.FALLBACK_COLOR
+	_fallback.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_fallback.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_fallback.visible = false
+	add_child(_fallback)
+	# fallback_label: the missing-picture words, centred in the clear top part.
+	var fallback_label := Label.new()
+	fallback_label.text = Splashes.FALLBACK_TEXT
+	fallback_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	fallback_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	fallback_label.anchor_right = 1.0
+	fallback_label.anchor_bottom = Splashes.SAFE_TOP
+	_fallback.add_child(fallback_label)
+	_splash = TextureRect.new()
+	_splash.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_splash.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_splash.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_splash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_splash.visible = false
+	add_child(_splash)
+	_panel = PanelContainer.new()
+	_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# panel_style: the dark backing for text over a splash (transparent when there is none).
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = Color(0, 0, 0, 0)
+	panel_style.set_content_margin_all(12)
+	_panel.add_theme_stylebox_override("panel", panel_style)
+	add_child(_panel)
 	# scroll: lets a long Baileys list scroll.
 	var scroll := ScrollContainer.new()
-	scroll.set_anchors_preset(Control.PRESET_FULL_RECT)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	add_child(scroll)
+	_panel.add_child(scroll)
 	# column: everything, top to bottom.
 	var column := VBoxContainer.new()
 	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -117,6 +167,7 @@ func show_state(ruleset: Dictionary, state: Dictionary, player_id: String) -> vo
 			_dude = dude
 	if not _dude.is_empty() and not _dude["offers"].is_empty():
 		_offer = _dude["offers"][0]
+	_show_splash()
 	_clear(_options_box)
 	_clear(_skip_box)
 	option_texts = []
@@ -244,6 +295,24 @@ func _close_pick() -> void:
 	picking_index = -1
 	pick_buttons = []
 	pick_texts = []
+
+
+## [added, task 063] Shows the offer's splash (or the fallback, or none) and places the panel: below
+## Splashes.SAFE_TOP on a dark backing over a splash, full screen and clear otherwise.
+func _show_splash() -> void:
+	splash_key = Splashes.key_for(_offer)
+	# shows: whether this offer shows a splash at all.
+	var shows: bool = Splashes.shows_splash(_offer)
+	# texture: its picture, or null.
+	var texture: Texture2D = Splashes.texture_for(splash_key) if shows else null
+	splash_has_picture = texture != null
+	splash_fallback_shown = shows and texture == null
+	_splash.texture = texture
+	_splash.visible = splash_has_picture
+	_fallback.visible = splash_fallback_shown
+	_panel.anchor_top = Splashes.SAFE_TOP if shows else 0.0
+	_panel.offset_top = 0.0
+	(_panel.get_theme_stylebox("panel") as StyleBoxFlat).bg_color = Splashes.SAFE_PANEL_COLOR if shows else Color(0, 0, 0, 0)
 
 
 ## Copies the drawn texts into the labels.
