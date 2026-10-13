@@ -51,12 +51,12 @@ func test_every_node_and_link_is_drawn() -> void:
 		var button: Button = screen.node_buttons.get(node["id"])
 		assert_true(button != null, "%s has a button" % node["id"])
 		if button != null:
-			assert_true(button.text.begins_with(RunText.node_label(node["type"])), "%s reads %s" % [node["id"], button.text])
+			assert_true(button.tooltip_text.begins_with(RunText.node_label(node["type"])), "%s is named %s on hover" % [node["id"], button.tooltip_text])
 	# drawn: the button ids, in map order.
 	var drawn: Array = screen.node_buttons.keys()
 	assert_eq(drawn, ids, "one button per node")
 	assert_eq(screen.drawn_links, links, "one line per link")
-	assert_true(screen.node_buttons[ids[0]].text.ends_with(MapScreen.HERE_TEXT), "the entrance is where the party stands")
+	assert_true(screen.node_buttons[ids[0]].tooltip_text.ends_with(MapScreen.HERE_TEXT), "the entrance is where the party stands")
 	assert_eq(screen.title_text, "Floor 1: The Basement")
 	# dude: the Dude, for the line under the header.
 	var dude: Dictionary = state["dudes"][0]
@@ -94,7 +94,7 @@ func test_only_linked_nodes_can_be_picked() -> void:
 		for node_id: String in state["path"]:
 			if node_id != here["id"]:
 				assert_eq(screen.node_buttons[node_id].modulate, MapScreen.VISITED_TINT, "%s shown as visited" % node_id)
-		assert_true(screen.node_buttons[here["id"]].text.ends_with(MapScreen.HERE_TEXT), "%s is where the party stands" % here["id"])
+		assert_true(screen.node_buttons[here["id"]].tooltip_text.ends_with(MapScreen.HERE_TEXT), "%s is where the party stands" % here["id"])
 		screen.free()
 	# at_node: the first state with an offer open (run_phase "node"): nothing can be picked.
 	var at_node: Dictionary = played["offer_states"][0]
@@ -162,7 +162,7 @@ func test_vote_is_shown() -> void:
 	var screen: Control = shown["screen"]
 	# node_type: the voted node's type.
 	var node_type: String = state["map"]["nodes"][1]["type"]
-	assert_true(screen.node_buttons[link].text.ends_with(MapScreen.VOTE_TEXT), "the vote is marked")
+	assert_true(screen.node_buttons[link].tooltip_text.ends_with(MapScreen.VOTE_TEXT), "the vote is marked")
 	assert_true(screen.prompt_text.begins_with("You voted for %s." % RunText.node_label(node_type)), screen.prompt_text)
 	assert_true(screen.prompt_text.ends_with("Votes in: 1 of 2."), screen.prompt_text)
 	screen.free()
